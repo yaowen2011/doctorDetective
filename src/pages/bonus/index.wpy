@@ -1,0 +1,115 @@
+<template lang="pug">
+  view.container
+    view.card_wrapper
+      view.balance_block
+        view.balance_up
+          view.tip 累计共获得
+          view.balance
+            text {{total_bonus}}
+            text.unit 元
+        view.balance_bottom
+          view(
+            @tap="goWithdrawPage"
+          )
+            Btn.handle_button 提现
+          view.directions 说明：账户总金额超过10元才可提现哦
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import Btn from '@/components/btn'
+
+  export default class BonusPage extends wepy.page {
+    config = {
+      navigationBarTitleText: '账户余额'
+    }
+    data = {
+      pid: '',                      // 用户 pid
+      total_bonus: 0                // 累计奖金
+    }
+
+    components = {
+      Btn
+    }
+
+    methods = {
+      goWithdrawPage () {
+        wepy.navigateTo({
+          url: `/pages/withdraw/index?total_bonus=${this.total_bonus}&pid=${this.pid}`
+        })
+      }
+    }
+
+    onLoad ({ total_bonus = 0, pid = ''}) {
+      this.pid = pid
+      this.total_bonus = Number(total_bonus)
+    }
+  }
+</script>
+
+<style lang="scss">
+@import '../../scss/_layout.scss';
+@import '../../scss/_element.scss';
+
+// 按钮样式
+.handle_button {
+  @include btn($width:350rpx, $height:100rpx, $radius: 60rpx, $size: 36rpx);
+  // margin-bottom: 20rpx;
+}
+
+.container {
+  @include verticalHorizontalCenter();
+  background: linear-gradient(to bottom right, #4020B8, #D263DD );
+  padding: 128rpx 50rpx;
+}
+
+.card_wrapper {
+  @include horizontalCenter();
+
+  width: 650rpx;
+  height: 1080rpx;
+  border-radius: 40rpx;
+  background: #fff;
+  padding: 20rpx;
+}
+
+.balance_block {
+  @include horizontalCenter();
+  justify-content: space-between;
+  height: 100%;
+}
+
+.balance_up {
+  @include horizontalCenter();
+  margin-top: 160rpx; 
+
+  .tip {
+    font-family: PingFangSC-Medium;
+    font-size: 24rpx;
+    color: #9b9b9b;
+  }
+
+  .balance {
+    font-family: DINCondensed-Bold;
+    font-size: 160rpx;
+    color: #bf00e3;
+
+    .unit {
+      font-family: PingFangSC-Semibold;
+      font-size: 36rpx;
+      color: #393939
+    }
+  }
+}
+.balance_bottom {
+  @include horizontalCenter();
+  margin-bottom: 100rpx;
+
+  .directions {
+    font-family: PingFangSC-Medium;
+    font-size: 24rpx;
+    color: #9b9b9b;
+    margin-top: 40rpx;
+  }
+}
+</style>

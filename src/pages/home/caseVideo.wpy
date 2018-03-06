@@ -1,0 +1,34 @@
+<style lang="scss">
+@import '../../scss/_variables.scss';
+
+.video {
+  width: 100%;
+  height: $videoHeight;
+  // position:fixed;
+  // top:0;
+  // left:0;
+}
+</style>
+
+<template lang="pug">
+  video(
+    class="video"
+    src="{{video.src}}"
+    poster="{{video.cover}}"
+  )
+</template>
+
+<script>
+  import wepy from 'wepy'
+  export default class CaseVideoComponent extends wepy.component {
+    props = {
+      video: {
+        type: Object,
+        default: {
+          cover: '',
+          src: ''
+        }
+      }
+    }
+  }
+</script>

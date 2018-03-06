@@ -1,0 +1,342 @@
+<template lang="pug">
+  view.container
+    CaseVideo(:video.sync="video")
+    view.content(wx:if="{{isStart}}")
+      Question(
+        :index.sync="index"
+        :questions.sync="questions"
+      )
+    view.content(wx:else)
+      Deadline(
+      :expired_at.sync="expired_at" 
+      :bonusPool.sync="bonusPool")
+      view(@tap="startAnswer")
+        Btn.startAnswerBtn 开始答题
+      Card(
+        :pid.sync="pid"
+        :card.sync="card"
+        :honor.sync="honor"
+        :userInfo.sync="userInfo" 
+        :total_score.sync="total_score"
+        :total_bonus.sync="total_bonus"
+        :is_answer.sync="is_answer"
+        )
+    Share(wx:if="{{isShowShare}}")
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import Panel from '@/components/panel'
+  import Btn from '@/components/btn'
+  import CaseVideo from './caseVideo'
+  import Deadline from './deadline'
+  import Card from './hCard'
+  import Share from './share'
+  import Question from './question'
+
+  import { getLoginToken } from '@/utils/login'
+  import { getVideo, getQuestions, postAnswer, getBonus } from '@/utils/api'
+  import { transformObject } from '@/utils/utils'
+
+  export default class HomePage extends wepy.page {
+    data = {
+      video: {},                        // 病历视频
+      isStart: false,                   // 是否开始答题
+      isShowShare: false,               // 是否显示分享模块
+      share_uid: '',                    // 分享人的 uid
+      questions: [],                    // 本期所有题目信息
+      currentQuestion: {},              // 正在作答的题
+      answer: '',                       // 提交的答案
+      index: 0,                         // 索引
+      token: '',                        // token
+      userInfo: {},                     // 用户信息
+      uid: '',                          // 数据库中用户 ID
+      card: 0,                          // 复活卡
+      total_score: 0,                   // 累计得分
+      pid: '',                          // 本期试卷的 id
+      total_bonus: 0,                   // 累计奖金
+      expired: 0,                       // 题目是否过期
+      is_answer: 0,                     // 是否答过题
+      expired_at: '',                   // 答题截止时间
+      bonusPool: 0,                     // 奖池总金额
+      honor: ''                         // 级别称号
+    }
+
+    components = {
+      Panel,
+      Btn,
+      CaseVideo,
+      Deadline,
+      Card,
+      Share,
+      Question
+    }
+
+    methods = {
+      // 开始答题
+      async startAnswer () {
+        switch (this.expired) {
+          case 0:
+            if ( this.is_answer === 1) {
+              wepy.showModal({
+                content: '您已参与过本期答题了，请下期再答。',
+                showCancel: false
+              })
+            } else {
+              this.questions = await this.getQuestions()
+              this.isStart = true
+              this.$apply()
+              this.$invoke(this.$com.Question.$com.Timer, 'startTimer')
+            }
+            break
+          case 1:
+            wepy.showToast({
+              title: '本期答题已结束。'
+            })
+            break
+        }
+      },
+      // 显示分享模块
+      showShareBlock () {
+        this.isShowShare = true
+      },
+      // 隐藏分享模块
+      hideShareBlock () {
+        this.isShowShare = false
+      }
+    }
+
+    events = {
+      'showShareBlock': () => {
+        this.isShowShare = true
+      },
+      'hideShareBlock': () => {
+        this.isShowShare = false
+      },
+      'updateOptionAndQuesion': (currentQuestion) =>{
+        this.currentQuestion = currentQuestion 
+      },
+      'handleAnswer': async () => {
+        this.answer = ''
+        this.$apply()
+        if (!this.currentQuestion.choice) return
+        this.$invoke(this.$com.Question.$com.Timer, 'clearTimer')    
+        let choice = this.currentQuestion.choice
+        for (let i = 0; i < choice.length; i++) {
+          if (choice[i].checked) {
+            this.answer += choice[i].option
+            this.$apply()
+          }
+        }
+
+        let params = {
+          method: 'POST',
+          data: {
+            pid: this.pid,
+            qid: this.currentQuestion._id,
+            finished: 0,
+            answer: this.answer
+          }
+        }
+
+        let res = {}
+        // 判断正在答的题是否为最后一题
+        if (this.index < this.questions.length -1) {
+          res = await postAnswer(params)
+          this.handleAnswerResponse(res)
+        } else {
+          params.data.finished = 1
+          res = await postAnswer(params)
+          this.handleAnswerResponse(res)
+        }
+        this.currentQuestion = {}
+        this.$apply()
+      }
+    }
+
+    async onLoad ({ share_uid = '' }) {
+      this.share_uid = share_uid
+
+      let { data: { data: { video: { data: video } } } } = await getVideo({isNeedToken: false})
+      this.video = video
+      this.$apply()
+    }
+
+    onShow () {
+      this.isStart = false
+      this.login({ share_uid: this.share_uid })
+    }
+
+    onShareAppMessage (options) {
+      let { share_uid = ''} = { share_uid: wepy.getStorageSync('uid') }
+      return {
+        title: '解密病例赢大奖，快来医者神探答题吧！',
+        path: `/pages/home/home?share_uid=${share_uid}`,
+        imageUrl: '../../images/poster.png',
+        success: (res) => {
+          this.isShowShare = false
+          this.$apply()
+          wepy.showToast({
+            title: '分享成功'
+          })
+        },
+        fail: (err) => {
+          this.isShowShare = false
+          this.$apply()
+          wepy.showToast({
+            title: '分享失败'
+          })
+        }
+      }
+    }
+
+    async login (params) {
+      let { token, userInfo, uid, card, score, pid, bonus, expired, expired_at, is_answer, total_bonus, honor } = await getLoginToken(params)
+      this.token = token
+      this.userInfo = userInfo
+      this.uid = uid
+      this.card = card
+      this.total_score = score
+      this.pid = pid
+      this.total_bonus = bonus
+      this.expired = expired
+      this.expired_at = expired_at
+      this.is_answer = is_answer
+      this.bonusPool = total_bonus
+      this.honor = honor
+      this.$apply()
+    }
+
+    // 获取本期所有题
+    async getQuestions () {
+      let params = {
+        method: 'POST',
+        data: {
+          pid: this.pid
+        }
+      }
+      let { data: { data: questions } } = await getQuestions(params)
+      for(let i = 0; i < questions.length; i++) {
+        let choice = []
+        for(let j = 0; j < questions[i].choice.length; j++) {
+          choice.push(transformObject(questions[i].choice[j]))
+        }
+        questions[i].choice = choice
+      }
+      return questions
+    }
+
+    // 处理答题响应
+    async handleAnswerResponse ({ data: {data = 0, alive = 0, finished = 0, total = 0, time = 0, fn = 0} }) {  
+      let len = this.questions.length
+      let index = this.index
+
+      if(index >= 0 && index < 3) {
+        if(data === 1 && alive === 0) {
+          await this.showTip('答对啦！好棒！')
+          this.nextQuestion()
+        }
+        if(data === 1 && alive === 1) {
+          await this.showTip('答错啦！自动使用复活卡！')
+          this.nextQuestion()
+        }
+        if(data === 0 && finished === 1) {
+          await this.showTip('很遗憾！您被淘汰了！')
+          this.$invoke(this.$com.Question.$com.Timer, 'clearTimer')
+          wepy.navigateTo({
+            url: `/pages/result/index?score=${total}&pid=${this.pid}&total_score=${this.total_score}`
+          })
+        }
+      } else if( index === 3) {
+        if(data === 1 && alive === 0) {
+          await this.showTip('答对啦！恭喜进入晋级赛！')
+          this.nextQuestion()
+        }
+        if(data === 1 && alive === 1) {
+          await this.showTip('自动使用复活卡！恭喜进入晋级赛！')
+          this.nextQuestion()
+        }
+        if(data === 0 && finished === 1) {
+          await this.showTip('很遗憾！您被淘汰了！')
+          this.$invoke(this.$com.Question.$com.Timer, 'clearTimer')
+          wepy.navigateTo({
+            url: `/pages/result/index?score=${total}&pid=${this.pid}&total_score=${this.total_score}`
+          })
+        }
+      }else if (index > 3 && index < len -1) {
+        if(data === 1 && finished === 0 ) {
+          await this.showTip('答对啦！好棒！')
+          this.nextQuestion()
+        }
+        if(data === 0 && finished === 0) {
+          await this.showTip('答错啦！下一题加油哦！')
+          this.nextQuestion()
+        }
+      }else if(index === len - 1) {
+        if(data === 1 && finished === 1) {
+          await this.showTip('答对啦！答题结束！')
+          this.$invoke(this.$com.Question.$com.Timer, 'clearTimer')
+          wepy.navigateTo({
+            url: `/pages/result/index?isShowRewardBtn=1&score=${total}&pid=${this.pid}&total_bonus=${this.total_bonus}&total_score=${this.total_score}`
+          })
+        }
+        if(data === 0 && finished === 1) {
+          await this.showTip('答错啦！答题结束！')
+          this.$invoke(this.$com.Question.$com.Timer, 'clearTimer')
+          wepy.navigateTo({
+            url: `/pages/result/index?isShowRewardBtn=1&score=${total}&pid=${this.pid}&total_bonus=${this.total_bonus}&total_score=${this.total_score}`
+          })
+        }
+      }
+    }
+
+    // Promise化setTimeout
+    async timeout (ms) {
+      return new Promise((resolve, reject) => {
+        this.timer = setTimeout(resolve, ms);
+      }) 
+    }
+
+    // 展示提示框
+    async showTip (tipcontent) {
+      this.$invoke(this.$com.Question.$com.Tip, 'showTip', tipcontent)
+      await this.timeout(1000)
+      this.$invoke(this.$com.Question.$com.Tip, 'hideTip', tipcontent)
+    }
+
+    // 切换到下一题
+    nextQuestion () {
+      this.index++
+      this.$apply()
+      this.$invoke(this.$com.Question.$com.Timer, 'startTimer')
+    }
+
+  }
+</script>
+
+<style lang="scss">
+@import '../../scss/_layout.scss';
+@import '../../scss/_variables.scss';
+@import '../../scss/_element.scss';
+
+.container {
+  font-family: PingFangSC-Regular;
+  font-size: 14px;
+  background: linear-gradient(to bottom right, #4020B8, #D263DD );
+}
+.content {
+  width: 100%;
+  @include horizontalCenter();
+  flex-direction: column;
+  position: fixed;
+  top: $videoHeight;
+  left: 0;
+  padding-top: 30rpx; 
+}
+.startAnswerBtn {
+  @include btn($width:350rpx, $height:80rpx, $size:18px, $color:#54049b, $radius:60rpx);
+  background-image: linear-gradient(180deg, #ffffff 0%, #f7c8ff 100%);
+  box-shadow: 0 6rpx 6rpx 0 rgba(188, 15, 224, 0.48);
+  margin: 30rpx 0;
+}
+</style>

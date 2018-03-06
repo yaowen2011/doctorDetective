@@ -1,0 +1,162 @@
+<template lang="pug">
+  view.container
+    view.card_wrapper
+      view.information_block
+        view.information_up
+          view.title 请完善您的信息
+          view.input_wrapper.organization
+            input.input(
+              placeholder-class="placeholder"
+              placeholder="所在机构"
+              focus
+              cursor-spacing=20
+              @input="getCompany"
+            )
+          viwe.input_wrapper.category
+            input.input(
+              placeholder-class="placeholder"
+              placeholder="所在科室/专业"
+              cursor-spacing=20
+              @input="getDepartment"
+            )
+        view.information_bottom
+          view.handle_button(
+            @tap="submit"
+          ) 提交
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import { postUserInfo } from '@/utils/api'
+
+  export default class InformationPage extends wepy.page {
+    config = {
+      navigationBarTitleText: '填写信息'
+    }
+
+    onLoad ({ pid = '', isBonus = '' }) {
+      this.pid = pid
+      this.isBonus = Boolean(isBonus)
+    }
+
+    data = {
+      company: '',
+      department: '',
+      pid: '',
+      isBonus: false
+    }
+
+    components = {}
+
+    events = {}
+
+    methods = {
+      getCompany (e) {
+        this.company = e.detail.value.trim()
+        this.$apply()
+      },
+      getDepartment (e) {
+        this.department = e.detail.value.trim()
+        this.$apply()
+      },
+      async submit () {
+        if (!this.company || !this.company) {
+          wepy.showToat({
+            title: '请填写完整信息'
+          })
+        } else {
+          let params = {
+            method: 'POST',
+            data: {
+              company: this.company,
+              department: this.department,
+              pid: this.pid
+            }
+          }
+          let {data: {error_code, bonus}} = await postUserInfo(params)
+          if (error_code === 0) {
+            wepy.navigateBack({delta: 1})
+            // if (this.isBonus) {
+            //   wepy.navigateBack({delta: 1})
+            // } else {
+            //   wepy.navigateTo({
+            //     url: `/pages/result/index?isShowResultReward=1&isShowResult=0&bonus=${bonus}&pid=${this.pid}`
+            //   })
+            // }
+          }
+        }
+      }
+    }
+  }
+</script>
+
+<style lang="scss">
+@import '../../scss/_layout.scss';
+@import '../../scss/_element.scss';
+
+// 按钮样式
+.handle_button {
+  @include verticalHorizontalCenter();
+  @include btn($width:350rpx, $height:100rpx, $size: 36rpx, $radius: 60rpx);
+
+  margin-bottom: 20rpx;
+}
+
+.placeholder {
+  font-family: PingFangSC-Medium;
+	font-size: 28rpx;
+  color: #9b9b9b;
+}
+.input {
+  width: 530rpx;
+  border-bottom: 2rpx #D7D8D7 solid;
+  padding-bottom: 20rpx;
+}
+
+page,
+.container {
+  height: 100%;
+}
+
+.container {
+  @include verticalHorizontalCenter();
+  background: linear-gradient(to bottom right, #4020B8, #D263DD );
+}
+
+.card_wrapper {
+  @include horizontalCenter();
+
+  width: 650rpx;
+  height: 1080rpx;
+  box-sizing: border-box;
+  border-radius: 40rpx;
+  background: #fff;
+  padding: 20rpx;
+}
+.information_block {
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.information_up {
+  @include horizontalCenter();
+
+  .title {
+    font-family: PingFangSC-Semibold;
+    font-size: 36rpx;
+    color: #9b9b9b;
+    margin: 40rpx 0;
+  }
+
+  .input_wrapper {
+    margin-bottom: 90rpx;
+  }
+}
+
+.information_bottom {
+  @include horizontalCenter();
+  margin-bottom: 40rpx; 
+}
+</style>

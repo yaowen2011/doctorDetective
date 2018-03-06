@@ -1,0 +1,20 @@
+<style lang="scss">
+  .panel {
+    width: 650rpx;
+    font-size: 12px;
+    border-radius: 40rpx;
+    background: #fff;
+  }
+</style>
+<template lang="pug">
+  view(
+    :class="{'cname': cname}"
+  )
+    slot(name="title")
+    slot
+</template>
+<script>
+  import wepy from 'wepy'
+
+  export default class PanelComponent extends wepy.component {}
+</script>

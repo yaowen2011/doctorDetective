@@ -1,0 +1,93 @@
+<style lang="scss">
+@import '../../scss/_variables.scss';
+
+.share_button {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  width: 200rpx;
+  height: 60rpx;
+  border-radius: 60rpx;
+  background-image: linear-gradient(116deg,#af0df8 0%, #e42ccb 100%, #ee32c3 100%);
+  color: #fff;
+  font-size: 24rpx;
+}
+
+.share_wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  z-index: 999;
+}
+.share_model {
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, .3);
+}
+.share_block {
+  width: 100%;
+  height: 336rpx;
+  background: #fff;
+  position: absolute;
+  left: 0;
+  bottom:0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  border-top: 2rpx solid #bd10e0;
+
+  .rule_wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .rule {
+    font-family: PingFangSC-Regular;
+    font-size: 28rpx;
+    line-height: 50rpx;
+    color: #9b9b9b;
+    padding-left: 40rpx;
+  }
+
+  .share_button {
+    width: 240rpx;
+    height: 72rpx;
+    background: linear-gradient(116deg, #af0df8 0%, #e42ccb 100%, #ee32c3 100%);
+    border-radius: 40rpx;
+    margin-top: 50rpx;
+  }
+}
+</style>
+
+<template lang="pug">
+  view.share_wrapper
+    view.share_model(
+      @tap="hideShareBlock"
+    )
+    view.share_block
+      view.rule_wrapper
+        view.rule 1.邀请三位好友点击授权，即可得复活卡一张。
+        view.rule 2.淘汰赛自动使用复活卡，晋级赛不可使用复活卡。
+      button.share_button(
+        open-type="share"
+      ) 分享到微信
+</template>
+
+<script>
+  import wepy from 'wepy'
+
+  export default class ShareComponent extends wepy.component {
+    methods = {
+      hideShareBlock () {
+        this.$emit('hideShareBlock')
+      }
+    }
+  }
+</script>

@@ -1,0 +1,63 @@
+<template lang="pug">
+  view.container
+    view.title 活动规则
+    scroll-view.rule-list(
+      scroll-y
+    )
+      repeat(
+        for="{{rules}}"
+        key="index"
+      )
+        view.rule-item {{index+1}}. {{item}}
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import { getRules } from '@/utils/api'
+
+  export default class RulePage extends wepy.page {
+    config = {
+      navigationBarTitleText: '规则',
+      backgroundColor: '#fff'
+    }
+
+    data = {
+      rules: []               // 活动规则列表
+    }
+    async onLoad () {
+      let { data } = await getRules()
+      this.rules = data
+      this.$apply()
+    }
+  }
+</script>
+
+<style lang="scss" scoped>
+@import '../../scss/_layout.scss';
+
+.container {
+  @include verticalHorizontalCenter();
+  padding: 60rpx 44rpx;
+}
+
+.title {
+  width: 660rpx;
+  text-align: center;
+  box-sizing: border-box;
+  border-bottom: 2rpx  #d7d7d7 solid;
+  font-family: PingFangSC-Medium;
+	font-size: 40rpx;
+  color: #54049b;
+  padding-bottom: 50rpx;
+}
+
+.rule-list {
+  width: 540rpx;
+  max-height: 800rpx;
+  margin: 50rpx 0;
+  font-family: PingFangSC-Regular;
+	font-size: 28rpx;
+	line-height: 60rpx;
+	color: #4a4a4a;
+}
+</style>

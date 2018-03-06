@@ -1,0 +1,13 @@
+<style lang="scss">
+</style>
+
+<template lang="pug">
+  view
+    slot
+</template>
+
+<script>
+  import wepy from 'wepy'
+
+  export default class BtnComponent extends wepy.component {}
+</script>

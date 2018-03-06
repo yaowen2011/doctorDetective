@@ -1,0 +1,56 @@
+<style lang="scss">
+@import '../../scss/_layout.scss';
+@import '../../scss/_variables.scss';
+@import '../../scss/_element.scss';
+
+.deadline {
+  display: flex;
+  width: 650rpx;
+  height: 120rpx;
+  font-family: PingFangSC-Regular;
+  font-size: 28rpx;
+  color: #fff;
+
+  .tips {
+    @include horizontalCenter();
+    width: 50%;
+    justify-content: space-around;
+
+    &:first-child {
+      border-right: 2rpx solid #d7d7d7;
+    }
+  }
+
+  .tips_buttom {
+    font-size: 40rpx;
+  }
+}
+
+</style>
+
+<template lang="pug">
+  view.deadline
+    view.tips
+      view 本期答题截止时间
+      view.tips_buttom {{expired_at}}
+    view.tips
+      view 奖金
+      view.tips_buttom {{bonusPool}}元
+</template>
+
+<script>
+  import wepy from 'wepy'
+
+  export default class DeadlineComponent extends wepy.component {
+    props = {
+      expired_at: {
+        type: String,
+        default: '**日 **:**'
+      },
+      bonusPool: {
+        type: Number,
+        defalut: 0
+      }
+    }
+  }
+</script>

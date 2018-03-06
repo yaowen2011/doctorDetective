@@ -1,0 +1,41 @@
+<style lang="scss">
+@import "./scss/_layout.scss";
+page,
+.container{
+  height: 100%;
+}
+.container {
+  @include horizontalCenter()
+}
+</style>
+
+<script>
+import wepy from 'wepy'
+import 'wepy-async-function'
+export default class DoctorDetectiveAPP extends wepy.app {
+  config = {
+    pages: [
+      'pages/home/home',
+      'pages/rule/index',
+      'pages/rank/index',
+      'pages/bonus/index',
+      'pages/result/index',
+      'pages/withdraw/index',
+      'pages/information/index'
+    ],
+    window: {
+      backgroundTextStyle: 'light',
+      navigationBarBackgroundColor: '#4E19BE',
+      navigationBarTitleText: '医者神探',
+      navigationBarTextStyle: 'white',
+      backgroundColor: '#4E19BE'
+    }
+  }
+
+  constructor () {
+    super()
+    this.use('promisify')
+    this.use('requestfix')
+  }
+}
+</script>

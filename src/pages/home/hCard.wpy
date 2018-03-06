@@ -1,0 +1,241 @@
+<template lang="pug">
+  view.card
+    view.top 
+      view.rule_block
+        view.rule(
+            @tap="goRulePage"
+          )
+          text.rule_icon ?
+          text 活动规则
+        image.avatar(
+          @tap="goBonusPage"
+          src="{{userInfo.avatarUrl ? userInfo.avatarUrl : '../../images/avatar-default.svg'}}")
+      view.designation 级别：{{honor}}
+      view.total_score 总积分：{{total_score}} 分
+    view.bottom
+      view.left
+        view.resurrection(@tap="showShareBlock")
+          image(src="../../images/resurrection.svg")
+          view.resurrection_sign x
+          view.resurrection_count {{card}}
+        view(@tap="showShareBlock") 复活卡
+        view(@tap="goRankPage")
+          Btn.checkRankingsBtn 查看排名
+      view.right
+        view.bonus_count(
+          @tap="goBonusPage"
+        ) {{total_bonus}}
+          text.unit 元
+        view(@tap="goBonusPage") 账户余额
+        view(
+          @tap="showShareBlock"
+        )
+          Btn.inviteFriendsBtn 邀请好友
+        
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import Panel from '@/components/panel'
+  import Btn from '@/components/btn'
+
+  export default class CardComponent extends wepy.component {
+    props = {
+      pid: {
+        type: String,
+        default: ''
+      },
+      card: {
+        type: Number,
+        default:0
+      },
+      honor: {
+        type: String,
+        default: '暂无'
+      },
+      userInfo: {
+        type: Object,
+        default: {}
+      },
+      total_score: {
+        type: Number,
+        default: 0
+      },
+      total_bonus: {
+        type: Number,
+        default: 0
+      },
+      is_answer: {
+        type: Number,
+        default: 0
+      }
+    }
+
+    components = {
+      Panel,
+      Btn
+    }
+
+    methods = {
+      showShareBlock () {
+        this.$emit('showShareBlock')
+      },
+      goRulePage () {
+        wepy.navigateTo({
+          url: `/pages/rule/index`
+        })
+      },
+      goRankPage () {
+        if (!this.is_answer) {
+          wepy.showModal({
+            title: '提示',
+            content: '参与答题后即可查看本期排名',
+            showCancel: false
+          })
+        } else {
+          wepy.navigateTo({
+            url: `/pages/rank/index?pid=${this.pid}`
+          })
+        }
+      },
+      goBonusPage () {
+        wepy.navigateTo({
+          url: `/pages/bonus/index?total_bonus=${this.total_bonus}&pid=${this.pid}`
+        })
+      }
+    }
+  }
+</script>
+
+<style lang="scss">
+@import '../../scss/_variables.scss';
+@import '../../scss/_layout.scss';
+@import '../../scss/_element.scss';
+
+.card {
+  @include horizontalCenter();
+  width: 650rpx;
+  box-sizing: border-box;
+  background: #fff;
+  border-radius: 40rpx;
+  font-family: PingFangSC-Medium;
+  font-size: 28rpx;
+  color: #9b9b9b;
+}
+.top {
+  @include verticalHorizontalCenter();
+  height: 194rpx;
+  width: 610rpx;
+  border-bottom: 2rpx solid #d7d7d7;
+  position: relative;
+  font-family: PingFangSC-Regular;
+
+  .rule_block {
+    display: flex;
+    justify-content: space-between;
+    box-sizing: border-box;
+    position: absolute;
+    top: 20rpx;
+    left: 0rpx;
+    width: 100%;
+    padding: 0 20rpx;
+
+    .rule {
+      display: flex;
+      align-items: center;
+      margin-top:-25rpx;
+      box-sizing:border-box;
+    }
+    .rule_icon {
+      @include verticalHorizontalCenter();
+      width: 24rpx;
+      height: 24rpx;
+      border-radius: 50%;
+      margin-right: 10rpx;
+      background: #9b9a9b;
+      color: #fff;
+      font-size: 24rpx;
+    }
+    image {
+      height: 60rpx;
+      width: 60rpx;
+      border-radius: 50%;
+    }
+  }
+
+  .designation {
+    font-family: PingFangSC-Medium;
+    font-size: 40rpx;
+    color: #bd10e0;
+  }
+}
+
+.bottom {
+  display: flex;
+  width: 100%;
+  box-sizing: border-box;
+  padding-top: 20rpx;
+
+  .left,.right {
+    // @include horizontalCenter();
+    height: 250rpx;
+    @include verticalHorizontalCenter();
+    width: 50%;
+    font-family: PingFangSC-Medium;
+    font-size: 20rpx;
+    color: #9b9b9b;
+  }
+
+  .left {
+    position: relative;
+    &:after {
+      content: "";
+      width: 2rpx;
+      height: 130rpx;
+      background:#d7d7d7;
+      position: absolute;
+      top: 0;
+      right: 0;
+    }
+    .resurrection {
+      @include verticalCenter();
+      flex-direction: row;
+      align-items: center;
+      image {
+        width: 42rpx;
+        height: 60rpx;
+      }
+
+      .resurrection_sign {
+        margin: 0 36rpx;
+      }
+
+      .resurrection_count {
+        font-family: ingFangSC-Medium;
+        font-size: 60rpx;
+        color: #bd10e0;
+      }
+    }
+  }
+
+  .right {
+    .bonus_count {
+      font-family: ingFangSC-Medium;
+      font-size: 60rpx;
+      color: #bd10e0;
+
+      .unit {
+        font-size: 24rpx;
+        margin-left: -20rpx;
+      }
+    }
+  }
+
+  .checkRankingsBtn,
+  .inviteFriendsBtn {
+    @include btn();
+    margin: 30rpx 0;
+  }
+}
+
+</style>

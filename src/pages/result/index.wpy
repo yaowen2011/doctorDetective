@@ -1,0 +1,70 @@
+<template lang="pug">
+  view.container
+    FinalScore(
+      wx:if="{{isShowFinalScore}}"
+      :pid.sync="pid"
+      :score.sync="score"
+      :total_score.sync="total_score"
+      :isShowRewardBtn.sync="isShowRewardBtn"
+      :avatarUrl.sync="avatarUrl")
+    Award(
+      wx:else
+      :pid.sync="pid"
+      :bonus.sync="bonus"
+      :total_bonus.sync="total_bonus"
+      :avatarUrl.sync="avatarUrl")
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import FinalScore from './finalScore'
+  import Award from './award'
+
+  export default class ResultPage extends wepy.page {
+    onLoad ({ isShowRewardBtn = '', pid = '', score = 0, total_score = 0, bonus = 0, total_bonus = 0 }) {
+      this.pid = pid
+      this.score = Number(score)
+      this.bonus = Number(bonus)
+      this.total_bonus = Number(total_bonus) + Number(bonus)
+      this.total_score = Number(total_score) + Number(score)
+      this.isShowRewardBtn = Boolean(isShowRewardBtn)
+      this.avatarUrl = wepy.getStorageSync('userInfo').avatarUrl
+    }
+
+    data = {
+      avatarUrl: '',              // 用户头像
+      isShowFinalScore:  true,    // 是否展示最终得分区域
+      isShowRewardBtn: false,     // 是否显示领取奖励按钮
+      pid: '',                    // 本期试卷的 id
+      score: 0,                   // 当前得分
+      total_score: 0,             // 累计得分
+      bonus: 0,                   // 当前奖金
+      total_bonus: 0              // 累计奖金
+    }
+
+    components = {
+      FinalScore,
+      Award
+    }
+
+    events = {
+      'updateBonus': (bonus) => {
+        this.bonus = bonus
+        this.total_bonus = this.total_bonus + bonus
+        this.$apply()
+      },
+      'hideFinalScore': () => {
+        this.isShowFinalScore = false
+      }
+    }
+  }
+</script>
+
+<style lang="scss">
+@import '../../scss/_layout.scss';
+.container {
+  @include verticalCenter();
+  background: linear-gradient(to bottom right, #4020B8, #D263DD );
+  padding: 128rpx 50rpx;
+}
+</style>

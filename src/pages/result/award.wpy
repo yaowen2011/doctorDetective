@@ -1,0 +1,144 @@
+<template lang="pug">
+  view.award_wrapper
+    image.avatar(
+        src="{{avatarUrl}}"
+      )
+     //- 答题奖金展示区域
+    view.reward_block
+      view.reward_up
+        view.tip 本次答题获得
+        view.reward 
+          text {{bonus}}
+          text.unit 元
+      view.reward_bottom
+        view.total_reward_wrapper
+          text 答题累计奖金:
+          text.total_reward {{total_bonus}}
+          text.unit 元
+        view(
+          @tap="goHome"
+        )
+          Btn.handle_button 返回主页
+        view(
+          @tap="goRankPage"
+        )
+          Btn.handle_button 查看实时榜单
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import Btn from '@/components/btn'
+  export default class FailComponent extends wepy.component {
+    props = {
+      pid: {
+        type: String,
+        default: ''
+      },
+      bonus: {
+        type: Number,
+        default: 0
+      },
+      total_bonus: {
+        type: Number,
+        default: 0
+      },
+      avatarUrl: {
+        type: String,
+        default: '../../images/avatar-default.svg'
+      }
+    }
+
+    components = {
+      Btn
+    }
+
+    methods = {
+      goHome () {
+        wepy.reLaunch({
+          url:'/pages/home/home'
+        })
+      },
+      goRankPage () {
+        wepy.navigateTo({
+          url: `/pages/rank/index?pid=${this.pid}`
+        })
+      }
+    }
+  }
+</script>
+
+<style lang="scss">
+@import '../../scss/_layout.scss';
+@import '../../scss/_element.scss';
+
+.handle_button {
+  @include verticalHorizontalCenter();
+  @include btn($width:350rpx, $height:100rpx, $size: 36rpx, $radius: 60rpx);
+
+  margin-bottom: 20rpx;
+}
+
+.avatar {
+  display: flex;
+  align-self:flex-end;
+  margin: 20rpx;
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+}
+.award_wrapper {
+  @include horizontalCenter();
+
+  width: 650rpx;
+  height: 1080rpx;
+  border-radius: 40rpx;
+  background: #fff;
+  // padding: 20rpx;
+  padding: 20rpx 20rpx 0 20rpx;
+}
+
+.reward_block{
+  @include verticalCenter();  
+  justify-content: space-between;
+  height: 700rpx;
+}
+.reward_up {
+  @include verticalHorizontalCenter();  
+  margin-top: 40rpx;
+
+  .tip {
+    font-family: PingFangSC-Medium;
+    font-size: 24rpx;
+    color: #9b9b9b;
+  }
+  .reward {
+    font-family: DINCondensed-Bold;
+    font-size: 160rpx;
+    color: #bf00e3;
+
+    .unit {
+      font-family: PingFangSC-Semibold;
+      font-size: 36rpx;
+      color: #393939
+    }
+  }
+}
+.reward_bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  .total_reward_wrapper {
+    font-family: PingFangSC-Semibold;
+    font-size: 28rpx;
+    color: #898989;
+    margin-bottom: 20rpx;
+  }
+  .total_reward {
+    font-family: DINCondensed-Bold;
+    font-size: 40rpx;
+    color: #bf00e3;
+    margin: 0 10rpx;
+  }
+}
+</style>
