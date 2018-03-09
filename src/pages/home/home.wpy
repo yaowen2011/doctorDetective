@@ -74,8 +74,8 @@
 
     methods = {
       // 开始答题
-      async startAnswer () {
-        await this.postFormId()
+      async startAnswer (event) {
+        await this.postFormId(event)
         
         switch (this.expired) {
           case 0:
