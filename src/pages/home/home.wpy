@@ -1,7 +1,7 @@
 <template lang="pug">
   view.container
     CaseVideo(:video.sync="video")
-    view.content(wx:if="{{isStart}}")
+    view.content(wx:if="{{isStart}}")                       
       Question(
         :index.sync="index"
         :questions.sync="questions"
@@ -10,8 +10,8 @@
       Deadline(
       :expired_at.sync="expired_at" 
       :bonusPool.sync="bonusPool")
-      view(@tap="startAnswer")
-        Btn.startAnswerBtn 开始答题
+      form(report-submit=true @submit="startAnswer")
+        button.startAnswerBtn(form-type="submit") 开始答题
       Card(
         :pid.sync="pid"
         :card.sync="card"
@@ -35,7 +35,7 @@
   import Question from './question'
 
   import { getLoginToken } from '@/utils/login'
-  import { getVideo, getQuestions, postAnswer, getBonus } from '@/utils/api'
+  import { getVideo, getQuestions, postAnswer, getBonus, postFormId } from '@/utils/api'
   import { transformObject } from '@/utils/utils'
 
   export default class HomePage extends wepy.page {
@@ -75,6 +75,8 @@
     methods = {
       // 开始答题
       async startAnswer () {
+        await this.postFormId()
+        
         switch (this.expired) {
           case 0:
             if ( this.is_answer === 1) {
@@ -311,6 +313,16 @@
       this.$invoke(this.$com.Question.$com.Timer, 'startTimer')
     }
 
+    // 向后台发送 formId
+    async postFormId (event) {
+      let params = {
+        method: 'POST',
+        data: {
+          formId: event.detail.formId
+        }
+      }
+      await postFormId(params)
+    }
   }
 </script>
 
