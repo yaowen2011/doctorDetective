@@ -1,17 +1,30 @@
 <template lang="pug">
   view.container
-    CaseVideo(:video.sync="video")
-    view.content(wx:if="{{isStart}}")                       
+    CaseVideo(
+      :video.sync="video"
+      )
+    view.content(
+      wx:if="{{isStart}}"
+      )                       
       Question(
         :index.sync="index"
         :questions.sync="questions"
       )
-    view.content(wx:else)
+    view.content(
+      wx:else
+      )
       Deadline(
-      :expired_at.sync="expired_at" 
-      :bonusPool.sync="bonusPool")
-      form(report-submit=true @submit="startAnswer")
-        button.startAnswerBtn(form-type="submit") 开始答题
+        :expired_at.sync="expired_at" 
+        :bonusPool.sync="bonusPool"
+        )
+      form(
+        report-submit=true 
+        @submit="startAnswer"
+        )
+        button(
+          class="startAnswerBtn"
+          form-type="submit"
+          ) 开始答题
       Card(
         :pid.sync="pid"
         :card.sync="card"
@@ -21,7 +34,9 @@
         :total_bonus.sync="total_bonus"
         :is_answer.sync="is_answer"
         )
-    Share(wx:if="{{isShowShare}}")
+    Share(
+      wx:if="{{isShowShare}}"
+      )
 </template>
 
 <script>
