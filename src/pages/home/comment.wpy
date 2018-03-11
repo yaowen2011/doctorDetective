@@ -155,8 +155,15 @@
       // 提交评论内容
       submitComment () {
         this.isInputFocus = false
-        this.$emit('submitComment', this.inputValue)
-        this.inputValue = ''
+        if (this.inputValue) {
+          this.$emit('submitComment', this.inputValue)
+          this.inputValue = ''
+        } else {
+          wepy.showToast({
+            title: '发布内容不能为空',
+            icon: 'none'
+          })
+        }
       },
       // 隐藏评论模块
       toggleCommentsBlock () {
