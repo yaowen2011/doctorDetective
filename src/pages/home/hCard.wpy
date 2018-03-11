@@ -14,24 +14,43 @@
       view.total_score 总积分：{{total_score}} 分
     view.bottom
       view.left
-        view.resurrection(@tap="showShareBlock")
-          image(src="../../images/resurrection.svg")
+        view.resurrection(
+          @tap="showShareBlock"
+        )
+          image(
+            src="../../images/resurrection.svg"
+          )
           view.resurrection_sign x
           view.resurrection_count {{card}}
-        view(@tap="showShareBlock") 复活卡
-        view(@tap="goRankPage")
-          Btn.checkRankingsBtn 查看排名
+        view(
+          @tap="showShareBlock"
+        ) 复活卡
+        
       view.right
         view.bonus_count(
           @tap="goBonusPage"
         ) {{total_bonus}}
           text.unit 元
-        view(@tap="goBonusPage") 账户余额
         view(
+          @tap="goBonusPage"
+        ) 账户余额
+    view.btn_block
+      view(
+        @tap="goRankPage"
+      )
+        Btn.checkRankingsBtn 查看排名
+      view(
+        @tap="showCommentsBlock"
+      )
+        Btn.hotCommet 热评
+          image(
+            class="chili"
+            src="../../images/chili.svg"
+          )
+      view(
           @tap="showShareBlock"
         )
-          Btn.inviteFriendsBtn 邀请好友
-        
+          Btn.inviteFriendsBtn 邀请好友  
 </template>
 
 <script>
@@ -102,6 +121,9 @@
         wepy.navigateTo({
           url: `/pages/bonus/index?total_bonus=${this.total_bonus}&pid=${this.pid}`
         })
+      },
+      showCommentsBlock () {
+        this.$emit('showCommentsBlock')
       }
     }
   }
@@ -178,7 +200,7 @@
 
   .left,.right {
     // @include horizontalCenter();
-    height: 250rpx;
+    // height: 250rpx;
     @include verticalHorizontalCenter();
     width: 50%;
     font-family: PingFangSC-Medium;
@@ -191,7 +213,7 @@
     &:after {
       content: "";
       width: 2rpx;
-      height: 130rpx;
+      height: 112rpx;
       background:#d7d7d7;
       position: absolute;
       top: 0;
@@ -230,12 +252,33 @@
       }
     }
   }
+}
+
+.btn_block {
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  padding: 0 36rpx;
+  justify-content: space-between;
+  margin: 30rpx 0;
 
   .checkRankingsBtn,
   .inviteFriendsBtn {
     @include btn();
-    margin: 30rpx 0;
   }
-}
+  .hotCommet {
+    @include btn($width: 110rpx);
+    position: relative;
+  }
 
+  .chili {
+    width: 16rpx;
+    height: 22rpx;
+    position: absolute;
+    top: 50%;
+    right: 18rpx;
+    margin-top: -8rpx; 
+  }
+  
+}
 </style>
