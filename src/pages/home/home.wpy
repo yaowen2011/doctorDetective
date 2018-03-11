@@ -1,9 +1,10 @@
 <template lang="pug">
   view.container
     CaseVideo(
-      wx:if="{{!isVideoSrc}}"
+      wx:if="{{isVideoSrc}}"
       :danmuList.sync="comments"
       :video.sync="video"
+      :comments.sync="comments"
       )
     VideoPlaceholder(
       wx:else
@@ -45,6 +46,7 @@
     )
     Comment(
       wx:if="{{ isShowCommentBlock }}"
+      :comments.sync="comments"
     )
 </template>
 
@@ -141,9 +143,13 @@
 
     events = {
       'toggleCommentsBlock': (params) => {
-        console.log('toggleCommentsBlock params', params, typeof params)
         this.isShowCommentBlock = params
       },
+      'submitComment': (content) => {
+        let comment = {}
+        comment.text = content
+        this.formatComment(comment)
+      }, 
       'showShareBlock': () => {
         this.isShowShare = true
       },
@@ -204,7 +210,7 @@
       this.isStart = false
       await this.login({ share_uid: this.share_uid })
       await this.getComments()
-      if (!this.isVideoSrc) return
+      if (this.isVideoSrc) return
       this.$broadcast('beginBarrage', this.comments)
     }
 
@@ -285,8 +291,26 @@
     }
 
     // 获取评论并处理数据结构
-    formatComments () {
+    formatComment (comment) {
+      let len = this.comments.length
+      let user = {
+        nickName: this.userInfo.nickName,
+        avatarUrl: this.userInfo.avatarUrl
+      }
+      comment.time = len + 1
+      comment.color = '#fff'
+      comment.created_at = '刚刚'
+      comment.user = user
+      comment.top = 0
+      comment.right = 0
+      comment.opacity = 0
+      comment.width = 'auto'
+      comment.isShow = true
+      this.comments.push(comment)
+      this.$apply()
 
+      if (this.isVideoSrc) return
+      this.$broadcast('beginBarrage', this.comments)
     }
     // 获取本期所有题
     async getQuestions () {
