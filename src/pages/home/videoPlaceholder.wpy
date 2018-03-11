@@ -1,0 +1,104 @@
+<template lang="pug">
+  view.videoPlaceholder
+    image(
+      src="{{ video.cover }}"
+    )
+    Barrage(
+      wx:if="{{ isShowBarrage }}"
+    )
+    view(
+      class="barrage_btn_wrapper"
+      wx:if="{{ isShowBarrageBtn }}"
+      @tap.stop="toggleBarrage"
+    )
+      view(
+        id="btn"
+        class="btn {{ isShowBarrage ? 'barrage_btn_active' : 'barrage_btn' }}"
+      ) 弹
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import Barrage from './barrage'
+
+  export default class VideoPlaceholderComponent extends wepy.component {
+    props = {
+      video: {
+        type: Object,
+        default: {
+          cover: '',
+          src: ''
+        }
+      }
+    }
+    data = {
+      isShowBarrage: true,                       // 是否显示弹幕层
+      isShowBarrageBtn: true                     // 是否显示弹幕开关
+    }
+    components = {
+      Barrage
+    }
+
+    events = {
+      'toggleBarrageBtn': async () => {
+        await this.timeout(600)
+        this.isShowBarrageBtn = !this.isShowBarrageBtn
+        this.$apply()
+      }
+    }
+
+    methods = {
+      toggleBarrage () {
+        this.isShowBarrage = !this.isShowBarrage
+      }
+    }
+
+    // Promise化setTimeout
+    async timeout (ms) {
+      return new Promise((resolve, reject) => {
+        this.timer = setTimeout(resolve, ms);
+      }) 
+    }
+  }
+</script>
+
+<style lang="scss">
+@import '../../scss/_variables.scss';
+@import '../../scss/_layout.scss';
+
+.videoPlaceholder {
+  width: 100%;
+  height: $videoHeight;
+  position: relative;
+
+  image {
+    width: 100%;
+    height: 100%;
+  }
+
+  .barrage_btn_wrapper {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    z-index: 999;
+    padding: 40rpx 30rpx 30rpx 40rpx;
+
+    .btn {
+      @include verticalHorizontalCenter();
+      width: $barrageHeight;
+      height: $barrageHeight;
+      border-radius: 50%; 
+      font-size: 24rpx;
+    }
+    .barrage_btn {
+      border: 2rpx solid $barrageColor;
+      color: $barrageColor;
+    }
+    
+    .barrage_btn_active {
+      border: 2rpx solid $barrageColorActive;
+      color: $barrageColorActive;
+    }
+  } 
+}
+</style>

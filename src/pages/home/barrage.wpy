@@ -1,0 +1,208 @@
+<style lang="scss">
+@import '../../scss/_variables.scss';
+
+.barrage_wrapper {
+  width: 100%;
+  height: $videoHeight;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 9;
+  display: flex;
+
+  .barrage {
+    position: absolute;
+    z-index: 9;
+    margin: 20rpx;
+    height: 60rpx;
+    color: #fff;
+  }
+}
+</style>
+
+<template lang="pug">
+  view.barrage_wrapper(
+    id="barrage_wrapper"
+    @tap.stop="toggleBarrageBtn"
+  )
+    block(
+      wx:for="{{ barrages }}"
+      wx:key="{{ index }}"
+    )
+      view(
+        id="barrage{{ index + 1 }}"
+        class="barrage"
+        style=" color: {{ item.color }}; width: {{ item.width }}; right: {{ item.right }}rpx; top: {{ item.top }}rpx; opacity: {{ item.opacity}};"
+        wx:if="{{ item.isShow }}"
+      ) {{item.text}}
+</template>
+
+<script>
+  import wepy from 'wepy'
+  export default class BarrageComponent extends wepy.component {
+    // props = {
+    //   danmuList: {
+    //     type: Array,
+    //     default: [
+    //       {
+    //         text: '第 1s 出现的弹幕',
+    //         color: '#ff0000',
+    //         time: 1,
+    //       },
+    //       {
+    //         text: '第 2s 弹幕',
+    //         color: 'yellow',
+    //         time: 1,
+    //       }
+    //     ]
+    //   }
+    // }
+
+    data = {
+      barrages: [
+        {
+          text: '1 s barrage msg',
+          time: 1,
+          top: 0,
+          right: 0,
+          width: 'auto',
+          opacity: 0,
+          isShow: true
+        },
+        {
+          text: '2 s barrage msg',
+          time: 1,
+          top: 0,
+          right: 0,
+          width: 'auto',
+          opacity: 0,
+          isShow: true
+        },
+        {
+          text: '3 s barrage msg',
+          time: 1,
+          top: 0,
+          right: 0,
+          width: 'auto',
+          opacity: 0,
+          isShow: true
+        },
+        {
+          text: '4 s barrage msg',
+          time: 1,
+          top: 0,
+          right: 0,
+          width: 'auto',
+          opacity: 0,
+          isShow: true
+        }
+      ],
+      playbackRate: 0.5,                               // 弹幕倍速播放
+      timer: null,
+      index: 0
+    }
+
+    methods = {
+      toggleBarrageBtn () {
+        this.$emit('toggleBarrageBtn')
+      }
+    }
+
+    async onLoad () {
+      let timer = null
+      await this.timeout(timer, 300)
+      clearTimeout(timer)
+      this.beginBarrage()
+    }
+    async beginBarrage () {
+      let timer = null
+      if (this.index < this.barrages.length) {
+        console.log(this.index, this.barrages[this.index])
+        this.startBarrage(this.barrages[this.index], this.index)
+        await this.timeout(timer, 600)
+        this.index++
+        this.$apply()
+        await this.beginBarrage()
+      } else {
+        clearTimeout(timer)
+      }
+    }
+
+    // 更新弹幕属性
+    updateBarrage(barrage, index) {
+      this.barrages[index] = barrage
+      this.$apply()
+    }
+
+
+    // 开始滚动一个弹幕
+    async startBarrage (barrage, index) {
+      let { barrage: newBarrage, barrageWrapperW, width } = await this.createBarrage(barrage, index)
+      console.log('newBarrage', newBarrage)
+      await this.intervalBarrage({ newBarrage, barrageWrapperW, width, index })
+    }
+
+    // 新建一个弹幕
+    async createBarrage (barrage, index) {
+      console.log(index, 'baraage', barrage)
+      // 获取弹幕容器的相关属性值
+      let { height: barrageWrapperH, width: barrageWrapperW } = await this.getBoundingClientRect({ id: '#barrage_wrapper', height: 0, width: 0 })
+      console.log('barrageWrapperW', barrageWrapperW)
+      // 获取单个弹幕相关属性值
+      let { width, height } = await this.getBoundingClientRect({ id: `#barrage${ index + 1 }`, width: 0, height: 0} )
+      
+      let randomTop = 2 * Math.round(Math.random() * ( barrageWrapperH - height ))
+      // let randomColor = '#' + Math.floor(Math.random() * 256).toString(10)
+      let barrageWidth = 2 * width
+      barrage.width = barrageWidth
+      barrage.right = - barrageWidth
+      barrage.top =  randomTop
+      // barrage.color = randomColor
+      barrage.opacity = 1
+      return {
+        barrage,
+        barrageWrapperW,
+        width
+      }
+    }
+
+    // 为弹幕添加定时任务
+    async intervalBarrage ({ newBarrage, barrageWrapperW, width, index }) {
+      newBarrage.right += 6
+      let timer = null
+      await this.timeout(timer, 10)
+      if (Math.abs(newBarrage.right) < 2 * barrageWrapperW) {
+        this.updateBarrage(newBarrage, index)
+        await this.intervalBarrage({ newBarrage, barrageWrapperW, width })
+      } else {
+        console.log('right', Math.abs(newBarrage.right))
+        console.log('wrapperw', 2*barrageWrapperW)
+        newBarrage.isShow = false
+        this.updateBarrage(newBarrage, index)
+        clearTimeout(timer)
+      }
+    }
+
+    // Promise化setTimeout
+    async timeout (timer, ms) {
+      return new Promise((resolve, reject) => {
+        timer = setTimeout(resolve, ms)
+      })
+    }
+
+    // 查找并返回节点相关信息
+    getBoundingClientRect ({ id, width, height }) {
+      console.log('id', id)
+      return new Promise((resolve, reject) => {
+        let query =  wx.createSelectorQuery()
+        query.select(id).boundingClientRect(rect => {
+          console.log('rect', rect)
+          resolve({
+            width: rect.width,
+            height: rect.height
+          })
+        }).exec()
+      })
+    }
+  }
+</script>
