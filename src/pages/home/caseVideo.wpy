@@ -4,17 +4,18 @@
 .video {
   width: 100%;
   height: $videoHeight;
-  // position:fixed;
-  // top:0;
-  // left:0;
 }
 </style>
 
 <template lang="pug">
   video(
+    id="caseVideo"
     class="video"
     src="{{video.src}}"
     poster="{{video.cover}}"
+    danmu-list="{{danmuList}}"
+    danmu-btn=true
+    enable-danmu=true
   )
 </template>
 
@@ -28,6 +29,26 @@
           cover: '',
           src: ''
         }
+      },
+      danmuList: {
+        type: Array,
+        default: [
+          {
+            text: '第 1s 出现的弹幕',
+            color: '#ff0000',
+            time: 1
+          },
+          {
+            text: '第 2s 出现的弹幕',
+            color: '#fff',
+            time: 2
+          },
+          {
+            text: '第 3s 出现的弹幕',
+            color: '#ff00ff',
+            time: 3
+          }
+        ]
       }
     }
   }

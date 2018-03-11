@@ -40,7 +40,7 @@
       )
         Btn.checkRankingsBtn 查看排名
       view(
-        @tap="showCommentsBlock"
+        @tap="toggleCommentsBlock"
       )
         Btn.hotCommet 热评
           image(
@@ -122,8 +122,8 @@
           url: `/pages/bonus/index?total_bonus=${this.total_bonus}&pid=${this.pid}`
         })
       },
-      showCommentsBlock () {
-        this.$emit('showCommentsBlock')
+      toggleCommentsBlock () {
+        this.$emit('toggleCommentsBlock', true)
       }
     }
   }

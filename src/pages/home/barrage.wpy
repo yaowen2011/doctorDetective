@@ -6,7 +6,7 @@
   height: $videoHeight;
   position: absolute;
   top: 0;
-  left: 0;
+  right: 0;
   z-index: 9;
   display: flex;
 
@@ -102,18 +102,19 @@
       index: 0
     }
 
+    events = {
+      'beginBarrage': async (comments) => {
+        this.barrages = comments
+        this.$apply()
+        this.beginBarrage()
+      }
+    }
     methods = {
       toggleBarrageBtn () {
         this.$emit('toggleBarrageBtn')
       }
     }
 
-    async onLoad () {
-      let timer = null
-      await this.timeout(timer, 300)
-      clearTimeout(timer)
-      this.beginBarrage()
-    }
     async beginBarrage () {
       let timer = null
       if (this.index < this.barrages.length) {
@@ -175,8 +176,6 @@
         this.updateBarrage(newBarrage, index)
         await this.intervalBarrage({ newBarrage, barrageWrapperW, width })
       } else {
-        console.log('right', Math.abs(newBarrage.right))
-        console.log('wrapperw', 2*barrageWrapperW)
         newBarrage.isShow = false
         this.updateBarrage(newBarrage, index)
         clearTimeout(timer)
@@ -192,7 +191,6 @@
 
     // 查找并返回节点相关信息
     getBoundingClientRect ({ id, width, height }) {
-      console.log('id', id)
       return new Promise((resolve, reject) => {
         let query =  wx.createSelectorQuery()
         query.select(id).boundingClientRect(rect => {

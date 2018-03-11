@@ -1,7 +1,8 @@
 <template lang="pug">
   view.container
     CaseVideo(
-      wx:if="{{!video.src}}"
+      wx:if="{{!isVideoSrc}}"
+      :danmuList.sync="comments"
       :video.sync="video"
       )
     VideoPlaceholder(
@@ -42,6 +43,9 @@
     Share(
       wx:if="{{isShowShare}}"
     )
+    Comment(
+      wx:if="{{ isShowCommentBlock }}"
+    )
 </template>
 
 <script>
@@ -54,16 +58,19 @@
   import Share from './share'
   import Question from './question'
   import VideoPlaceholder from './videoPlaceholder'
+  import Comment from './comment'
 
   import { getLoginToken } from '@/utils/login'
-  import { getVideo, getQuestions, postAnswer, getBonus, postFormId } from '@/utils/api'
+  import { getVideo, getQuestions, postAnswer, getBonus, postFormId, getComments, postComment } from '@/utils/api'
   import { transformObject } from '@/utils/utils'
 
   export default class HomePage extends wepy.page {
     data = {
       video: {},                        // 病历视频
+      isVideoSrc: false,                 // 是否有视频地址
       isStart: false,                   // 是否开始答题
       isShowShare: false,               // 是否显示分享模块
+      isShowCommentBlock: false,        // 是否显示屏幕模块
       share_uid: '',                    // 分享人的 uid
       questions: [],                    // 本期所有题目信息
       currentQuestion: {},              // 正在作答的题
@@ -80,7 +87,8 @@
       is_answer: 0,                     // 是否答过题
       expired_at: '',                   // 答题截止时间
       bonusPool: 0,                     // 奖池总金额
-      honor: ''                         // 级别称号
+      honor: '',                        // 级别称号
+      comments: []                      // 评论列表
     }
 
     components = {
@@ -91,7 +99,8 @@
       Card,
       Share,
       Question,
-      VideoPlaceholder
+      VideoPlaceholder,
+      Comment
     }
 
     methods = {
@@ -131,6 +140,10 @@
     }
 
     events = {
+      'toggleCommentsBlock': (params) => {
+        console.log('toggleCommentsBlock params', params, typeof params)
+        this.isShowCommentBlock = params
+      },
       'showShareBlock': () => {
         this.isShowShare = true
       },
@@ -182,13 +195,17 @@
       this.share_uid = share_uid
 
       let { data: { data: { video: { data: video } } } } = await getVideo({isNeedToken: false})
+      video.src ? this.isVideoSrc = true : this.isVideoSrc = false
       this.video = video
       this.$apply()
     }
 
-    onShow () {
+    async onShow () {
       this.isStart = false
-      this.login({ share_uid: this.share_uid })
+      await this.login({ share_uid: this.share_uid })
+      await this.getComments()
+      if (!this.isVideoSrc) return
+      this.$broadcast('beginBarrage', this.comments)
     }
 
     onShareAppMessage (options) {
@@ -231,6 +248,46 @@
       this.$apply()
     }
 
+    // 请求所有评论
+    async getComments () {
+      let params = {
+        data: {
+          pid: this.pid
+        }
+      }
+      let { data: { data: comments} } = await getComments(params)
+
+      for (let [index, item] of comments.entries()) {
+        let comment = {}
+        comment.text = item.content
+        comment.time = index + 1
+        comment.color = '#fff'
+        comment.created_at = item.created_at
+        comment.user = item.user
+        comment.top = 0
+        comment.right = 0
+        comment.opacity = 0
+        comment.width = 'auto'
+        comment.isShow = true
+        this.comments[index] = comment
+        this.$apply()
+      }
+    }
+
+    // 发送评论
+    postComment () {
+
+    }
+
+    // 更新评论列表
+    updateComments () {
+
+    }
+
+    // 获取评论并处理数据结构
+    formatComments () {
+
+    }
     // 获取本期所有题
     async getQuestions () {
       let params = {
