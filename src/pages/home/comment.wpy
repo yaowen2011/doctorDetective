@@ -21,9 +21,9 @@
             view.comment_user
               image(
                 class="avatar"
-                src="{{item.user.avatarUrl}}"
+                src="{{item.user.avatar_url}}"
               )  
-              view.nickName  {{item.user.nickName}}
+              view.nickName  {{item.user.nickname}}
             view.comment_content
               view {{item.text}}
             view.comment_time
@@ -71,57 +71,11 @@
         type: Array,
         default: [
           {
-            text:	'这是我的测试评论1',
-            created_at:	'2018-03-09 17:51:25',  
-            user: {
-              _id:	'5a966b1b13629a08c161667e',   
-              nickName: 'Raindrop',
-              avatarUrl: 'https://wx.qlogo.cn/mmopen/vi_32/Q0j4TwGTfTKsg8IJLwibvy2j4xBEb9cF2vCDjA1jtsfhqsmzuPvicjuI3bHdiaeL4uciaibKAQSrzSK6ryPKaiaPHCiaQ/0'
-            }
-          },
-          {
-            text:	'这是我的测试评论2, 这是我的测试评论2',
-            created_at:	'2018-03-09 17:51:25',  
-            user: {
-              _id:	'5a966b1b13629a08c161667e',   
-              nickName: 'Raindrop',
-              avatarUrl: 'https://wx.qlogo.cn/mmopen/vi_32/Q0j4TwGTfTKsg8IJLwibvy2j4xBEb9cF2vCDjA1jtsfhqsmzuPvicjuI3bHdiaeL4uciaibKAQSrzSK6ryPKaiaPHCiaQ/0'
-            }
-          },
-          {
-            text:	'这是我的测试评论3, 这是我的测试评论3, 这是我的测试评论3',
-            created_at:	'2018-03-09 17:51:25',  
-            user: {
-              _id:	'5a966b1b13629a08c161667e',   
-              nickName: 'Raindrop',
-              avatarUrl: 'https://wx.qlogo.cn/mmopen/vi_32/Q0j4TwGTfTKsg8IJLwibvy2j4xBEb9cF2vCDjA1jtsfhqsmzuPvicjuI3bHdiaeL4uciaibKAQSrzSK6ryPKaiaPHCiaQ/0'
-            }
-          },
-          {
-            text:	'这是我的测试评论4, 这是我的测试评论4, 这是我的测试评论4, 这是我的测试评论4,',
-            created_at:	'2018-03-09 17:51:25',  
-            user: {
-              _id:	'5a966b1b13629a08c161667e',   
-              nickName: 'Raindrop',
-              avatarUrl: 'https://wx.qlogo.cn/mmopen/vi_32/Q0j4TwGTfTKsg8IJLwibvy2j4xBEb9cF2vCDjA1jtsfhqsmzuPvicjuI3bHdiaeL4uciaibKAQSrzSK6ryPKaiaPHCiaQ/0'
-            }
-          },
-          {
-            text:	'这是我的测试评论5, 这是我的测试评论5, 这是我的测试评论5, 这是我的测试评论5, 这是我的测试评论5, ',
-            created_at:	'2018-03-09 17:51:25',  
-            user: {
-              _id:	'5a966b1b13629a08c161667e',   
-              nickName: 'Raindrop',
-              avatarUrl: 'https://wx.qlogo.cn/mmopen/vi_32/Q0j4TwGTfTKsg8IJLwibvy2j4xBEb9cF2vCDjA1jtsfhqsmzuPvicjuI3bHdiaeL4uciaibKAQSrzSK6ryPKaiaPHCiaQ/0'
-            }
-          },
-          {
-            text:	'这是我的测试评论6, 这是我的测试评论6, 这是我的测试评论6, 这是我的测试评论6, 这是我的测试评论6, 这是我的测试评论6, ',
-            created_at:	'2018-03-09 17:51:25',  
-            user: {
-              _id:	'5a966b1b13629a08c161667e',   
-              nickName: 'Raindrop',
-              avatarUrl: 'https://wx.qlogo.cn/mmopen/vi_32/Q0j4TwGTfTKsg8IJLwibvy2j4xBEb9cF2vCDjA1jtsfhqsmzuPvicjuI3bHdiaeL4uciaibKAQSrzSK6ryPKaiaPHCiaQ/0'
+            text:	'',
+            created_at:	'',  
+            user: { 
+              nickname: '',
+              avatarurl: ''
             }
           }
         ]
