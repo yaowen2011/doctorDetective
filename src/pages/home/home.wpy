@@ -2,9 +2,7 @@
   view.container
     CaseVideo(
       wx:if="{{isVideoSrc}}"
-      :danmuList.sync="comments"
       :video.sync="video"
-      :comments="comments"
       )
     VideoPlaceholder(
       wx:else
@@ -158,6 +156,10 @@
         this.isShowCommentBlock = params
       },
       'submitComment': async (content) => {
+        let comment = {}
+        comment.text = content
+        this.formatComment(comment)
+
         let params = {
           method: 'POST',
           data: {
@@ -166,13 +168,6 @@
           }
         }
         await postComment(params)
-        await this.getComments()
-
-        if (this.isVideoSrc) {
-          // this.videoContext.sendDanmu(comment)
-        } else {
-          this.$broadcast('beginBarrage', this.comments)
-        }
       }, 
       'showShareBlock': () => {
         this.isShowShare = true
@@ -239,6 +234,8 @@
       this.isStart = false
       await this.login({ share_uid: this.share_uid })
       await this.getComments()
+       // 更新视频的弹幕列表
+      this.$invoke(this.$com.CaseVideo, 'initComments', this.comments)
       if (this.isVideoSrc) return
       this.$broadcast('beginBarrage', this.comments)
     }
@@ -308,6 +305,30 @@
         this.$apply()
       }
     }
+
+    // 获取评论并处理数据结构
+    formatComment (comment) {
+      let len = this.comments.length
+      let user = {
+        nickname: this.userInfo.nickName,
+        avatar_url: this.userInfo.avatarUrl
+      }
+      comment.time = len + 1
+      comment.color = '#fff'
+      comment.created_at = '1秒前'
+      comment.user = user
+      comment.top = 0
+      comment.right = 0
+      comment.opacity = 0
+      comment.width = 'auto'
+      comment.isShow = true
+      this.comments.push(comment)
+      this.$apply()
+
+      if (this.isVideoSrc)  return
+      this.$broadcast('beginBarrage', this.comments)
+    }
+
     
     // 获取本期所有题
     async getQuestions () {
