@@ -91,7 +91,8 @@
       expired_at: '',                   // 答题截止时间
       bonusPool: 0,                     // 奖池总金额
       honor: '',                        // 级别称号
-      comments: []                      // 评论列表
+      comments: [],                     // 评论列表
+      preDate: 0                        // 记录上次触发的时间
     }
 
     components = {
@@ -109,7 +110,17 @@
     methods = {
       // 开始答题
       async startAnswer (event) {
-        await this.postFormId(event)
+        let nowDate = +new Date()
+        if (this.preDate){
+          if (nowDate - this.preDate >= 10000) {
+            await this.postFormId(event)
+          } else {
+            this.preDate = nowDate
+          }
+        } else {
+          this.preDate = nowDate
+          await this.postFormId(event)
+        }
         
         switch (this.expired) {
           case 0:
