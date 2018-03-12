@@ -4,7 +4,7 @@
       wx:if="{{isVideoSrc}}"
       :danmuList.sync="comments"
       :video.sync="video"
-      :comments.sync="comments"
+      :comments="comments"
       )
     VideoPlaceholder(
       wx:else
@@ -69,7 +69,8 @@
   export default class HomePage extends wepy.page {
     data = {
       video: {},                        // 病历视频
-      isVideoSrc: false,                 // 是否有视频地址
+      isVideoSrc: false,                // 是否有视频地址
+      videoContext: {},                 // video 上下文对象
       isStart: false,                   // 是否开始答题
       isShowShare: false,               // 是否显示分享模块
       isShowCommentBlock: false,        // 是否显示屏幕模块
@@ -201,8 +202,13 @@
       this.share_uid = share_uid
 
       let { data: { data: { video: { data: video } } } } = await getVideo({isNeedToken: false})
-      video.src ? this.isVideoSrc = true : this.isVideoSrc = false
       this.video = video
+      if (video.src) {
+        this.isVideoSrc = true 
+        this.videoContext = wepy.createVideoContext('caseVideo')
+      } else {
+        this.isVideoSrc = false
+      }
       this.$apply()
     }
 
@@ -309,8 +315,11 @@
       this.comments.push(comment)
       this.$apply()
 
-      if (this.isVideoSrc) return
-      this.$broadcast('beginBarrage', this.comments)
+      if (this.isVideoSrc) {
+        this.videoContext.sendDanmu(comment)
+      } else {
+        this.$broadcast('beginBarrage', this.comments)
+      }
     }
     // 获取本期所有题
     async getQuestions () {
