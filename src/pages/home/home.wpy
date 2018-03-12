@@ -239,11 +239,8 @@
       this.isStart = false
       await this.login({ share_uid: this.share_uid })
       await this.getComments()
-      if (this.isVideoSrc) {
-        this.videoContext.play()
-      } else {
-        this.$broadcast('beginBarrage', this.comments)
-      }
+      if (this.isVideoSrc) return
+      this.$broadcast('beginBarrage', this.comments)
     }
 
     onShareAppMessage (options) {
