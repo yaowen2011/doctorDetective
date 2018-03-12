@@ -158,7 +158,7 @@
         await this.getComments()
 
         if (this.isVideoSrc) {
-          this.videoContext.sendDanmu(comment)
+          // this.videoContext.sendDanmu(comment)
         } else {
           this.$broadcast('beginBarrage', this.comments)
         }
