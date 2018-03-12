@@ -32,7 +32,7 @@
       view(
         id="barrage{{ index + 1 }}"
         class="barrage"
-        style=" color: {{ item.color }}; width: {{ item.width }}; right: {{ item.right }}rpx; top: {{ item.top }}rpx; opacity: {{ item.opacity}};"
+        style=" color: {{ item.color }}; width: {{ item.width }}rpx; right: {{ item.right }}rpx; top: {{ item.top }}rpx; opacity: {{ item.opacity}};"
         wx:if="{{ item.isShow }}"
       ) {{item.text}}
 </template>
