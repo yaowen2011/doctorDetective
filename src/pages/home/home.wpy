@@ -303,8 +303,8 @@
     formatComment (comment) {
       let len = this.comments.length
       let user = {
-        nickName: this.userInfo.nickName,
-        avatarUrl: this.userInfo.avatarUrl
+        nickname: this.userInfo.nickName,
+        avatar_url: this.userInfo.avatarUrl
       }
       comment.time = len + 1
       comment.color = '#fff'

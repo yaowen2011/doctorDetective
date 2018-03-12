@@ -91,7 +91,6 @@
     methods = {
       // 显示/隐藏编辑评论模块
       toggleCommentEdit (params) {
-        console.log('toggleCommentEdit params', params, typeof params)
         switch (params) {
           case 'true':
             this.isEditComment = true
