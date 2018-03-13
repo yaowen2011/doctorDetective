@@ -7,7 +7,7 @@
       @tap="toggleCommentEdit(false)"
     )
       view.comment_close_wrapper(
-        @tap.stop="toggleCommentsBlock"
+        @tap="toggleCommentsBlock"
       )
         view.comment_close x
       scroll-view.scroll_view(
@@ -160,6 +160,8 @@
       position: absolute;
       top: 0;
       right: 0;
+      z-index: 9999;
+      padding: 30rpx;
 
       .comment_close {
         @include verticalHorizontalCenter();
@@ -167,7 +169,6 @@
         width: 50rpx;
         height: 50rpx;
         border-radius: 50%;
-        margin: 30rpx;
         background: #fff;
         box-sizing: border-box;
         border: 2rpx solid #9b9b9b;
