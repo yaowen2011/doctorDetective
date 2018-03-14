@@ -33,7 +33,7 @@
       view(
         id="barrage{{ index + 1 }}"
         class="barrage"
-        style=" color: {{ item.color }}; width: {{ item.width }}rpx; right: {{ item.right }}rpx; top: {{ item.top }}rpx; opacity: {{ item.opacity}};"
+        style=" color: {{ item.color }}; width: {{ item.width }}rpx; right: {{ item.right }}rpx; top: {{ item.top }}rpx; opacity: {{ item.opacity}};" 
         wx:if="{{ item.isShow }}"
       ) {{item.text}}
 </template>
@@ -42,18 +42,8 @@
   import wepy from 'wepy'
   export default class BarrageComponent extends wepy.component {
     data = {
-      barrages: [
-        {
-          text: '1 s barrage msg',
-          time: 1,
-          top: 0,
-          right: 0,
-          width: 'auto',
-          opacity: 0,
-          isShow: true
-        }
-      ],
-      index: 0
+      barrages: [],
+      isClearTimer: false
     }
 
     events = {
@@ -70,15 +60,13 @@
     }
 
     async beginBarrage () {
-      let timer = null
-      if (this.index < this.barrages.length) {
-        this.startBarrage(this.barrages[this.index], this.index)
-        await this.timeout(timer, 600)
-        this.index++
-        this.$apply()
-        await this.beginBarrage()
-      } else {
+      // 以一秒间隔出一条弹幕，然后滚动该条弹幕
+      let len = this.barrages.length
+      for (let [index, item] of this.barrages.entries()) {
+        let timer = null
         clearTimeout(timer)
+        await this.timeout(timer, 1000)
+        this.startBarrage(item, index)
       }
     }
 
@@ -102,7 +90,7 @@
       // 获取单个弹幕相关属性值
       let { width, height } = await this.getBoundingClientRect({ id: `#barrage${ index + 1 }`, width: 0, height: 0} )
       
-      let randomTop = 2 * Math.round(Math.random() * ( barrageWrapperH - height ))
+      let randomTop = 2 * Math.round(Math.random() * ( barrageWrapperH - 2 * height ))
       // let randomColor = '#' + Math.floor(Math.random() * 256).toString(10)
       let barrageWidth = 2 * width
       barrage.width = barrageWidth
@@ -121,17 +109,29 @@
     async intervalBarrage ({ newBarrage, barrageWrapperW, width, index }) {
       newBarrage.right += 6
       let timer = null
-      await this.timeout(timer, 10)
+      clearTimeout(timer)
+      await this.timeout(timer, 20)
+      // 弹幕在弹幕墙中滚动的情况
       if (Math.abs(newBarrage.right) < 2 * barrageWrapperW) {
         this.updateBarrage(newBarrage, index)
         await this.intervalBarrage({ newBarrage, barrageWrapperW, width })
-      } else {
-        newBarrage.isShow = false
-        this.updateBarrage(newBarrage, index)
-        clearTimeout(timer)
+
+        // 最后一条弹幕滚动出屏幕时，重新开始滚动评论列表
+        if (index >= this.barrages.length - 1) {
+          this.index = 0
+          this.$apply()
+          clearTimeout(timer)
+          this.beginBarrage()
+        }
+      } else { // 弹幕出弹幕墙的情况
+          newBarrage.right = 0
+          newBarrage.top = 0
+          newBarrage.opacity = 0
+          this.updateBarrage(newBarrage, index)
+          clearTimeout(timer)
       }
     }
-
+    
     // Promise化setTimeout
     async timeout (timer, ms) {
       return new Promise((resolve, reject) => {
