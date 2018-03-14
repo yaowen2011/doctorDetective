@@ -3,9 +3,7 @@
     image(
       src="{{ video.cover }}"
     )
-    Barrage(
-      wx:if="{{ isShowBarrage }}"
-    )
+    Barrage
     view(
       class="barrage_btn_wrapper"
       wx:if="{{ isShowBarrageBtn }}"
@@ -50,6 +48,7 @@
     methods = {
       toggleBarrage () {
         this.isShowBarrage = !this.isShowBarrage
+        this.$broadcast('toggleBarrage', this.isShowBarrage)
       }
     }
 

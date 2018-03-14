@@ -19,11 +19,16 @@
     color: #fff;
   }
 }
+
+.hide_barrage_wrapper {
+  background: rgba(0, 0, 0, 0);
+}
 </style>
 
 <template lang="pug">
   view.barrage_wrapper(
     id="barrage_wrapper"
+    class="{{ isShowBarrage ? '' : 'hide_barrage_wrapper' }}"
     @tap.stop="toggleBarrageBtn"
   )
     block(
@@ -43,6 +48,7 @@
   export default class BarrageComponent extends wepy.component {
     data = {
       barrages: [],
+      isShowBarrage: true,
       isClearTimer: false
     }
 
@@ -51,6 +57,9 @@
         this.barrages = comments
         this.$apply()
         this.beginBarrage()
+      },
+      'toggleBarrage': () => {
+        this.isShowBarrage = !this.isShowBarrage
       }
     }
     methods = {
@@ -107,6 +116,7 @@
 
     // 为弹幕添加定时任务
     async intervalBarrage ({ newBarrage, barrageWrapperW, width, index }) {
+      this.isShowBarrage ? newBarrage.opacity = 1 : newBarrage.opacity = 0
       newBarrage.right += 6
       let timer = null
       clearTimeout(timer)
