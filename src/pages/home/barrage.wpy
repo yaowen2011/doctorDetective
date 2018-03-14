@@ -14,7 +14,7 @@
   .barrage {
     position: absolute;
     z-index: 9;
-    margin: 20rpx;
+    white-space:nowrap;
     height: 60rpx;
     color: #fff;
   }
@@ -131,7 +131,6 @@
           this.index = 0
           this.$apply()
           clearTimeout(timer)
-          this.beginBarrage()
         }
       } else { // 弹幕出弹幕墙的情况
           newBarrage.right = 0
