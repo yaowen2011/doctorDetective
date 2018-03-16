@@ -73,16 +73,9 @@
               pid: this.pid
             }
           }
-          let {data: {error_code, bonus}} = await postUserInfo(params)
+          let { data: { error_code } } = await postUserInfo(params)
           if (error_code === 0) {
             wepy.navigateBack({delta: 1})
-            // if (this.isBonus) {
-            //   wepy.navigateBack({delta: 1})
-            // } else {
-            //   wepy.navigateTo({
-            //     url: `/pages/result/index?isShowResultReward=1&isShowResult=0&bonus=${bonus}&pid=${this.pid}`
-            //   })
-            // }
           }
         }
       }

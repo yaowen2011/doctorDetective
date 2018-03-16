@@ -40,7 +40,7 @@
       }
     }
 
-    onLoad ({ total_bonus = 0, pid = ''}) {
+    onLoad ({ total_bonus = 0, pid = '' }) {
       this.pid = pid
       this.total_bonus = Number(total_bonus)
     }

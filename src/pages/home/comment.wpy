@@ -71,9 +71,9 @@
         type: Array,
         default: [
           {
-            text:	'',
-            created_at:	'',  
-            user: { 
+            text: '',
+            created_at: '',
+            user: {
               nickname: '',
               avatarurl: ''
             }
@@ -120,7 +120,7 @@
       },
       // 隐藏评论模块
       toggleCommentsBlock () {
-         this.$emit('toggleCommentsBlock', false)
+        this.$emit('toggleCommentsBlock', false)
       }
     }
   }

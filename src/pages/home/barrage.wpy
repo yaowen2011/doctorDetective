@@ -70,7 +70,6 @@
 
     async beginBarrage () {
       // 以一秒间隔出一条弹幕，然后滚动该条弹幕
-      let len = this.barrages.length
       for (let [index, item] of this.barrages.entries()) {
         let timer = null
         clearTimeout(timer)
@@ -85,7 +84,6 @@
       this.$apply()
     }
 
-
     // 开始滚动一个弹幕
     async startBarrage (barrage, index) {
       let { barrage: newBarrage, barrageWrapperW, width } = await this.createBarrage(barrage, index)
@@ -97,14 +95,14 @@
       // 获取弹幕容器的相关属性值
       let { height: barrageWrapperH, width: barrageWrapperW } = await this.getBoundingClientRect({ id: '#barrage_wrapper', height: 0, width: 0 })
       // 获取单个弹幕相关属性值
-      let { width, height } = await this.getBoundingClientRect({ id: `#barrage${ index + 1 }`, width: 0, height: 0} )
-      
-      let randomTop = 2 * Math.round(Math.random() * ( barrageWrapperH - 2 * height ))
+      let { width, height } = await this.getBoundingClientRect({ id: `#barrage${index + 1}`, width: 0, height: 0 })
+
+      let randomTop = 2 * Math.round(Math.random() * (barrageWrapperH - 2 * height))
       // let randomColor = '#' + Math.floor(Math.random() * 256).toString(10)
       let barrageWidth = 2 * width
       barrage.width = barrageWidth
-      barrage.right = - barrageWidth
-      barrage.top =  randomTop
+      barrage.right = -barrageWidth
+      barrage.top = randomTop
       // barrage.color = randomColor
       barrage.opacity = 1
       return {
@@ -133,14 +131,14 @@
           clearTimeout(timer)
         }
       } else { // 弹幕出弹幕墙的情况
-          newBarrage.right = 0
-          newBarrage.top = 0
-          newBarrage.opacity = 0
-          this.updateBarrage(newBarrage, index)
-          clearTimeout(timer)
+        newBarrage.right = 0
+        newBarrage.top = 0
+        newBarrage.opacity = 0
+        this.updateBarrage(newBarrage, index)
+        clearTimeout(timer)
       }
     }
-    
+
     // Promise化setTimeout
     async timeout (timer, ms) {
       return new Promise((resolve, reject) => {
@@ -151,7 +149,7 @@
     // 查找并返回节点相关信息
     getBoundingClientRect ({ id, width, height }) {
       return new Promise((resolve, reject) => {
-        let query =  wx.createSelectorQuery()
+        let query = wepy.createSelectorQuery()
         query.select(id).boundingClientRect(rect => {
           resolve({
             width: rect.width,

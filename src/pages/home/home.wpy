@@ -61,7 +61,7 @@
   import Comment from './comment'
 
   import { getLoginToken } from '@/utils/login'
-  import { getVideo, getQuestions, postAnswer, getBonus, postFormId, getComments, postComment } from '@/utils/api'
+  import { getVideo, getQuestions, postAnswer, postFormId, getComments, postComment } from '@/utils/api'
   import { transformObject } from '@/utils/utils'
 
   export default class HomePage extends wepy.page {
@@ -109,7 +109,7 @@
       // 开始答题
       async startAnswer (event) {
         let nowDate = +new Date()
-        if (this.preDate){
+        if (this.preDate) {
           if (nowDate - this.preDate >= 10000) {
             await this.postFormId(event)
           } else {
@@ -119,10 +119,10 @@
           this.preDate = nowDate
           await this.postFormId(event)
         }
-        
+
         switch (this.expired) {
           case 0:
-            if ( this.is_answer === 1) {
+            if (this.is_answer === 1) {
               wepy.showModal({
                 content: '您已参与过本期答题了，请下期再答。',
                 showCancel: false
@@ -168,21 +168,21 @@
           }
         }
         await postComment(params)
-      }, 
+      },
       'showShareBlock': () => {
         this.isShowShare = true
       },
       'hideShareBlock': () => {
         this.isShowShare = false
       },
-      'updateOptionAndQuesion': (currentQuestion) =>{
-        this.currentQuestion = currentQuestion 
+      'updateOptionAndQuesion': (currentQuestion) => {
+        this.currentQuestion = currentQuestion
       },
       'handleAnswer': async () => {
         this.answer = ''
         this.$apply()
         if (!this.currentQuestion.choice) return
-        this.$invoke(this.$com.Question.$com.Timer, 'clearTimer')    
+        this.$invoke(this.$com.Question.$com.Timer, 'clearTimer')
         let choice = this.currentQuestion.choice
         for (let i = 0; i < choice.length; i++) {
           if (choice[i].checked) {
@@ -203,7 +203,7 @@
 
         let res = {}
         // 判断正在答的题是否为最后一题
-        if (this.index < this.questions.length -1) {
+        if (this.index < this.questions.length - 1) {
           res = await postAnswer(params)
           this.handleAnswerResponse(res)
         } else {
@@ -222,7 +222,7 @@
       let { data: { data: { video: { data: video } } } } = await getVideo({isNeedToken: false})
       this.video = video
       if (video.src) {
-        this.isVideoSrc = true 
+        this.isVideoSrc = true
         this.videoContext = wepy.createVideoContext('caseVideo')
       } else {
         this.isVideoSrc = false
@@ -241,7 +241,7 @@
     }
 
     onShareAppMessage (options) {
-      let { share_uid = ''} = { share_uid: wepy.getStorageSync('uid') }
+      let { share_uid = '' } = { share_uid: wepy.getStorageSync('uid') }
       return {
         title: '参与医学知识竞答，赢现金大奖！',
         path: `/pages/home/home?share_uid=${share_uid}`,
@@ -253,7 +253,7 @@
             title: '分享成功'
           })
         },
-        fail: (err) => {
+        fail: () => {
           this.isShowShare = false
           this.$apply()
           wepy.showToast({
@@ -287,7 +287,7 @@
           pid: this.pid
         }
       }
-      let { data: { data: comments} } = await getComments(params)
+      let { data: { data: comments } } = await getComments(params)
 
       for (let [index, item] of comments.entries()) {
         let comment = {}
@@ -325,11 +325,10 @@
       this.comments.push(comment)
       this.$apply()
 
-      if (this.isVideoSrc)  return
+      if (this.isVideoSrc) return
       this.$broadcast('beginBarrage', this.comments)
     }
 
-    
     // 获取本期所有题
     async getQuestions () {
       let params = {
@@ -339,9 +338,9 @@
         }
       }
       let { data: { data: questions } } = await getQuestions(params)
-      for(let i = 0; i < questions.length; i++) {
+      for (let i = 0; i < questions.length; i++) {
         let choice = []
-        for(let j = 0; j < questions[i].choice.length; j++) {
+        for (let j = 0; j < questions[i].choice.length; j++) {
           choice.push(transformObject(questions[i].choice[j]))
         }
         questions[i].choice = choice
@@ -350,60 +349,60 @@
     }
 
     // 处理答题响应
-    async handleAnswerResponse ({ data: {data = 0, alive = 0, finished = 0, total = 0, time = 0, fn = 0} }) {  
+    async handleAnswerResponse ({ data: { data = 0, alive = 0, finished = 0, total = 0, time = 0, fn = 0 } }) {
       let len = this.questions.length
       let index = this.index
 
-      if(index >= 0 && index < 3) {
-        if(data === 1 && alive === 0) {
+      if (index >= 0 && index < 3) {
+        if (data === 1 && alive === 0) {
           await this.showTip('答对啦！好棒！')
           this.nextQuestion()
         }
-        if(data === 1 && alive === 1) {
+        if (data === 1 && alive === 1) {
           await this.showTip('答错啦！自动使用复活卡！')
           this.nextQuestion()
         }
-        if(data === 0 && finished === 1) {
+        if (data === 0 && finished === 1) {
           await this.showTip('很遗憾！您被淘汰了！')
           this.$invoke(this.$com.Question.$com.Timer, 'clearTimer')
           wepy.navigateTo({
             url: `/pages/result/index?score=${total}&pid=${this.pid}&total_score=${this.total_score}`
           })
         }
-      } else if( index === 3) {
-        if(data === 1 && alive === 0) {
+      } else if (index === 3) {
+        if (data === 1 && alive === 0) {
           await this.showTip('答对啦！恭喜进入晋级赛！')
           this.nextQuestion()
         }
-        if(data === 1 && alive === 1) {
+        if (data === 1 && alive === 1) {
           await this.showTip('自动使用复活卡！恭喜进入晋级赛！')
           this.nextQuestion()
         }
-        if(data === 0 && finished === 1) {
+        if (data === 0 && finished === 1) {
           await this.showTip('很遗憾！您被淘汰了！')
           this.$invoke(this.$com.Question.$com.Timer, 'clearTimer')
           wepy.navigateTo({
             url: `/pages/result/index?score=${total}&pid=${this.pid}&total_score=${this.total_score}`
           })
         }
-      }else if (index > 3 && index < len -1) {
-        if(data === 1 && finished === 0 ) {
+      } else if (index > 3 && index < len - 1) {
+        if (data === 1 && finished === 0) {
           await this.showTip('答对啦！好棒！')
           this.nextQuestion()
         }
-        if(data === 0 && finished === 0) {
+        if (data === 0 && finished === 0) {
           await this.showTip('答错啦！下一题加油哦！')
           this.nextQuestion()
         }
-      }else if(index === len - 1) {
-        if(data === 1 && finished === 1) {
+      } else if (index === len - 1) {
+        if (data === 1 && finished === 1) {
           await this.showTip('答对啦！答题结束！')
           this.$invoke(this.$com.Question.$com.Timer, 'clearTimer')
           wepy.navigateTo({
             url: `/pages/result/index?isShowRewardBtn=1&score=${total}&pid=${this.pid}&total_bonus=${this.total_bonus}&total_score=${this.total_score}`
           })
         }
-        if(data === 0 && finished === 1) {
+        if (data === 0 && finished === 1) {
           await this.showTip('答错啦！答题结束！')
           this.$invoke(this.$com.Question.$com.Timer, 'clearTimer')
           wepy.navigateTo({
@@ -416,8 +415,8 @@
     // Promise化setTimeout
     async timeout (ms) {
       return new Promise((resolve, reject) => {
-        this.timer = setTimeout(resolve, ms);
-      }) 
+        this.timer = setTimeout(resolve, ms)
+      })
     }
 
     // 展示提示框

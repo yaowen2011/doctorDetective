@@ -41,13 +41,13 @@
       avatarUrl: ''            // 用户头像
     }
 
-    async onLoad ({ pid = ''}) {
+    async onLoad ({ pid = '' }) {
       this.avatarUrl = wepy.getStorageSync('userInfo').avatarUrl
       let params = {
         method: 'POST',
         data: { pid }
       }
-      let { data: { sort, list: { data: list} } }= await postRank(params)
+      let { data: { sort, list: { data: list } } } = await postRank(params)
       this.list = list
       this.sort = sort
       this.$apply()

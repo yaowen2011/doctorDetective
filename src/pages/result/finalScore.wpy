@@ -78,13 +78,13 @@
             this.$emit('updateBonus', bonus)
             this.$emit('hideFinalScore')
             break
-        
+
           case 5005:
             wepy.navigateTo({
-              url:`/pages/information/index?pid=${this.pid}`
+              url: `/pages/information/index?pid=${this.pid}`
             })
             break
-        }     
+        }
       }
     }
   }

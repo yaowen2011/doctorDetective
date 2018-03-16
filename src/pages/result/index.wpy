@@ -33,7 +33,7 @@
 
     data = {
       avatarUrl: '',              // 用户头像
-      isShowFinalScore:  true,    // 是否展示最终得分区域
+      isShowFinalScore: true,    // 是否展示最终得分区域
       isShowRewardBtn: false,     // 是否显示领取奖励按钮
       pid: '',                    // 本期试卷的 id
       score: 0,                   // 当前得分

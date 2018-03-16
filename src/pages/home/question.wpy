@@ -58,22 +58,22 @@
       getAnswer (item, index) {
         let currentQuestion = this.questions[this.index]
         switch (currentQuestion.type) {
-          case 1: //单选题
+          case 1:
             for (let i = 0; i < currentQuestion.choice.length; i++) {
               if (currentQuestion.choice[i].checked) {
                 currentQuestion.choice[i].checked = false
-              } else if(i === index) {
+              } else if (i === index) {
                 currentQuestion.choice[i].checked = true
               }
             }
             this.$emit('updateOptionAndQuesion', currentQuestion)
             break
-          case 2: //多选
+          case 2:
             for (let i = 0; i < currentQuestion.choice.length; i++) {
-              if(i === index) {
-                if(currentQuestion.choice[i].checked) {
+              if (i === index) {
+                if (currentQuestion.choice[i].checked) {
                   currentQuestion.choice[i].checked = false
-                }else {
+                } else {
                   currentQuestion.choice[i].checked = true
                 }
               }

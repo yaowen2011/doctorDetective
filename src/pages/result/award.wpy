@@ -55,7 +55,7 @@
     methods = {
       goHome () {
         wepy.reLaunch({
-          url:'/pages/home/home'
+          url: '/pages/home/home'
         })
       },
       goRankPage () {
