@@ -1,0 +1,136 @@
+<template lang="pug">
+  view.poster_wrapper
+    view.model(
+      @tap="hidePoster"
+    )
+    view.poster
+      view.poster_model(
+        @tap="hidePoster"
+      )
+      view.poster_card
+        view.card_content
+          view.title 关注 Dotcor Why 微信公众号查看每期答案解析
+          image.image(
+            @tap="saveImage"
+            lazy-load
+            src="../../images/doctorWhy.jpeg")
+          view.tip 保存图片到相册,微信扫一扫打开相册识别二维码 
+</template>
+
+<script>
+  import wepy from 'wepy'
+  export default class PosterComponent extends wepy.component {
+    methods = {
+      hidePoster () {
+        this.$emit('hidePoster')
+      },
+      async saveImage () {
+        try {
+          console.log(1)
+          // 获取图片信息
+          let { path: fillPath } = await wepy.getImageInfo({
+            src: '../../images/doctorWhy.jpeg'
+          })
+          await wepy.saveImageToPhotosAlbum({ fillPath: fillPath })
+        } catch (error) {
+          console.log(error)
+          let { authSetting } = await wepy.getSetting()
+          if (!authSetting['scope.writePhotosAlbum']) {
+            // 用户拒绝授权后，打开设置，让用户进行授权
+            let { cancel } = await wepy.showModal({
+              title: '登录失败!',
+              content: '请选择允许获取您的公开信息'
+            })
+            // 用户关闭modal,直接return
+            if (cancel) return
+            await wepy.openSetting()
+          } else {
+            // 获取图片信息
+            let { path: fillPath } = await wepy.getImageInfo({
+              src: '../../images/doctorWhy.jpeg'
+            })
+            await wepy.saveImageToPhotosAlbum({ fillPath: fillPath })
+          }
+          wepy.showToast({
+            title: '保存失败',
+            icon: 'none'
+          })
+        }
+      }
+    }
+
+    // outh
+  }
+</script>
+
+<style lang="scss" scoped>
+@import '../../scss/_layout.scss';
+@import '../../scss/_variables.scss';
+
+.poster_wrapper {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 99999;
+  
+  .model {
+    height: 100%;
+    background-color: rgba(74, 73, 74, 0.7);
+  }
+
+  .poster {
+    @include verticalHorizontalCenter();
+    position: absolute;
+    top: $videoHeight;
+    bottom: 0;
+    left: 0;
+    right: 0;
+
+    .poster_model {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+    }
+
+    .poster_card {
+      $posterCardWidth: 510rpx;
+      $posterCardHeight: 700rpx;
+      @include verticalHorizontalCenter();
+
+      width: $posterCardWidth;
+      height: $posterCardHeight;
+      border-radius: 16rpx;
+      background-color: #fff;
+      position: relative;
+
+      .card_content {
+        width: 350rpx;
+        max-height: $posterCardHeight;
+
+        .title {
+          font-family: PingFangSC-Medium;
+          font-size: 24rpx;
+          text-align: center;
+        }
+        
+        .image {
+          width: 100%;
+          height: 350rpx;
+          margin: 30rpx 0;
+        }
+
+        .tip {
+          font-family: PingFangSC-Regular;
+          font-size: 16rpx;
+          text-align: center;
+        }
+      }
+    }
+  }
+
+}
+</style>
