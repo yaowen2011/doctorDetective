@@ -46,6 +46,9 @@
       wx:if="{{ isShowCommentBlock }}"
       :comments.sync="comments"
     )
+    Poster(
+      wx:if="{{isShowPoster}}"
+    )
 </template>
 
 <script>
@@ -59,6 +62,7 @@
   import Question from './question'
   import VideoPlaceholder from './videoPlaceholder'
   import Comment from './comment'
+  import Poster from './poster'
 
   import { getLoginToken } from '@/utils/login'
   import { getVideo, getQuestions, postAnswer, postFormId, getComments, postComment } from '@/utils/api'
@@ -90,7 +94,8 @@
       bonusPool: 0,                     // 奖池总金额
       honor: '',                        // 级别称号
       comments: [],                     // 评论列表
-      preDate: 0                        // 记录上次触发的时间
+      preDate: 0,                       // 记录上次触发的时间
+      isShowPoster: true                // 是否显示 poster
     }
 
     components = {
@@ -102,7 +107,8 @@
       Share,
       Question,
       VideoPlaceholder,
-      Comment
+      Comment,
+      Poster
     }
 
     methods = {
@@ -213,6 +219,9 @@
         }
         this.currentQuestion = {}
         this.$apply()
+      },
+      'hidePoster': () => {
+        this.isShowPoster = false
       }
     }
 
