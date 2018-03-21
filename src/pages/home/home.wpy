@@ -227,10 +227,11 @@
       }
     }
 
-    async onLoad ({ share_uid = '' }) {
+    async onLoad ({ share_uid = '', scene = '' }) {
       let { data: { show } } = await getPosterState()
       this.isShowPoster = show
-      this.share_uid = share_uid
+      if (share_uid) this.share_uid = share_uid
+      if (scene) this.share_uid = decodeURIComponent(scene)
 
       let { data: { data: { video: { data: video } } } } = await getVideo({isNeedToken: false})
       this.video = video
