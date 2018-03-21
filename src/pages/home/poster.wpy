@@ -13,53 +13,48 @@
           image.image(
             @tap="saveImage"
             lazy-load
-            src="../../images/doctorWhy.jpeg")
-          view.tip 保存图片到相册,微信扫一扫打开相册识别二维码 
+            src="{{QRcode_url}}")
+          view.tip 保存图片到相册,微信扫一扫打开相册识别二维码
 </template>
 
 <script>
   import wepy from 'wepy'
   export default class PosterComponent extends wepy.component {
+    data = {
+      QRcode_url: 'https://case.geekheal.net/storage/doctorWhy.jpeg',              // doctor why公众号二维码在服务器上的地址
+    }
+
     methods = {
       hidePoster () {
         this.$emit('hidePoster')
       },
       async saveImage () {
         try {
-          console.log(1)
-          // 获取图片信息
-          let { path: fillPath } = await wepy.getImageInfo({
-            src: '../../images/doctorWhy.jpeg'
+          let { path } = await wepy.getImageInfo({ src: this.QRcode_url })
+          await wepy.saveImageToPhotosAlbum({ filePath: path })
+          wepy.showToast({
+            title: '保存成功',
+            icon: 'success'
           })
-          await wepy.saveImageToPhotosAlbum({ fillPath: fillPath })
-        } catch (error) {
-          console.log(error)
+          this.$emit('hidePoster')
+        } catch (err) {
           let { authSetting } = await wepy.getSetting()
           if (!authSetting['scope.writePhotosAlbum']) {
-            // 用户拒绝授权后，打开设置，让用户进行授权
             let { cancel } = await wepy.showModal({
-              title: '登录失败!',
-              content: '请选择允许获取您的公开信息'
+              title: '请求授权',
+              content: '请选择允许获取您的相册权限'
             })
-            // 用户关闭modal,直接return
             if (cancel) return
             await wepy.openSetting()
           } else {
-            // 获取图片信息
-            let { path: fillPath } = await wepy.getImageInfo({
-              src: '../../images/doctorWhy.jpeg'
+            wepy.showToast({
+              title: '保存失败',
+              icon: 'none'
             })
-            await wepy.saveImageToPhotosAlbum({ fillPath: fillPath })
           }
-          wepy.showToast({
-            title: '保存失败',
-            icon: 'none'
-          })
         }
-      }
+      },
     }
-
-    // outh
   }
 </script>
 
