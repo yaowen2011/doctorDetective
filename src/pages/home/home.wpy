@@ -222,6 +222,8 @@
       },
       'hidePoster': () => {
         this.isShowPoster = false
+        if (this.isVideoSrc) return
+        this.$broadcast('beginBarrage', this.comments)
       }
     }
 
@@ -245,8 +247,6 @@
       await this.getComments()
        // 更新视频的弹幕列表
       this.$invoke(this.$com.CaseVideo, 'initComments', this.comments)
-      if (this.isVideoSrc) return
-      this.$broadcast('beginBarrage', this.comments)
     }
 
     onShareAppMessage (options) {
