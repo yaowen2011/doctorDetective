@@ -65,7 +65,7 @@
   import Poster from './poster'
 
   import { getLoginToken } from '@/utils/login'
-  import { getVideo, getQuestions, postAnswer, postFormId, getComments, postComment } from '@/utils/api'
+  import { getVideo, getQuestions, postAnswer, postFormId, getComments, postComment, getPosterState } from '@/utils/api'
   import { transformObject } from '@/utils/utils'
 
   export default class HomePage extends wepy.page {
@@ -228,6 +228,8 @@
     }
 
     async onLoad ({ share_uid = '' }) {
+      let { data: { show } } = await getPosterState()
+      this.isShowPoster = show
       this.share_uid = share_uid
 
       let { data: { data: { video: { data: video } } } } = await getVideo({isNeedToken: false})
