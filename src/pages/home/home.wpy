@@ -95,7 +95,7 @@
       honor: '',                        // 级别称号
       comments: [],                     // 评论列表
       preDate: 0,                       // 记录上次触发的时间
-      isShowPoster: true                // 是否显示 poster
+      isShowPoster: false               // 是否显示 poster
     }
 
     components = {
