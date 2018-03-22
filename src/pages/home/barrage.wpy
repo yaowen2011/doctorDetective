@@ -57,15 +57,30 @@
     }
 
     events = {
-      'beginBarrage': async (comments) => {
+      'beginBarrage': (comments) => {
         this.barrages = comments
         this.$apply()
         this.beginBarrage()
       },
-      'toggleBarrage': async () => {
-        this.isShowBarrage = !this.isShowBarrage
-        if (!this.isShowBarrage) return
-        this.beginBarrage()
+      'toggleBarrage': () => {
+        if (this.isShowBarrage) {
+          for (let i of this.barrages.keys()) {
+            let animation = wepy.createAnimation({
+              transformOrigin: '50% 50% 0',
+              duration: 10,
+              timingFunction: 'linear',
+              delay: 0
+            })
+            animation.opacity(0).step()
+            animation.right(-this.barrageWrapperW).step()
+            animation.opacity(1).step()
+            this.animationDatas[i] = animation.export()
+          }
+          this.isShowBarrage = false
+        } else {
+          this.isShowBarrage = true
+          this.beginBarrage()
+        }
       }
     }
     methods = {
@@ -80,20 +95,20 @@
       this.$apply()
     }
 
-    async beginBarrage () {
+    beginBarrage () {
       for (let i of this.barrages.keys()) {
         let animation = wepy.createAnimation({
           transformOrigin: '50% 50% 0',
-          duration: 4000,
+          duration: 10,
           timingFunction: 'linear',
           delay: 300 * i
         })
         let randomTop = Math.round(Math.random() * (this.barrageWrapperH - 40))
-        animation.top(randomTop).step({ duration: 10 })
-        animation.right(this.barrageWrapperW).step()
-        animation.opacity(0).step({ duration: 100 })
-        animation.right(-this.barrageWrapperW).step({ duration: 100 })
-        animation.opacity(1).step({ duration: 100 })
+        animation.top(randomTop).step()
+        animation.right(this.barrageWrapperW).step({ duration: 4000 })
+        animation.opacity(0).step()
+        animation.right(-this.barrageWrapperW).step()
+        animation.opacity(1).step()
         this.animationDatas[i] = animation.export()
       }
     }
