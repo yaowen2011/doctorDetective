@@ -305,14 +305,8 @@
         let comment = {}
         comment.text = item.content
         comment.time = index + 1
-        comment.color = '#fff'
         comment.created_at = item.created_at
         comment.user = item.user.data
-        comment.top = 0
-        comment.right = 0
-        comment.opacity = 0
-        comment.width = 'auto'
-        comment.isShow = true
         this.comments[index] = comment
         this.$apply()
       }
@@ -326,14 +320,8 @@
         avatar_url: this.userInfo.avatarUrl
       }
       comment.time = len + 1
-      comment.color = '#fff'
       comment.created_at = '1秒前'
       comment.user = user
-      comment.top = 0
-      comment.right = 0
-      comment.opacity = 0
-      comment.width = 'auto'
-      comment.isShow = true
       this.comments.push(comment)
       this.$apply()
 
