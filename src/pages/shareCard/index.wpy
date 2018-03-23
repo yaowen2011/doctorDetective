@@ -30,12 +30,7 @@ export default class ShareCardPage extends wepy.page {
     canvasbg_snap: '',          // 背景图本地临时地址
     mpcode_snap: '',            // 小程序码本地临时地址
     avatar_snap: '',            // 个人头像本地临时地址
-    avatar_model_snap: '',      // 头像遮罩层本地临时地址
-    mpcode: '',
-    canvasbg: '',
-    avatar: '',
-    avatar_model: '',
-    avatar_default: ''
+    avatar_model: ''            // 个人头像遮罩图片本地地址
   }
 
   config = {
@@ -70,8 +65,15 @@ export default class ShareCardPage extends wepy.page {
             title: '请求授权',
             content: '请选择允许获取您的相册权限'
           })
-          if (cancel) return
-          await wepy.openSetting()
+          if (cancel) {
+            wepy.hideLoading()
+            wepy.showToast({
+              title: '保存失败',
+              icon: 'none'
+            })
+          } else {
+            await wepy.openSetting()
+          }
         } else {
           wepy.hideLoading()
           wepy.showToast({
@@ -128,7 +130,7 @@ export default class ShareCardPage extends wepy.page {
         y: this.canvasH / 2,
         w: this.canvasW,
         h: this.canvasH,
-        file: this.canvasbg
+        file: this.canvasbg_snap
       }
     )
     await wxCanvas.add(canvasbg_snap)
@@ -145,7 +147,7 @@ export default class ShareCardPage extends wepy.page {
         y: this.format(189, 1),
         w: this.format(86, 0),
         h: this.format(86, 1),
-        file: this.avatar
+        file: this.avatar_snap
       }
     )
     wxCanvas.add(avatar_snap)
@@ -191,7 +193,7 @@ export default class ShareCardPage extends wepy.page {
         y: this.format(467.5, 1),
         w: this.format(86, 0),
         h: this.format(86, 1),
-        file: this.mpcode
+        file: this.mpcode_snap
       }
     )
     wxCanvas.add(mpcode_snap)
@@ -215,33 +217,21 @@ export default class ShareCardPage extends wepy.page {
       let avatar_model = '../../images/avatar-model.png'
       let canvasbg = 'https://case.geekheal.net/codeImg/card.png'
 
-      let { avatarUrl } = wepy.getStorageSync('userInfo')
-
       let { data: { slogan, all_bouns, total_question, avatar } } = await postShareInfo({ method: 'POST' })
       let { data: { url } } = await postShareCode({ method: 'POST' })
 
       let { tempFilePath: mpcode_snap } = await wepy.downloadFile({ url })
       let { tempFilePath: avatar_snap } = await wepy.downloadFile({ url: avatar })
       let { tempFilePath: canvasbg_snap } = await wepy.downloadFile({ url: canvasbg })
-      let { path: avatar_model_snap } = await wepy.getImageInfo({ src: avatar_model })
-      let { path: avatar_default_snap } = await wepy.getImageInfo({ src: avatar_default })
 
-      // 临时地址
-      if (!avatar) this.avatar_snap = avatar_default_snap
       this.slogan = slogan
       this.all_bouns = all_bouns
+      this.avatar_model = avatar_model
       this.total_question = total_question
       this.avatar_snap = avatar_snap
       this.mpcode_snap = mpcode_snap
       this.canvasbg_snap = canvasbg_snap
-      this.avatar_model_snap = avatar_model_snap
-
-      // 网络地址
-      this.mpcode = url
-      this.canvasbg = canvasbg
-      this.avatar = avatarUrl
-      this.avatar_model = avatar_model
-      this.avatar_default = avatar_default
+      if (!avatar) this.avatar_snap = avatar_default
       this.$apply()
     } catch (error) {
       console.log('error', error)
