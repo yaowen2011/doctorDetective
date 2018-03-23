@@ -21,6 +21,7 @@ export default class DoctorDetectiveAPP extends wepy.app {
       'pages/bonus/index',
       'pages/result/index',
       'pages/withdraw/index',
+      'pages/shareCard/index',
       'pages/information/index'
     ],
     window: {
