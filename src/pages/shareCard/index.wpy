@@ -1,0 +1,389 @@
+<template lang="pug">
+  view.wrapper
+    view.content
+      canvas(
+        class="canvas"
+        id="canvas"
+        canvas-id="canvas")
+      view.btn(
+        wx:if="{{isLoaded}}"
+        @tap="savePhoto"
+      ) 保存到相册
+</template>
+
+<script>
+import wepy from 'wepy'
+import { wxDraw, Shape } from '../../utils/wxdraw'
+import { postShareInfo, postShareCode } from '@/utils/api'
+
+export default class ShareCardPage extends wepy.page {
+  data = {
+    isLoaded: false,            // 数据是否加载完成
+    canvasW: 305,               // canvas 宽
+    canvasH: 525,               // canvas 高
+    screenWidth: 0,             // 设备屏幕的宽
+    screenHeight: 0,            // 设备屏幕的高
+    scale: 0,                   // 比例
+    total_question: 0,          // 答题总数
+    slogan: '',                 // 文案
+    all_bouns: 0,               // 总奖金
+    canvasbg_snap: '',          // 背景图本地临时地址
+    mpcode_snap: '',            // 小程序码本地临时地址
+    avatar_snap: '',            // 个人头像本地临时地址
+    avatar_model_snap: '',      // 头像遮罩层本地临时地址
+    mpcode: '',
+    canvasbg: '',
+    avatar: '',
+    avatar_model: '',
+    avatar_default: ''
+  }
+
+  config = {
+    navigationBarBackgroundColor: '#000',
+    navigationBarTitleText: '分享卡片',
+    backgroundColor: '#000'
+  }
+
+  methods = {
+    async savePhoto () {
+      try {
+        wepy.showLoading({
+          title: '保存中'
+        })
+        let { tempFilePath } = await wepy.canvasToTempFilePath({
+          canvasId: 'canvas',
+          x: 0,
+          y: 0,
+          width: 4 * this.screenWidth,
+          height: 4 * this.screenHeight
+        })
+        await wepy.saveImageToPhotosAlbum({ filePath: tempFilePath })
+        wepy.hideLoading()
+        wepy.showToast({
+          title: '保存成功',
+          icon: 'success'
+        })
+      } catch (error) {
+        let { authSetting } = await wepy.getSetting()
+        if (!authSetting['scope.writePhotosAlbum']) {
+          let { cancel } = await wepy.showModal({
+            title: '请求授权',
+            content: '请选择允许获取您的相册权限'
+          })
+          if (cancel) return
+          await wepy.openSetting()
+        } else {
+          wepy.hideLoading()
+          wepy.showToast({
+            title: '保存失败',
+            icon: 'none'
+          })
+        }
+      }
+    }
+  }
+
+  async onReady () {
+    try {
+      wepy.showLoading({
+        title: '生成中',
+        mask: true
+      })
+      // 获得并初始化数据
+      await this.initData()
+      wepy.hideLoading()
+      this.isLoaded = true
+      this.$apply()
+
+      // 开始画图
+      this.draw()
+    } catch (error) {
+      console.log('error', error)
+    }
+  }
+
+  format (x, sttr) {
+    let res = 0
+    switch (sttr) {
+      case 0:
+        res = this.canvasW * (x / 305)
+        break
+      case 1:
+        res = this.canvasH * (x / 525)
+        break
+    }
+    return res
+  }
+
+  async draw () {
+    let ctx = wepy.createCanvasContext('canvas')
+    ctx.font = '40px PingFangSC-Light'
+    let wxCanvas = new wxDraw(ctx, 0, 0, this.canvasW, this.canvasH)
+
+    // 画背景图片
+    let canvasbg_snap = new Shape(
+      'image',
+      {
+        x: this.canvasW / 2,
+        y: this.canvasH / 2,
+        w: this.canvasW,
+        h: this.canvasH,
+        file: this.canvasbg
+      }
+    )
+    await wxCanvas.add(canvasbg_snap)
+
+    // 画文案
+    const str = '"本来加班已经累到死，结果我又刷了十道题，你说我是不是作的？"'
+    this.drawCopywriting(wxCanvas, str)
+
+    // 画用户头像
+    let avatar_snap = new Shape(
+      'image',
+      {
+        x: this.canvasW / 2,
+        y: this.format(189, 1),
+        w: this.format(86, 0),
+        h: this.format(86, 1),
+        file: this.avatar
+      }
+    )
+    wxCanvas.add(avatar_snap)
+
+    // 画头像遮罩层
+    let avatar_model_snap = new Shape(
+      'image',
+      {
+        x: this.canvasW / 2,
+        y: this.format(189, 1),
+        w: this.format(86, 0),
+        h: this.format(86, 1),
+        file: this.avatar_model
+      }
+    )
+    wxCanvas.add(avatar_model_snap)
+
+    // 画段位信息
+    const duanwei = '神探三段'
+    let dw = new Shape(
+      'text',
+      {
+        x: this.canvasW / 2,
+        y: this.format(245, 1),
+        text: duanwei,
+        fontSize: 14,
+        fillStyle: '#4a4a4a',
+        align: 'center',
+        textBaseline: 'top'
+      }
+    )
+    wxCanvas.add(dw)
+
+    // 画答题数和奖金
+    let arr = [['已累计答题数(道)', this.total_question], ['已赢取奖金数(元)', this.all_bouns]]
+    this.drawTextArr(wxCanvas, arr)
+
+    // 画小程序码
+    let mpcode_snap = new Shape(
+      'image',
+      {
+        x: this.format(67.5, 0),
+        y: this.format(467.5, 1),
+        w: this.format(86, 0),
+        h: this.format(86, 1),
+        file: this.mpcode
+      }
+    )
+    wxCanvas.add(mpcode_snap)
+
+    // 画小程序码说明文字
+    let mpcode_text = '扫描二维码，加入医者神探答题，参与医学知识竞答，赢取现金大奖。'
+    this.drawMpcodeText(wxCanvas, mpcode_text)
+  }
+
+  async initData () {
+    try {
+      let { screenWidth, screenHeight } = await wepy.getSystemInfo()
+      let { width, height } = await this.getBoundingClientRect({ id: '#canvas' })
+      this.canvasW = width
+      this.canvasH = height
+      this.screenWidth = screenWidth
+      this.screenHeight = screenHeight
+      this.scale = screenWidth / 375
+
+      let avatar_default = '../../images/avatar-default.png'
+      let avatar_model = '../../images/avatar-model.png'
+      let canvasbg = 'https://case.geekheal.net/codeImg/card.png'
+
+      let { avatarUrl } = wepy.getStorageSync('userInfo')
+
+      let { data: { slogan, all_bouns, total_question, avatar } } = await postShareInfo({ method: 'POST' })
+      let { data: { url } } = await postShareCode({ method: 'POST' })
+
+      let { tempFilePath: mpcode_snap } = await wepy.downloadFile({ url })
+      let { tempFilePath: avatar_snap } = await wepy.downloadFile({ url: avatar })
+      let { tempFilePath: canvasbg_snap } = await wepy.downloadFile({ url: canvasbg })
+      let { path: avatar_model_snap } = await wepy.getImageInfo({ src: avatar_model })
+      let { path: avatar_default_snap } = await wepy.getImageInfo({ src: avatar_default })
+
+      // 临时地址
+      if (!avatar) this.avatar_snap = avatar_default_snap
+      this.slogan = slogan
+      this.all_bouns = all_bouns
+      this.total_question = total_question
+      this.avatar_snap = avatar_snap
+      this.mpcode_snap = mpcode_snap
+      this.canvasbg_snap = canvasbg_snap
+      this.avatar_model_snap = avatar_model_snap
+
+      // 网络地址
+      this.mpcode = url
+      this.canvasbg = canvasbg
+      this.avatar = avatarUrl
+      this.avatar_model = avatar_model
+      this.avatar_default = avatar_default
+      this.$apply()
+    } catch (error) {
+      console.log('error', error)
+    }
+  }
+
+  formatStrToArr ({ str, lineFontCount }) {
+    let strArr = []                                              // 存放每一行文案
+    let lineCount = Math.ceil(str.length / lineFontCount)        // 行数
+    let index = 0
+    while (index < lineCount) {
+      let string = str.slice(index * lineFontCount, (index + 1) * lineFontCount)
+      strArr.push(string)
+      index++
+    }
+    return strArr
+  }
+
+  drawCopywriting (wxCanvas, str = '') {
+    let strArr = this.formatStrToArr({ str, lineFontCount: 13 })
+    let lineH = this.format(30, 1)                               // 行间距
+    let fontSize = 16 * this.scale                               // 字体大小
+    // 画每一行中的每个字符
+    for (let [i, item] of strArr.entries()) {
+      for (let j = 0; j < item.length; j++) {
+        let text = new Shape(
+          'text',
+          {
+            x: this.format(35, 0) + (fontSize + 2) * j,
+            y: this.format(35, 1) + lineH * i,
+            text: item[j],
+            fontSize,
+            fillStyle: '#fff',
+            align: 'left',
+            textBaseline: 'top'
+          }
+        )
+        wxCanvas.add(text)
+      }
+    }
+  }
+
+  drawTextArr (wxCanvas, textArr = [[]]) {
+    for (let [i, item] of textArr.entries()) {
+      for (let [j, text] of item.entries()) {
+        if (j < item.length - 1) {
+          let str = new Shape(
+            'text',
+            {
+              x: this.format(60, 0),
+              y: this.format(308, 1) + i * this.format(40, 1),
+              text,
+              fontSize: 14 * this.scale,
+              fillStyle: '#4a4a4a',
+              align: 'left',
+              textBaseline: 'bottom'
+            }
+          )
+          wxCanvas.add(str)
+        } else {
+          let str = new Shape(
+            'text',
+            {
+              x: this.format(175, 0),
+              y: this.format(314, 1) + i * this.format(40, 1),
+              text,
+              fontSize: 25 * this.scale,
+              fillStyle: '#bd10e0',
+              align: 'left',
+              textBaseline: 'bottom'
+            }
+          )
+          wxCanvas.add(str)
+        }
+      }
+    }
+  }
+
+  drawMpcodeText (wxCanvas, str = '') {
+    let strArr = this.formatStrToArr({ str, lineFontCount: 11 })
+    let lineH = this.format(24, 1)                                           // 行间距
+    let fontSize = 14 * this.scale                                           // 字体大小
+    for (let [i, item] of strArr.entries()) {
+      let text = new Shape(
+        'text',
+        {
+          x: this.format(125, 0),
+          y: this.format(430, 1) + lineH * i,
+          text: item,
+          fontSize,
+          fillStyle: '#4a4a4a',
+          align: 'left',
+          textBaseline: 'top'
+        }
+      )
+      wxCanvas.add(text)
+    }
+  }
+
+  // 查找并返回节点相关信息
+  getBoundingClientRect ({ id }) {
+    return new Promise((resolve, reject) => {
+      let query = wepy.createSelectorQuery()
+      query.select(id).boundingClientRect(rect => {
+        resolve(rect)
+      }).exec()
+    })
+  }
+}
+</script>
+
+<style lang="scss" scoped>
+@import '../../scss/_layout.scss';
+@import '../../scss/_element.scss';
+
+page, .wrapper {
+  height: 100%;
+}
+
+.wrapper {
+  background: #000;
+  position: relative;
+
+  .content {
+    @include horizontalCenter();
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-left: -305rpx;
+    margin-top: -574rpx;
+  }
+}
+.canvas {
+  width: 610rpx;
+  height: 1050rpx;
+  // background: #fff;
+  margin: 0 auto;
+  border-radius: 20rpx;
+}
+.btn {
+  @include btn($width: 240rpx, $height: 72rpx, $family: PingFangSC-Semibold, $size: 28rpx, $bgcolor: #ffc541);
+
+  margin-top: 26rpx;
+}
+</style>
