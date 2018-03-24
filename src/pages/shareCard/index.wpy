@@ -27,6 +27,7 @@ export default class ShareCardPage extends wepy.page {
     total_question: 0,          // 答题总数
     slogan: '',                 // 文案
     all_bouns: 0,               // 总奖金
+    dw: '',                     // 段位
     canvasbg_snap: '',          // 背景图本地临时地址
     mpcode_snap: '',            // 小程序码本地临时地址
     avatar_snap: '',            // 个人头像本地临时地址
@@ -166,7 +167,7 @@ export default class ShareCardPage extends wepy.page {
     wxCanvas.add(avatar_model_snap)
 
     // 画段位信息
-    const duanwei = '神探三段'
+    const duanwei = this.dw
     let dw = new Shape(
       'text',
       {
@@ -217,13 +218,14 @@ export default class ShareCardPage extends wepy.page {
       let avatar_model = '../../images/avatar-model.png'
       let canvasbg = 'https://case.geekheal.net/codeImg/card.png'
 
-      let { data: { slogan = '', all_bouns = 0, total_question = 0, avatar = '' } } = await postShareInfo({ method: 'POST' })
+      let { data: { slogan = '', all_bouns = 0, total_question = 0, avatar = '', dw = '' } } = await postShareInfo({ method: 'POST' })
       let { data: { url = '' } } = await postShareCode({ method: 'POST' })
 
       let { tempFilePath: mpcode_snap } = await wepy.downloadFile({ url })
       let { tempFilePath: avatar_snap } = await wepy.downloadFile({ url: avatar })
       let { tempFilePath: canvasbg_snap } = await wepy.downloadFile({ url: canvasbg })
 
+      this.dw = dw
       this.slogan = slogan
       this.all_bouns = all_bouns
       this.avatar_model = avatar_model
