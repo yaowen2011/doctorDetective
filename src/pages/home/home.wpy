@@ -156,18 +156,20 @@
         this.isShowCommentBlock = params
       },
       'submitComment': async (content) => {
-        let comment = {}
-        comment.text = content
-        this.formatComment(comment)
-
-        let params = {
-          method: 'POST',
-          data: {
-            pid: this.pid,
-            content
+        const fn = async () => {
+          let comment = {}
+          comment.text = content
+          this.formatComment(comment)
+          let params = {
+            method: 'POST',
+            data: {
+              pid: this.pid,
+              content
+            }
           }
+          await postComment(params)
         }
-        await postComment(params)
+        this.debounce(fn)
       },
       'showShareBlock': () => {
         this.isShowShare = true
