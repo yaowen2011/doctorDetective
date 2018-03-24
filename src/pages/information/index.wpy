@@ -10,9 +10,9 @@
               placeholder="所在机构"
               focus
               cursor-spacing=20
-              @input="getCompany"
+              @change="getCompany"
               @focus="inputFocus(0)"
-              @blur="inputBlur(0)"
+              @blur="inputBlur"
               value="{{hospital}}"
             )
             view.close_btn(
@@ -27,9 +27,9 @@
               placeholder-class="placeholder"
               placeholder="所在科室/专业"
               cursor-spacing=20
-              @input="getDepartment"
+              @change="getDepartment"
               @focus="inputFocus(1)"
-              @blur="inputBlur(1)"
+              @blur="inputBlur"
               value="{{department}}"
             )
             view.close_btn(
@@ -39,6 +39,7 @@
             DepartmentTips(
               :tips.sync="departments"
             )
+        view.information_tip * 为确保顺利通过审核，请务必认真填写信息
         view.information_bottom
           view.handle_button(
             @tap="submit"
@@ -93,60 +94,75 @@
 
     methods = {
       async getCompany (e) {
-        clearTimeout(this.timer)
-        let inputValue = e.detail.value.trim()
-        this.hospital = inputValue
+        this.hospital = e.detail.value.trim()
         this.isSearch = false
         this.hospitals = []
         this.$apply()
         if (this.isSearch || !this.hospital) return
-        this.timer = await setTimeout(async () => {
-          clearTimeout(this.timer)
-          let { data: { hospitals } } = await getHospital({ query: this.hospital })
-          this.isSearch = true
-          this.$apply()
-          if (!hospitals) return
-          this.hospitals = hospitals
-          this.$apply()
-        }, 600)
+        let { data: { hospitals = '' } } = await getHospital({ query: this.hospital })
+        this.isSearch = true
+        this.$apply()
+        if (!hospitals) return
+        this.hospitals = hospitals
+        clearTimeout(this.tiemr)
+        this.timer = null
+        this.$apply()
       },
       async getDepartment (e) {
-        clearTimeout(this.timer)
-        let inputValue = e.detail.value.trim()
-        this.department = inputValue
+        this.department = e.detail.value.trim()
         this.isSearch = false
         this.departments = []
         this.$apply()
         if (this.isSearch || !this.department) return
-        this.timer = await setTimeout(async () => {
-          clearTimeout(this.timer)
-          let { data: { hospital_departments: departments } } = await getHospitalDepartment({ query: this.department })
-          this.isSearch = true
-          this.$apply()
-          if (!departments) return
-          this.departments = departments
-          this.$apply()
-        }, 600)
+        let { data: { hospital_departments: departments = '' } } = await getHospitalDepartment({ query: this.department })
+        this.isSearch = true
+        this.$apply()
+        if (!departments) return
+        this.departments = departments
+        clearTimeout(this.tiemr)
+        this.timer = null
+        this.$apply()
       },
       async submit () {
-        if (!this.hospital || !this.hospital) {
-          wepy.showToat({
-            title: '请填写完整信息'
-          })
-        } else {
-          let params = {
-            method: 'POST',
-            data: {
-              hospital: this.hospital,
-              department: this.department,
-              pid: this.pid
+        const fn = async () => {
+          if (!this.hospital || !this.hospital) {
+            wepy.showToast({
+              title: '请填写完整信息',
+              icon: 'none'
+            })
+          } else {
+            let params = {
+              method: 'POST',
+              data: {
+                company: this.hospital,
+                department: this.department,
+                pid: this.pid
+              }
+            }
+            if (this.isBonus) {
+              params = {
+                method: 'POST',
+                data: {
+                  company: this.hospital,
+                  department: this.department
+                }
+              }
+            }
+            let { data: { error_code } } = await postUserInfo(params)
+            clearTimeout(this.tiemr)
+            this.timer = null
+            this.$apply()
+            if (error_code === 0) {
+              wepy.navigateBack({delta: 1})
+            } else {
+              wepy.showToast({
+                title: '出错啦',
+                icon: 'none'
+              })
             }
           }
-          let { data: { error_code } } = await postUserInfo(params)
-          if (error_code === 0) {
-            wepy.navigateBack({delta: 1})
-          }
         }
+        this.debounce(fn)
       },
       inputFocus (params) {
         switch (params) {
@@ -159,14 +175,8 @@
         }
       },
       inputBlur (params) {
-        switch (params) {
-          case '0':
-            this.isHospitalClose = false
-            break
-          case '1':
-            this.isDepartmentClose = false
-            break
-        }
+        this.isHospitalClose = false
+        this.isDepartmentClose = false
       },
       clearInputValue (params) {
         switch (params) {
@@ -188,10 +198,21 @@
         this.timer = setTimeout(resolve, ms)
       })
     }
+
+    // 函数防抖
+    debounce (fn, ms = 1000) {
+      if (this.timer) {
+        clearTimeout(this.timer)
+        this.timer = null
+        this.$apply()
+      } else {
+        this.timer = setTimeout(fn, ms)
+      }
+    }
   }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 @import '../../scss/_layout.scss';
 @import '../../scss/_element.scss';
 
@@ -270,6 +291,12 @@ page,
       color: #d7d7d7; 
     }
   }
+}
+.information_tip {
+  font-family: PingFangSC-Regular;
+  font-size: 24rpx;
+  color: #898989;
+  margin-top: -510rpx;
 }
 
 .information_bottom {
