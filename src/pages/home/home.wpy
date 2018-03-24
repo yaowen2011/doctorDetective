@@ -227,8 +227,6 @@
     }
 
     async onLoad ({ share_uid = '', scene = '' }) {
-      let { data: { show } } = await getPosterState()
-      this.isShowPoster = show
       if (share_uid) this.share_uid = share_uid
       if (scene) this.share_uid = decodeURIComponent(scene)
       let { data: { data: { video: { data: video } } } } = await getVideo({isNeedToken: false})
@@ -239,6 +237,8 @@
       } else {
         this.isVideoSrc = false
       }
+      let { data: { show = 0 } } = await getPosterState({isNeedToken: false})
+      this.isShowPoster = show
       this.$apply()
     }
 
