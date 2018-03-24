@@ -14,7 +14,7 @@
             @tap="saveImage"
             lazy-load
             src="{{QRcode_url}}")
-          view.tip 保存图片到相册,微信扫一扫打开相册识别二维码
+          view.tip 点击图片保存到相册,微信扫一扫识别该二维码
 </template>
 
 <script>
@@ -22,6 +22,7 @@
   export default class PosterComponent extends wepy.component {
     data = {
       QRcode_url: 'https://case.geekheal.net/storage/doctorWhy.jpeg',              // doctor why公众号二维码在服务器上的地址
+      timer: null
     }
 
     methods = {
@@ -29,31 +30,51 @@
         this.$emit('hidePoster')
       },
       async saveImage () {
-        try {
-          let { path } = await wepy.getImageInfo({ src: this.QRcode_url })
-          await wepy.saveImageToPhotosAlbum({ filePath: path })
-          wepy.showToast({
-            title: '保存成功',
-            icon: 'success'
-          })
-          this.$emit('hidePoster')
-        } catch (err) {
-          let { authSetting } = await wepy.getSetting()
-          if (!authSetting['scope.writePhotosAlbum']) {
-            let { cancel } = await wepy.showModal({
-              title: '请求授权',
-              content: '请选择允许获取您的相册权限'
-            })
-            if (cancel) return
-            await wepy.openSetting()
-          } else {
+        const fn = async () => {
+          try {
+            wepy.showLoading({ title: '保存中' })
+            let { path } = await wepy.getImageInfo({ src: this.QRcode_url })
+            await wepy.saveImageToPhotosAlbum({ filePath: path })
             wepy.showToast({
-              title: '保存失败',
-              icon: 'none'
+              title: '保存成功',
+              icon: 'success'
             })
+            this.$emit('hidePoster')
+          } catch (err) {
+            let { authSetting } = await wepy.getSetting()
+            if (!authSetting['scope.writePhotosAlbum']) {
+              let { cancel } = await wepy.showModal({
+                title: '请求授权',
+                content: '请选择允许获取您的相册权限'
+              })
+              if (cancel) {
+                wepy.showToast({
+                  title: '保存失败',
+                  icon: 'none'
+                })
+              } else {
+                await wepy.openSetting()
+              }
+            } else {
+              wepy.showToast({
+                title: '保存失败',
+                icon: 'none'
+              })
+            }
           }
         }
+        this.debounce(fn)
       },
+    }
+
+    // 函数防抖
+    debounce (fn, ms = 1000) {
+      if (this.timer) {
+        clearTimeout(this.timer)
+        this.timer = null
+      } else {
+        this.timer = setTimeout(fn, ms)
+      }
     }
   }
 </script>
