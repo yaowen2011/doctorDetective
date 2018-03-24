@@ -137,8 +137,8 @@ export default class ShareCardPage extends wepy.page {
     await wxCanvas.add(canvasbg_snap)
 
     // 画文案
-    const str = '"本来加班已经累到死，结果我又刷了十道题，你说我是不是作的？"'
-    this.drawCopywriting(wxCanvas, str)
+    const slogan = this.slogan
+    this.drawCopywriting(wxCanvas, slogan)
 
     // 画用户头像
     let avatar_snap = new Shape(
