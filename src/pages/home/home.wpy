@@ -181,40 +181,43 @@
         this.currentQuestion = currentQuestion
       },
       'handleAnswer': async () => {
-        this.answer = ''
-        this.$apply()
-        if (!this.currentQuestion.choice) return
-        this.$invoke(this.$com.Question.$com.Timer, 'clearTimer')
-        let choice = this.currentQuestion.choice
-        for (let i = 0; i < choice.length; i++) {
-          if (choice[i].checked) {
-            this.answer += choice[i].option
-            this.$apply()
+        const fn = async () => {
+          this.answer = ''
+          this.$apply()
+          if (!this.currentQuestion.choice) return
+          this.$invoke(this.$com.Question.$com.Timer, 'clearTimer')
+          let choice = this.currentQuestion.choice
+          for (let i = 0; i < choice.length; i++) {
+            if (choice[i].checked) {
+              this.answer += choice[i].option
+              this.$apply()
+            }
           }
-        }
 
-        let params = {
-          method: 'POST',
-          data: {
-            pid: this.pid,
-            qid: this.currentQuestion._id,
-            finished: 0,
-            answer: this.answer
+          let params = {
+            method: 'POST',
+            data: {
+              pid: this.pid,
+              qid: this.currentQuestion._id,
+              finished: 0,
+              answer: this.answer
+            }
           }
-        }
 
-        let res = {}
-        // 判断正在答的题是否为最后一题
-        if (this.index < this.questions.length - 1) {
-          res = await postAnswer(params)
-          this.handleAnswerResponse(res)
-        } else {
-          params.data.finished = 1
-          res = await postAnswer(params)
-          this.handleAnswerResponse(res)
+          let res = {}
+          // 判断正在答的题是否为最后一题
+          if (this.index < this.questions.length - 1) {
+            res = await postAnswer(params)
+            this.handleAnswerResponse(res)
+          } else {
+            params.data.finished = 1
+            res = await postAnswer(params)
+            this.handleAnswerResponse(res)
+          }
+          this.currentQuestion = {}
+          this.$apply()
         }
-        this.currentQuestion = {}
-        this.$apply()
+        this.debounce(fn)
       },
       'hidePoster': () => {
         this.isShowPoster = false
@@ -348,65 +351,69 @@
     }
 
     // 处理答题响应
-    async handleAnswerResponse ({ data: { data = 0, alive = 0, finished = 0, total = 0, time = 0, fn = 0 } }) {
-      let len = this.questions.length
-      let index = this.index
+    async handleAnswerResponse ({ data: { data = 0, alive = 0, finished = 0, total = 0, time = 0, fn = 0 }, error }) {
+      if (error !== 0) {
+        this.nextQuestion()
+      } else {
+        let len = this.questions.length
+        let index = this.index
 
-      if (index >= 0 && index < 3) {
-        if (data === 1 && alive === 0) {
-          await this.showTip('答对啦！好棒！')
-          this.nextQuestion()
-        }
-        if (data === 1 && alive === 1) {
-          await this.showTip('答错啦！自动使用复活卡！')
-          this.nextQuestion()
-        }
-        if (data === 0 && finished === 1) {
-          await this.showTip('很遗憾！您被淘汰了！')
-          this.$invoke(this.$com.Question.$com.Timer, 'clearTimer')
-          wepy.navigateTo({
-            url: `/pages/result/index?score=${total}&pid=${this.pid}&total_score=${this.total_score}`
-          })
-        }
-      } else if (index === 3) {
-        if (data === 1 && alive === 0) {
-          await this.showTip('答对啦！恭喜进入晋级赛！')
-          this.nextQuestion()
-        }
-        if (data === 1 && alive === 1) {
-          await this.showTip('自动使用复活卡！恭喜进入晋级赛！')
-          this.nextQuestion()
-        }
-        if (data === 0 && finished === 1) {
-          await this.showTip('很遗憾！您被淘汰了！')
-          this.$invoke(this.$com.Question.$com.Timer, 'clearTimer')
-          wepy.navigateTo({
-            url: `/pages/result/index?score=${total}&pid=${this.pid}&total_score=${this.total_score}`
-          })
-        }
-      } else if (index > 3 && index < len - 1) {
-        if (data === 1 && finished === 0) {
-          await this.showTip('答对啦！好棒！')
-          this.nextQuestion()
-        }
-        if (data === 0 && finished === 0) {
-          await this.showTip('答错啦！下一题加油哦！')
-          this.nextQuestion()
-        }
-      } else if (index === len - 1) {
-        if (data === 1 && finished === 1) {
-          await this.showTip('答对啦！答题结束！')
-          this.$invoke(this.$com.Question.$com.Timer, 'clearTimer')
-          wepy.navigateTo({
-            url: `/pages/result/index?isShowRewardBtn=1&score=${total}&pid=${this.pid}&total_bonus=${this.total_bonus}&total_score=${this.total_score}`
-          })
-        }
-        if (data === 0 && finished === 1) {
-          await this.showTip('答错啦！答题结束！')
-          this.$invoke(this.$com.Question.$com.Timer, 'clearTimer')
-          wepy.navigateTo({
-            url: `/pages/result/index?isShowRewardBtn=1&score=${total}&pid=${this.pid}&total_bonus=${this.total_bonus}&total_score=${this.total_score}`
-          })
+        if (index >= 0 && index < 3) {
+          if (data === 1 && alive === 0) {
+            await this.showTip('答对啦！好棒！')
+            this.nextQuestion()
+          }
+          if (data === 1 && alive === 1) {
+            await this.showTip('答错啦！自动使用复活卡！')
+            this.nextQuestion()
+          }
+          if (data === 0 && finished === 1) {
+            await this.showTip('很遗憾！您被淘汰了！')
+            this.$invoke(this.$com.Question.$com.Timer, 'clearTimer')
+            wepy.navigateTo({
+              url: `/pages/result/index?score=${total}&pid=${this.pid}&total_score=${this.total_score}`
+            })
+          }
+        } else if (index === 3) {
+          if (data === 1 && alive === 0) {
+            await this.showTip('答对啦！恭喜进入晋级赛！')
+            this.nextQuestion()
+          }
+          if (data === 1 && alive === 1) {
+            await this.showTip('自动使用复活卡！恭喜进入晋级赛！')
+            this.nextQuestion()
+          }
+          if (data === 0 && finished === 1) {
+            await this.showTip('很遗憾！您被淘汰了！')
+            this.$invoke(this.$com.Question.$com.Timer, 'clearTimer')
+            wepy.navigateTo({
+              url: `/pages/result/index?score=${total}&pid=${this.pid}&total_score=${this.total_score}`
+            })
+          }
+        } else if (index > 3 && index < len - 1) {
+          if (data === 1 && finished === 0) {
+            await this.showTip('答对啦！好棒！')
+            this.nextQuestion()
+          }
+          if (data === 0 && finished === 0) {
+            await this.showTip('答错啦！下一题加油哦！')
+            this.nextQuestion()
+          }
+        } else if (index === len - 1) {
+          if (data === 1 && finished === 1) {
+            await this.showTip('答对啦！答题结束！')
+            this.$invoke(this.$com.Question.$com.Timer, 'clearTimer')
+            wepy.navigateTo({
+              url: `/pages/result/index?isShowRewardBtn=1&score=${total}&pid=${this.pid}&total_bonus=${this.total_bonus}&total_score=${this.total_score}`
+            })
+          }
+          if (data === 0 && finished === 1) {
+            await this.showTip('答错啦！答题结束！')
+            this.$invoke(this.$com.Question.$com.Timer, 'clearTimer')
+            wepy.navigateTo({
+              url: `/pages/result/index?isShowRewardBtn=1&score=${total}&pid=${this.pid}&total_bonus=${this.total_bonus}&total_score=${this.total_score}`
+            })
+          }
         }
       }
     }
