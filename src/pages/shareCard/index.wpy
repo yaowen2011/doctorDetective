@@ -41,47 +41,47 @@ export default class ShareCardPage extends wepy.page {
 
   methods = {
     async savePhoto () {
-      try {
-        wepy.showLoading({
-          title: '保存中'
-        })
-        let { tempFilePath } = await wepy.canvasToTempFilePath({
-          canvasId: 'canvas',
-          x: 0,
-          y: 0,
-          width: 4 * this.screenWidth,
-          height: 4 * this.screenHeight
-        })
-        await wepy.saveImageToPhotosAlbum({ filePath: tempFilePath })
-        wepy.hideLoading()
-        wepy.showToast({
-          title: '保存成功',
-          icon: 'success'
-        })
-      } catch (error) {
-        let { authSetting } = await wepy.getSetting()
-        if (!authSetting['scope.writePhotosAlbum']) {
-          let { cancel } = await wepy.showModal({
-            title: '请求授权',
-            content: '请选择允许获取您的相册权限'
+      const fn = async () => {
+        try {
+          wepy.showLoading({
+            title: '保存中'
           })
-          if (cancel) {
-            wepy.hideLoading()
+          let { tempFilePath } = await wepy.canvasToTempFilePath({
+            canvasId: 'canvas',
+            x: 0,
+            y: 0,
+            width: 4 * this.screenWidth,
+            height: 4 * this.screenHeight
+          })
+          await wepy.saveImageToPhotosAlbum({ filePath: tempFilePath })
+          wepy.showToast({
+            title: '保存成功',
+            icon: 'success'
+          })
+        } catch (error) {
+          let { authSetting } = await wepy.getSetting()
+          if (!authSetting['scope.writePhotosAlbum']) {
+            let { cancel } = await wepy.showModal({
+              title: '请求授权',
+              content: '请选择允许获取您的相册权限'
+            })
+            if (cancel) {
+              wepy.showToast({
+                title: '保存失败',
+                icon: 'none'
+              })
+            } else {
+              await wepy.openSetting()
+            }
+          } else {
             wepy.showToast({
               title: '保存失败',
               icon: 'none'
             })
-          } else {
-            await wepy.openSetting()
           }
-        } else {
-          wepy.hideLoading()
-          wepy.showToast({
-            title: '保存失败',
-            icon: 'none'
-          })
         }
       }
+      this.debounce(fn)
     }
   }
 
@@ -217,8 +217,8 @@ export default class ShareCardPage extends wepy.page {
       let avatar_model = '../../images/avatar-model.png'
       let canvasbg = 'https://case.geekheal.net/codeImg/card.png'
 
-      let { data: { slogan, all_bouns, total_question, avatar } } = await postShareInfo({ method: 'POST' })
-      let { data: { url } } = await postShareCode({ method: 'POST' })
+      let { data: { slogan = '', all_bouns = 0, total_question = 0, avatar = '' } } = await postShareInfo({ method: 'POST' })
+      let { data: { url = '' } } = await postShareCode({ method: 'POST' })
 
       let { tempFilePath: mpcode_snap } = await wepy.downloadFile({ url })
       let { tempFilePath: avatar_snap } = await wepy.downloadFile({ url: avatar })
@@ -339,6 +339,16 @@ export default class ShareCardPage extends wepy.page {
         resolve(rect)
       }).exec()
     })
+  }
+
+  // 函数防抖
+  debounce (fn, ms = 1000) {
+    if (this.timer) {
+      clearTimeout(this.timer)
+      this.timer = null
+    } else {
+      this.timer = setTimeout(fn, ms)
+    }
   }
 }
 </script>
