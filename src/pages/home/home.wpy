@@ -94,7 +94,7 @@
       bonusPool: 0,                     // 奖池总金额
       honor: '',                        // 级别称号
       comments: [],                     // 评论列表
-      preDate: 0,                       // 记录上次触发的时间
+      timer: null,                      // 定时器
       isShowPoster: false               // 是否显示 poster
     }
 
@@ -114,17 +114,10 @@
     methods = {
       // 开始答题
       async startAnswer (event) {
-        let nowDate = +new Date()
-        if (this.preDate) {
-          if (nowDate - this.preDate >= 10000) {
-            await this.postFormId(event)
-          } else {
-            this.preDate = nowDate
-          }
-        } else {
-          this.preDate = nowDate
+        const fn = async () => {
           await this.postFormId(event)
         }
+        this.debounce(fn)
 
         switch (this.expired) {
           case 0:
@@ -142,7 +135,8 @@
             break
           case 1:
             wepy.showToast({
-              title: '本期答题已结束。'
+              title: '本期答题已结束',
+              icon: 'none'
             })
             break
         }
@@ -232,7 +226,6 @@
       this.isShowPoster = show
       if (share_uid) this.share_uid = share_uid
       if (scene) this.share_uid = decodeURIComponent(scene)
-
       let { data: { data: { video: { data: video } } } } = await getVideo({isNeedToken: false})
       this.video = video
       if (video.src) {
@@ -442,6 +435,16 @@
         }
       }
       await postFormId(params)
+    }
+
+    // 函数防抖
+    debounce (fn, ms = 1000) {
+      if (this.timer) {
+        clearTimeout(this.timer)
+        this.timer = null
+      } else {
+        this.timer = setTimeout(fn, ms)
+      }
     }
   }
 </script>
