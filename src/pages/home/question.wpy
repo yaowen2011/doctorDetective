@@ -42,6 +42,10 @@
       }
     }
 
+    data = {
+      startTime: 0
+    }
+
     components = {
       Tip,
       Timer
@@ -83,7 +87,27 @@
         }
       },
       handleAnswer () {
-        this.$emit('handleAnswer')
+        const fn = () => {
+          this.$emit('handleAnswer')
+        }
+        this.throttling(fn, 300)
+      }
+    }
+
+    // 函数节流
+    throttling (fn, ms = 1000) {
+      let curTime = +new Date()
+      if (!this.startTime) this.startTime = curTime
+      if (curTime - this.startTime > ms) {
+        this.startTime = curTime
+        fn()
+      } else if (this.startTime === curTime) {
+        fn()
+      } else {
+        wepy.showToast({
+          title: '你点击的太快了',
+          icon: 'none'
+        })
       }
     }
   }
