@@ -240,11 +240,15 @@
     }
 
     async onShow () {
-      this.isStart = false
-      await this.login({ share_uid: this.share_uid })
-      await this.getComments()
-       // 更新视频的弹幕列表
-      this.$invoke(this.$com.CaseVideo, 'initComments', this.comments)
+      try {
+        this.isStart = false
+        await this.login({ share_uid: this.share_uid })
+        await this.getComments()
+        // 更新视频的弹幕列表
+        this.$invoke(this.$com.CaseVideo, 'initComments', this.comments)
+      } catch (error) {
+        console.log(error)
+      }
     }
 
     onShareAppMessage (options) {
