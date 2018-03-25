@@ -19,10 +19,8 @@ import { postShareInfo, postShareCode } from '@/utils/api'
 export default class ShareCardPage extends wepy.page {
   data = {
     isLoaded: false,            // 数据是否加载完成
-    canvasW: 305,               // canvas 宽
-    canvasH: 525,               // canvas 高
-    screenWidth: 0,             // 设备屏幕的宽
-    screenHeight: 0,            // 设备屏幕的高
+    canvasW: 0,                 // canvas 宽
+    canvasH: 0,                 // canvas 高
     scale: 0,                   // 比例
     total_question: 0,          // 答题总数
     slogan: '',                 // 文案
@@ -94,12 +92,11 @@ export default class ShareCardPage extends wepy.page {
       })
       // 获得并初始化数据
       await this.initData()
+      // 开始画图
+      this.draw()
       wepy.hideLoading()
       this.isLoaded = true
       this.$apply()
-
-      // 开始画图
-      this.draw()
     } catch (error) {
       console.log('error', error)
     }
@@ -118,7 +115,7 @@ export default class ShareCardPage extends wepy.page {
     return res
   }
 
-  async draw () {
+  draw () {
     let ctx = wepy.createCanvasContext('canvas')
     ctx.font = '40px PingFangSC-Light'
     let wxCanvas = new wxDraw(ctx, 0, 0, this.canvasW, this.canvasH)
@@ -134,7 +131,7 @@ export default class ShareCardPage extends wepy.page {
         file: this.canvasbg_snap
       }
     )
-    await wxCanvas.add(canvasbg_snap)
+    wxCanvas.add(canvasbg_snap)
 
     // 画文案
     const slogan = this.slogan
@@ -206,12 +203,10 @@ export default class ShareCardPage extends wepy.page {
 
   async initData () {
     try {
-      let { screenWidth, screenHeight } = await wepy.getSystemInfo()
+      let { screenWidth } = await wepy.getSystemInfo()
       let { width, height } = await this.getBoundingClientRect({ id: '#canvas' })
       this.canvasW = width
       this.canvasH = height
-      this.screenWidth = screenWidth
-      this.screenHeight = screenHeight
       this.scale = screenWidth / 375
 
       let avatar_default = '../../images/avatar-default.png'
@@ -277,6 +272,7 @@ export default class ShareCardPage extends wepy.page {
   }
 
   drawTextArr (wxCanvas, textArr = [[]]) {
+    console.log('textArr', textArr)
     for (let [i, item] of textArr.entries()) {
       for (let [j, text] of item.entries()) {
         if (j < item.length - 1) {
