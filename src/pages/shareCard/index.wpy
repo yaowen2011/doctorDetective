@@ -13,7 +13,6 @@
 
 <script>
 import wepy from 'wepy'
-import { wxDraw, Shape } from '../../utils/wxdraw'
 import { postShareInfo, postShareCode } from '@/utils/api'
 
 export default class ShareCardPage extends wepy.page {
@@ -93,13 +92,82 @@ export default class ShareCardPage extends wepy.page {
       // 获得并初始化数据
       await this.initData()
       // 开始画图
-      this.draw()
-      wepy.hideLoading()
-      this.isLoaded = true
-      this.$apply()
+      this.nativeDraw()
     } catch (error) {
       console.log('error', error)
     }
+  }
+
+  nativeDraw () {
+    let ctx = wepy.createCanvasContext('canvas')
+
+    // 画背景图片
+    ctx.drawImage(
+      this.canvasbg_snap,
+      0,
+      0,
+      this.canvasW,
+      this.canvasH,
+    )
+    ctx.save()
+
+    // 画文案
+    this.drawCopywriting(ctx, this.slogan)
+
+    // 画头像
+    ctx.restore()
+    ctx.drawImage(
+      this.avatar_snap,
+      this.format(110, 0),
+      this.format(148, 1),
+      this.format(86, 0),
+      this.format(86, 1)
+    )
+    ctx.drawImage(
+      this.avatar_model,
+      this.format(110, 0),
+      this.format(148, 1),
+      this.format(86, 0),
+      this.format(86, 1)
+    )
+    ctx.save()
+
+    // 画段位
+    ctx.restore()
+    ctx.setFillStyle('#4a4a4a')
+    ctx.setTextAlign('center')
+    ctx.setFontSize(14 * this.scale)
+    ctx.setTextBaseline('top')
+    ctx.fillText(
+      this.dw,
+      this.canvasW / 2,
+      this.format(245, 1)
+    )
+    ctx.save()
+
+    // 画答题数和奖金
+    let arr = [['已累计答题数(道)', this.total_question], ['已赢取奖金数(元)', this.all_bouns]]
+    this.drawTextArr(ctx, arr)
+
+    // 画二维码
+    ctx.restore()
+    ctx.drawImage(
+      this.mpcode_snap,
+      this.format(25, 0),
+      this.format(425, 1),
+      this.format(86, 0),
+      this.format(86, 1)
+    )
+    ctx.save()
+
+    // 画小程序码说明文字
+    let mpcode_text = '扫描二维码，加入医者神探答题，参与医学知识竞答，赢取现金大奖。'
+    this.drawMpcodeText(ctx, mpcode_text)
+
+    ctx.draw()
+    wepy.hideLoading()
+    this.isLoaded = true
+    this.$apply()
   }
 
   format (x, sttr) {
@@ -115,106 +183,20 @@ export default class ShareCardPage extends wepy.page {
     return res
   }
 
-  draw () {
-    let ctx = wepy.createCanvasContext('canvas')
-    ctx.font = '40px PingFangSC-Light'
-    let wxCanvas = new wxDraw(ctx, 0, 0, this.canvasW, this.canvasH)
-
-    // 画背景图片
-    let canvasbg_snap = new Shape(
-      'image',
-      {
-        x: this.canvasW / 2,
-        y: this.canvasH / 2,
-        w: this.canvasW,
-        h: this.canvasH,
-        file: this.canvasbg_snap
-      }
-    )
-    wxCanvas.add(canvasbg_snap)
-
-    // 画文案
-    const slogan = this.slogan
-    this.drawCopywriting(wxCanvas, slogan)
-
-    // 画用户头像
-    let avatar_snap = new Shape(
-      'image',
-      {
-        x: this.canvasW / 2,
-        y: this.format(189, 1),
-        w: this.format(86, 0),
-        h: this.format(86, 1),
-        file: this.avatar_snap
-      }
-    )
-    wxCanvas.add(avatar_snap)
-
-    // 画头像遮罩层
-    let avatar_model_snap = new Shape(
-      'image',
-      {
-        x: this.canvasW / 2,
-        y: this.format(189, 1),
-        w: this.format(86, 0),
-        h: this.format(86, 1),
-        file: this.avatar_model
-      }
-    )
-    wxCanvas.add(avatar_model_snap)
-
-    // 画段位信息
-    const duanwei = this.dw
-    let dw = new Shape(
-      'text',
-      {
-        x: this.canvasW / 2,
-        y: this.format(245, 1),
-        text: duanwei,
-        fontSize: 14,
-        fillStyle: '#4a4a4a',
-        align: 'center',
-        textBaseline: 'top'
-      }
-    )
-    wxCanvas.add(dw)
-
-    // 画答题数和奖金
-    let arr = [['已累计答题数(道)', this.total_question], ['已赢取奖金数(元)', this.all_bouns]]
-    this.drawTextArr(wxCanvas, arr)
-
-    // 画小程序码
-    let mpcode_snap = new Shape(
-      'image',
-      {
-        x: this.format(67.5, 0),
-        y: this.format(467.5, 1),
-        w: this.format(86, 0),
-        h: this.format(86, 1),
-        file: this.mpcode_snap
-      }
-    )
-    wxCanvas.add(mpcode_snap)
-
-    // 画小程序码说明文字
-    let mpcode_text = '扫描二维码，加入医者神探答题，参与医学知识竞答，赢取现金大奖。'
-    this.drawMpcodeText(wxCanvas, mpcode_text)
-  }
-
   async initData () {
     try {
+      let avatar_default = '../../images/avatar-default.png'
+      let avatar_model = '../../images/avatar-model.png'
+      let canvasbg = 'https://case.geekheal.net/codeImg/card.png'
+
+      let { data: { url = '' } } = await postShareCode({ method: 'POST' })
+      let { data: { slogan = '', all_bouns = 0, total_question = 0, avatar = '', dw = '' } } = await postShareInfo({ method: 'POST' })
+
       let { screenWidth } = await wepy.getSystemInfo()
       let { width, height } = await this.getBoundingClientRect({ id: '#canvas' })
       this.canvasW = width
       this.canvasH = height
       this.scale = screenWidth / 375
-
-      let avatar_default = '../../images/avatar-default.png'
-      let avatar_model = '../../images/avatar-model.png'
-      let canvasbg = 'https://case.geekheal.net/codeImg/card.png'
-
-      let { data: { slogan = '', all_bouns = 0, total_question = 0, avatar = '', dw = '' } } = await postShareInfo({ method: 'POST' })
-      let { data: { url = '' } } = await postShareCode({ method: 'POST' })
 
       let { tempFilePath: mpcode_snap } = await wepy.downloadFile({ url })
       let { tempFilePath: avatar_snap } = await wepy.downloadFile({ url: avatar })
@@ -247,85 +229,76 @@ export default class ShareCardPage extends wepy.page {
     return strArr
   }
 
-  drawCopywriting (wxCanvas, str = '') {
+  drawCopywriting (ctx, str = '') {
     let strArr = this.formatStrToArr({ str, lineFontCount: 13 })
     let lineH = this.format(30, 1)                               // 行间距
     let fontSize = 16 * this.scale                               // 字体大小
     // 画每一行中的每个字符
     for (let [i, item] of strArr.entries()) {
       for (let j = 0; j < item.length; j++) {
-        let text = new Shape(
-          'text',
-          {
-            x: this.format(35, 0) + (fontSize + 2) * j,
-            y: this.format(35, 1) + lineH * i,
-            text: item[j],
-            fontSize,
-            fillStyle: '#fff',
-            align: 'left',
-            textBaseline: 'top'
-          }
+        ctx.restore()
+        ctx.setFillStyle('#fff')
+        ctx.setTextAlign('left')
+        ctx.setFontSize(fontSize)
+        ctx.setTextBaseline('top')
+        ctx.fillText(
+          item[j],
+          this.format(35, 0) + (fontSize + 2) * j,
+          this.format(35, 1) + lineH * i,
         )
-        wxCanvas.add(text)
+        ctx.save()
       }
     }
   }
 
-  drawTextArr (wxCanvas, textArr = [[]]) {
-    console.log('textArr', textArr)
+  drawTextArr (ctx, textArr = [[]]) {
     for (let [i, item] of textArr.entries()) {
       for (let [j, text] of item.entries()) {
         if (j < item.length - 1) {
-          let str = new Shape(
-            'text',
-            {
-              x: this.format(60, 0),
-              y: this.format(308, 1) + i * this.format(40, 1),
-              text,
-              fontSize: 14 * this.scale,
-              fillStyle: '#4a4a4a',
-              align: 'left',
-              textBaseline: 'bottom'
-            }
+          ctx.restore()
+          ctx.setFillStyle('#4a4a4a')
+          ctx.setTextAlign('left')
+          ctx.setFontSize(14 * this.scale)
+          ctx.setTextBaseline('bottom')
+          ctx.fillText(
+            text,
+            this.format(60, 0),
+            this.format(308, 1) + i * this.format(40, 1)
           )
-          wxCanvas.add(str)
+          ctx.save()
         } else {
-          let str = new Shape(
-            'text',
-            {
-              x: this.format(175, 0),
-              y: this.format(314, 1) + i * this.format(40, 1),
-              text,
-              fontSize: 25 * this.scale,
-              fillStyle: '#bd10e0',
-              align: 'left',
-              textBaseline: 'bottom'
-            }
+          ctx.restore()
+          ctx.setFillStyle('#bd10e0')
+          ctx.setTextAlign('left')
+          ctx.setFontSize(25 * this.scale)
+          ctx.setTextBaseline('bottom')
+          ctx.fillText(
+            text,
+            this.format(175, 0),
+            this.format(314, 1) + i * this.format(40, 1)
           )
-          wxCanvas.add(str)
+          ctx.save()
         }
       }
     }
   }
 
-  drawMpcodeText (wxCanvas, str = '') {
+  drawMpcodeText (ctx, str = '') {
     let strArr = this.formatStrToArr({ str, lineFontCount: 11 })
     let lineH = this.format(24, 1)                                           // 行间距
     let fontSize = 14 * this.scale                                           // 字体大小
     for (let [i, item] of strArr.entries()) {
-      let text = new Shape(
-        'text',
-        {
-          x: this.format(125, 0),
-          y: this.format(430, 1) + lineH * i,
-          text: item,
-          fontSize,
-          fillStyle: '#4a4a4a',
-          align: 'left',
-          textBaseline: 'top'
-        }
+      ctx.restore()
+      ctx.setFillStyle('#4a4a4a')
+      ctx.setTextAlign('left')
+      ctx.setFontSize(fontSize)
+      ctx.setTextBaseline('top')
+      ctx.fillText(
+        item,
+        this.format(125, 0),
+        this.format(430, 1) + lineH * i
       )
-      wxCanvas.add(text)
+      ctx.save()
     }
   }
 
