@@ -1,19 +1,17 @@
 <template lang="pug">
   view.wrapper
-    view.content
-      canvas(
-        class="canvas"
-        id="canvas"
-        canvas-id="canvas")
-      view.btn(
-        wx:if="{{isLoaded}}"
-        @tap="savePhoto"
-      ) 保存到相册
+    canvas(
+      class="canvas"
+      id="canvas"
+      canvas-id="canvas")
+    view.btn(
+      wx:if="{{isLoaded}}"
+      @tap="savePhoto"
+    ) 保存到相册
 </template>
 
 <script>
 import wepy from 'wepy'
-import { postShareInfo, postShareCode } from '@/utils/api'
 
 export default class ShareCardPage extends wepy.page {
   data = {
@@ -83,16 +81,23 @@ export default class ShareCardPage extends wepy.page {
     }
   }
 
-  async onReady () {
+  async onLoad ({ all_bouns, avatar_model, avatar_snap, canvasbg_snap, dw, mpcode_snap, slogan, total_question }) {
     try {
-      wepy.showLoading({
-        title: '生成中',
-        mask: true
-      })
+      this.all_bouns = all_bouns
+      this.avatar_model = avatar_model
+      this.avatar_snap = avatar_snap
+      this.canvasbg_snap = canvasbg_snap
+      this.dw = dw
+      this.mpcode_snap = mpcode_snap
+      this.slogan = slogan
+      this.total_question = total_question
+      this.$apply()
       // 获得并初始化数据
       await this.initData()
       // 开始画图
       this.nativeDraw()
+      this.isLoaded = true
+      this.$apply()
     } catch (error) {
       console.log('error', error)
     }
@@ -149,6 +154,10 @@ export default class ShareCardPage extends wepy.page {
     let arr = [['已累计答题数(道)', this.total_question], ['已赢取奖金数(元)', this.all_bouns]]
     this.drawTextArr(ctx, arr)
 
+    // 画小程序码说明文字
+    let mpcode_text = '扫描二维码，加入医者神探答题，参与医学知识竞答，赢取现金大奖。'
+    this.drawMpcodeText(ctx, mpcode_text)
+
     // 画二维码
     ctx.restore()
     ctx.drawImage(
@@ -160,14 +169,7 @@ export default class ShareCardPage extends wepy.page {
     )
     ctx.save()
 
-    // 画小程序码说明文字
-    let mpcode_text = '扫描二维码，加入医者神探答题，参与医学知识竞答，赢取现金大奖。'
-    this.drawMpcodeText(ctx, mpcode_text)
-
     ctx.draw()
-    wepy.hideLoading()
-    this.isLoaded = true
-    this.$apply()
   }
 
   format (x, sttr) {
@@ -185,32 +187,11 @@ export default class ShareCardPage extends wepy.page {
 
   async initData () {
     try {
-      let avatar_default = '../../images/avatar-default.png'
-      let avatar_model = '../../images/avatar-model.png'
-      let canvasbg = 'https://case.geekheal.net/codeImg/card.png'
-
-      let { data: { url = '' } } = await postShareCode({ method: 'POST' })
-      let { data: { slogan = '', all_bouns = 0, total_question = 0, avatar = '', dw = '' } } = await postShareInfo({ method: 'POST' })
-
       let { screenWidth } = await wepy.getSystemInfo()
       let { width, height } = await this.getBoundingClientRect({ id: '#canvas' })
       this.canvasW = width
       this.canvasH = height
       this.scale = screenWidth / 375
-
-      let { tempFilePath: mpcode_snap } = await wepy.downloadFile({ url })
-      let { tempFilePath: avatar_snap } = await wepy.downloadFile({ url: avatar })
-      let { tempFilePath: canvasbg_snap } = await wepy.downloadFile({ url: canvasbg })
-
-      this.dw = dw
-      this.slogan = slogan
-      this.all_bouns = all_bouns
-      this.avatar_model = avatar_model
-      this.total_question = total_question
-      this.avatar_snap = avatar_snap
-      this.mpcode_snap = mpcode_snap
-      this.canvasbg_snap = canvasbg_snap
-      if (!avatar) this.avatar_snap = avatar_default
       this.$apply()
     } catch (error) {
       console.log('error', error)
@@ -329,21 +310,12 @@ export default class ShareCardPage extends wepy.page {
 @import '../../scss/_element.scss';
 
 page, .wrapper {
-  height: 100%;
+  min-height: 100%;
 }
 
 .wrapper {
   background: #000;
-  position: relative;
-
-  .content {
-    @include horizontalCenter();
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    margin-left: -305rpx;
-    margin-top: -574rpx;
-  }
+  @include verticalHorizontalCenter();
 }
 .canvas {
   width: 610rpx;
