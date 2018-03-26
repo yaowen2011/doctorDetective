@@ -302,6 +302,7 @@
       for (let [index, item] of comments.entries()) {
         let comment = {}
         comment.text = item.content
+        comment.color = '#fff'
         comment.time = index + 1
         comment.created_at = item.created_at
         comment.user = item.user.data
@@ -320,6 +321,7 @@
       comment.time = len + 1
       comment.created_at = '1秒前'
       comment.user = user
+      comment.color = '#fff'
       this.comments.push(comment)
       this.$apply()
 
