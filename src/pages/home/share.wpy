@@ -26,30 +26,36 @@
         this.$emit('hideShareBlock')
       },
       async goShareCardPage () {
-        try {
-          wepy.showLoading({
-            title: '生成中',
-            mask: true
-          })
-          let avatar_default = '../../images/avatar-default.png'
-          let avatar_model = '../../images/avatar-model.png'
-          let canvasbg = 'https://case.geekheal.net/codeImg/card.png'
+        this.goShareCardPage()
+      }
+    }
 
-          let { data: { url = '' } } = await postShareCode({ method: 'POST' })
-          let { data: { slogan = '', all_bouns = 0, total_question = 0, avatar = '', dw = '' } } = await postShareInfo({ method: 'POST' })
+    async goShareCardPage () {
+      try {
+        wepy.showLoading({
+          title: '生成中',
+          mask: true
+        })
+        let avatar_default = '../../images/avatar-default.png'
+        let avatar_model = '../../images/avatar-model.png'
+        let canvasbg = 'https://case.geekheal.net/codeImg/card.png'
 
-          let { tempFilePath: mpcode_snap } = await wepy.downloadFile({ url })
-          let { tempFilePath: avatar_snap } = await wepy.downloadFile({ url: avatar })
-          let { tempFilePath: canvasbg_snap } = await wepy.downloadFile({ url: canvasbg })
-          if (!avatar) avatar_snap = avatar_default
+        let { data: { url = '' } } = await postShareCode({ method: 'POST' })
+        let { data: { slogan = '', all_bouns = 0, total_question = 0, avatar = '', dw = '' } } = await postShareInfo({ method: 'POST' })
+        let { tempFilePath: mpcode_snap } = await wepy.downloadFile({ url })
+        let { tempFilePath: avatar_snap } = await wepy.downloadFile({ url: avatar })
+        let { tempFilePath: canvasbg_snap } = await wepy.downloadFile({ url: canvasbg })
+        if (!avatar) avatar_snap = avatar_default
+        if (!mpcode_snap || !avatar_snap || !canvasbg_snap) {
+          this.goShareCardPage()
+        } else {
           wepy.hideLoading()
-
           wepy.navigateTo({
             url: `/pages/shareCard/index?dw=${dw}&slogan=${slogan}&all_bouns=${all_bouns}&avatar_model=${avatar_model}&total_question=${total_question}&avatar_snap=${avatar_snap}&avatar_snap=${avatar_snap}&mpcode_snap=${mpcode_snap}&canvasbg_snap=${canvasbg_snap}`
           })
-        } catch (error) {
-          console.log(error)
         }
+      } catch (error) {
+        console.log(error)
       }
     }
   }
