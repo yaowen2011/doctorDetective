@@ -10,7 +10,7 @@
     )
     view.content(
       wx:if="{{isStart}}"
-    )                       
+    )
       Question(
         :index.sync="index"
         :questions.sync="questions"
@@ -19,11 +19,11 @@
       wx:else
     )
       Deadline(
-        :expired_at.sync="expired_at" 
+        :expired_at.sync="expired_at"
         :bonusPool.sync="bonusPool"
       )
       form(
-        report-submit=true 
+        report-submit=true
         @submit="startAnswer"
       )
         button(
@@ -34,7 +34,7 @@
         :pid.sync="pid"
         :card.sync="card"
         :honor.sync="honor"
-        :userInfo.sync="userInfo" 
+        :userInfo.sync="userInfo"
         :total_score.sync="total_score"
         :total_bonus.sync="total_bonus"
         :is_answer.sync="is_answer"
@@ -217,8 +217,6 @@
       },
       'hidePoster': () => {
         this.isShowPoster = false
-        if (this.isVideoSrc) return
-        this.$broadcast('beginBarrage', this.comments)
       }
     }
 
@@ -245,6 +243,8 @@
         await this.getComments()
         // 更新视频的弹幕列表
         this.$invoke(this.$com.CaseVideo, 'initComments', this.comments)
+        if (this.isVideoSrc) return
+        this.$broadcast('beginBarrage', this.comments)
       } catch (error) {
         console.log(error)
       }
@@ -479,7 +479,7 @@
   position: fixed;
   top: $videoHeight;
   left: 0;
-  padding-top: 30rpx; 
+  padding-top: 30rpx;
 }
 .startAnswerBtn {
   @include btn($width:350rpx, $height:80rpx, $size:18px, $color:#54049b, $radius:60rpx);
