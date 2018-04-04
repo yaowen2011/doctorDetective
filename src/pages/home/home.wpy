@@ -343,7 +343,7 @@
         for (let j = 0; j < questions[i].choice.length; j++) {
           choice.push(transformObject(questions[i].choice[j]))
         }
-        questions[i].choice = choice
+        questions[i].choice = this.shuffle(choice)
       }
       return questions
     }
@@ -458,6 +458,13 @@
       } else {
         this.timer = setTimeout(fn, ms)
       }
+    }
+
+    // 随机打乱数组
+    shuffle (arr) {
+      return arr.sort(() => {
+        return Math.random() - 0.5
+      })
     }
   }
 </script>
