@@ -1,18 +1,15 @@
 <template lang="pug">
   view.videoPlaceholder
     image(
-      src="{{ video.cover }}"
-    )
+      src="{{ video.cover }}")
     Barrage
     view(
       class="barrage_btn_wrapper"
       wx:if="{{ isShowBarrageBtn }}"
-      @tap.stop="toggleBarrage"
-    )
+      @tap.stop="toggleBarrage")
       view(
         id="btn"
-        class="btn {{ isShowBarrage ? 'barrage_btn_active' : 'barrage_btn' }}"
-      ) 弹
+        class="btn {{ isShowBarrage ? 'barrage_btn_active' : 'barrage_btn' }}") 弹
 </template>
 
 <script>
@@ -86,18 +83,18 @@
       @include verticalHorizontalCenter();
       width: $barrageHeight;
       height: $barrageHeight;
-      border-radius: 50%; 
+      border-radius: 50%;
       font-size: 24rpx;
     }
     .barrage_btn {
       border: 2rpx solid $barrageColor;
       color: $barrageColor;
     }
-    
+
     .barrage_btn_active {
       border: 2rpx solid $barrageColorActive;
       color: $barrageColorActive;
     }
-  } 
+  }
 }
 </style>

@@ -1,3 +1,30 @@
+<template lang="pug">
+  view.deadline
+    view.tips
+      view 本期答题截止时间
+      view.tips_buttom {{expired_at}}
+    view.tips
+      view 奖金
+      view.tips_buttom {{bonusPool}}元
+</template>
+
+<script>
+  import wepy from 'wepy'
+
+  export default class DeadlineComponent extends wepy.component {
+    props = {
+      expired_at: {
+        type: String,
+        default: '**日 **:**'
+      },
+      bonusPool: {
+        type: Number,
+        defalut: 0
+      }
+    }
+  }
+</script>
+
 <style lang="scss">
 @import '../../scss/_layout.scss';
 @import '../../scss/_variables.scss';
@@ -27,30 +54,3 @@
 }
 
 </style>
-
-<template lang="pug">
-  view.deadline
-    view.tips
-      view 本期答题截止时间
-      view.tips_buttom {{expired_at}}
-    view.tips
-      view 奖金
-      view.tips_buttom {{bonusPool}}元
-</template>
-
-<script>
-  import wepy from 'wepy'
-
-  export default class DeadlineComponent extends wepy.component {
-    props = {
-      expired_at: {
-        type: String,
-        default: '**日 **:**'
-      },
-      bonusPool: {
-        type: Number,
-        defalut: 0
-      }
-    }
-  }
-</script>

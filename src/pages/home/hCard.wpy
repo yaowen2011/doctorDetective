@@ -1,10 +1,9 @@
 <template lang="pug">
   view.card
-    view.top 
+    view.top
       view.rule_block
         view.rule(
-            @tap="goRulePage"
-          )
+            @tap="goRulePage")
           text.rule_icon ?
           text 活动规则
         image.avatar(
@@ -15,42 +14,33 @@
     view.bottom
       view.left
         view.resurrection(
-          @tap="showShareBlock"
-        )
+          @tap="showShareBlock")
           image(
-            src="../../images/resurrection.svg"
-          )
+            src="../../images/resurrection.svg")
           view.resurrection_sign x
           view.resurrection_count {{card}}
         view(
-          @tap="showShareBlock"
-        ) 复活卡
-        
+          @tap="showShareBlock") 复活卡
+
       view.right
         view.bonus_count(
-          @tap="goBonusPage"
-        ) {{total_bonus}}
+          @tap="goBonusPage") {{total_bonus}}
           text.unit 元
         view(
-          @tap="goBonusPage"
-        ) 账户余额
+          @tap="goBonusPage") 账户余额
     view.btn_block
       view(
-        @tap="goRankPage"
-      )
+        @tap="goRankPage")
         Btn.checkRankingsBtn 查看排名
       view(
-        @tap="toggleCommentsBlock"
-      )
+        @tap="toggleCommentsBlock")
         Btn.hotCommet 热评
           image(
             class="chili"
-            src="../../images/chili.svg"
-          )
+            src="../../images/chili.svg")
       view(
-          @tap="showShareBlock"
-        )
-          Btn.inviteFriendsBtn 邀请好友  
+          @tap="showShareBlock")
+          Btn.inviteFriendsBtn 邀请好友
 </template>
 
 <script>
@@ -277,8 +267,8 @@
     position: absolute;
     top: 50%;
     right: 18rpx;
-    margin-top: -8rpx; 
+    margin-top: -8rpx;
   }
-  
+
 }
 </style>

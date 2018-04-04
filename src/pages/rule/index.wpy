@@ -2,12 +2,10 @@
   view.container
     view.title 活动规则
     scroll-view.rule-list(
-      scroll-y
-    )
+      scroll-y)
       repeat(
         for="{{rules}}"
-        key="index"
-      )
+        key="index")
         view.rule-item {{index+1}}. {{item}}
 </template>
 

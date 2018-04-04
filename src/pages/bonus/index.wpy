@@ -9,8 +9,7 @@
             text.unit 元
         view.balance_bottom
           view(
-            @tap="goWithdrawPage"
-          )
+            @tap="goWithdrawPage")
             Btn.handle_button 提现
           view.directions 说明：账户总金额超过10元才可提现哦
 </template>
@@ -81,7 +80,7 @@
 
 .balance_up {
   @include horizontalCenter();
-  margin-top: 160rpx; 
+  margin-top: 160rpx;
 
   .tip {
     font-family: PingFangSC-Medium;

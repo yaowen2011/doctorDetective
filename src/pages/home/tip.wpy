@@ -1,6 +1,7 @@
 <template lang="pug">
   view
-    view.tip_container(wx:if="{{isShowTip}}")
+    view.tip_container(
+      wx:if="{{isShowTip}}")
       view.talkbubble {{tipcontent}}
 </template>
 
@@ -34,19 +35,19 @@
   right:15%;
 }
 
-.talkbubble {  
+.talkbubble {
   position: relative;
-  padding: 20rpx 30rpx;  
-	border-radius: 20rx;   
-  border: 2rpx #9b9b9b solid; 
-  border-radius: 16rpx;  
+  padding: 20rpx 30rpx;
+	border-radius: 20rx;
+  border: 2rpx #9b9b9b solid;
+  border-radius: 16rpx;
   background-color: #fff;
   font-family: PingFangSC-Medium;
-  font-size: 24rpx;   
+  font-size: 24rpx;
   color: #9b9b9b;
-}   
-  
-.talkbubble:before {   
+}
+
+.talkbubble:before {
 	content: " ";
   position: absolute;
   top: 100%;
@@ -55,18 +56,18 @@
   height: 0;
   border-left: 22rpx solid transparent;
   border-top: 22rpx solid #9b9b9b;
-  border-right: 22rpx solid transparent;   
-}   
-  
-.talkbubble:after {   
+  border-right: 22rpx solid transparent;
+}
+
+.talkbubble:after {
 	content: " ";
   position: absolute;
   top: 100%;
   left: 41%;
   width: 0;
   height: 0;
-  border-left: 20rpx solid transparent;   
-  border-top: 20rpx solid #fff;   
-  border-right: 20rpx solid transparent;   
+  border-left: 20rpx solid transparent;
+  border-top: 20rpx solid #fff;
+  border-right: 20rpx solid transparent;
 }
 </style>

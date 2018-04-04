@@ -13,15 +13,12 @@
               @change="getCompany"
               @focus="inputFocus(0)"
               @blur="inputBlur"
-              value="{{hospital}}"
-            )
+              value="{{hospital}}")
             view.close_btn(
               wx:if="{{isHospitalClose}}"
-              @tap="clearInputValue(0)"
-            )  X
+              @tap="clearInputValue(0)")  X
             HospitalTips(
-              :tips.sync="hospitals"
-            )
+              :tips.sync="hospitals")
           viwe.input_wrapper.department
             input.input(
               placeholder-class="placeholder"
@@ -30,20 +27,16 @@
               @change="getDepartment"
               @focus="inputFocus(1)"
               @blur="inputBlur"
-              value="{{department}}"
-            )
+              value="{{department}}")
             view.close_btn(
               wx:if="{{isDepartmentClose}}"
-              @tap="clearInputValue(1)"
-            )  X
+              @tap="clearInputValue(1)")  X
             DepartmentTips(
-              :tips.sync="departments"
-            )
+              :tips.sync="departments")
         view.information_tip * 为确保顺利通过审核，请务必认真填写信息
         view.information_bottom
           view.handle_button(
-            @tap="submit"
-          ) 提交
+            @tap="submit") 提交
 </template>
 
 <script>
@@ -288,7 +281,7 @@ page,
       right: 0;
       font-family: PingFangSC-Medium;
       font-size: 28rpx;
-      color: #d7d7d7; 
+      color: #d7d7d7;
     }
   }
 }
@@ -301,6 +294,6 @@ page,
 
 .information_bottom {
   @include horizontalCenter();
-  margin-bottom: 40rpx; 
+  margin-bottom: 40rpx;
 }
 </style>

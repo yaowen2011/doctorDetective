@@ -15,22 +15,19 @@
           @input="getAmount"
           type="digit"
           value="{{amount}}"
-          cursor-spacing=20
-        )
-    view.bottom 
+          cursor-spacing=20)
+    view.bottom
       text 当前余额{{total_bonus}}元，
       text.allBouns(
-        @tap="getAllBouns"
-      ) 全部提现
+        @tap="getAllBouns") 全部提现
     text.handle_button(
-        @tap="getCash"
-      ) 提现
+        @tap="getCash") 提现
 </template>
 
 <script>
   import wepy from 'wepy'
   import { postCash, postcheckUser } from '@/utils/api'
-  
+
   export default class BounsPage extends wepy.page {
     config = {
       navigationBarTitleText: '提现',
@@ -185,7 +182,7 @@
   margin-top: 10rpx;
   margin-bottom: 20rpx;
 }
-.top-right, 
+.top-right,
 .mid-right{
   display: flex;
   flex-direction: column;

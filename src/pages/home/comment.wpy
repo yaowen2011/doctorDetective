@@ -1,36 +1,29 @@
 <template lang="pug">
   view.comment_wrapper
     view.comment_model(
-      @tap="toggleCommentsBlock"
-    )
+      @tap="toggleCommentsBlock")
     view.comment_block(
-      @tap="toggleCommentEdit(false)"
-    )
+      @tap="toggleCommentEdit(false)")
       view.comment_close_wrapper(
-        @tap="toggleCommentsBlock"
-      )
+        @tap="toggleCommentsBlock")
         view.comment_close x
       scroll-view.scroll_view(
-        scroll-y
-      )
+        scroll-y)
         block(
           wx:for="{{ comments }}"
-          wx:key="{{ key }}"
-        )
+          wx:key="{{ key }}")
           view.comment_item
             view.comment_user
               image(
                 class="avatar"
-                src="{{item.user.avatar_url}}"
-              )  
+                src="{{item.user.avatar_url}}")
               view.nickName  {{item.user.nickname}}
             view.comment_content
               view {{item.text}}
             view.comment_time
               view {{item.created_at}}
     view.comment_edit(
-      wx:if="{{ isEditComment }}"
-    )
+      wx:if="{{ isEditComment }}")
       view
         input(
           class="comment_input"
@@ -40,26 +33,21 @@
           maxlength=140
           focus="{{ isInputFocus }}"
           @input="getInputValue"
-          value="{{ inputValue }}"
-        )
+          value="{{ inputValue }}")
       view(
-        @tap="submitComment"
-      ) 发布
+        @tap="submitComment") 发布
     view.comment_edit(
       wx:else
-      @tap="toggleCommentEdit(true)"
-    )
+      @tap="toggleCommentEdit(true)")
       view
         image(
           class="edit_icon"
-          src="../../images/edit.svg"
-        ) 
+          src="../../images/edit.svg")
         text 写评论
       view
         image(
           class="comment_icon"
-          src="../../images/comment.svg"
-        ) 
+          src="../../images/comment.svg")
         text {{comments.length}}
 </template>
 
@@ -174,7 +162,7 @@
         border: 2rpx solid #9b9b9b;
         color: #9b9b9b;
         font-family: PingFangSC-Regular;
-        font-size: 28rpx; 
+        font-size: 28rpx;
       }
     }
 
@@ -189,7 +177,7 @@
         margin-bottom: 20rpx;
         font-family: PingFangSC-Regular;
         font-size: 28rpx;
-        
+
         .comment_user {
           width: 100%;
           @include horizontalCenter($direction: row);
@@ -198,7 +186,7 @@
           .avatar{
             width: 60rpx;
             height: 60rpx;
-            border-radius: 50%; 
+            border-radius: 50%;
           }
 
           .nickName {
@@ -243,7 +231,7 @@
     font-size: 28rpx;
     color: #b2b2b2;
     box-shadow: 0px -1px 5px 0px rgba(0, 0, 0, 0.2);
-    
+
     .edit_icon,
     .comment_icon {
       width: 28rpx;

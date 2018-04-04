@@ -1,29 +1,26 @@
 <template lang="pug">
   view.finalScore_wrapper
     image.avatar(
-        src="{{avatarUrl}}"
-      )
+      src="{{avatarUrl}}")
     //- 答题结果展示区域
     view.result_block
       view.result_up
-        view.score 
+        view.score
           text {{score}}
           text.unit 分
         view.tip 本轮答题得分
       view.result_bottom
-        view.total_score_wrapper 
+        view.total_score_wrapper
           text 答题累计得分:
           text.total_score {{total_score}}
           text.unit 分
         //- view.level 目前所在级别：宗师三级
         view(
           wx:if="{{isShowRewardBtn}}"
-          @tap="goReward"
-        ) 
+          @tap="goReward")
           Btn.handle_button 领取奖励
         view(
-          @tap="goRankPage"
-        ) 
+          @tap="goRankPage")
           Btn.handle_button 查看实时榜单
 </template>
 
@@ -122,13 +119,13 @@
 }
 
 .result_block{
-  @include verticalCenter();  
+  @include verticalCenter();
   justify-content: space-between;
   height: 700rpx;
 }
 
 .result_up {
-  @include verticalHorizontalCenter();  
+  @include verticalHorizontalCenter();
   margin-top: 40rpx;
 
   .score {
@@ -164,7 +161,7 @@
     font-size: 28rpx;
     color: #39393a;
     margin-bottom: 20rpx;
-  
+
     .total_score {
       font-family: DINCondensed-Bold;
       font-size: 40rpx;
@@ -172,7 +169,7 @@
       margin: 0 10rpx;
     }
   }
-  
+
   .level {
     font-family: PingFangSC-Regular;
     font-size: 28rpx;

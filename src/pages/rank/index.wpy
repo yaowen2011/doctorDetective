@@ -4,21 +4,18 @@
       view.rank_self
         image.avatar(src="{{avatarUrl ? avatarUrl : '../../images/avatar-default.svg' }}")
         view.ranking 您目前实时排名：
-          text.ranking_score {{sort}} 
+          text.ranking_score {{sort}}
           text.unit 位
       scroll-view.rank_others(
-        scroll-y
-      )
+        scroll-y)
         repeat(
           for="{{list}}"
-          key="index"
-        )
+          key="index")
           view.rank_item
             view.rank_item-left
               view.number {{index + 1}}.
               image.avatar(
-                src="{{item.user.avatarUrl ? item.user.avatarUrl : '../../images/avatar-default.svg'}}"
-                )
+                src="{{item.user.avatarUrl ? item.user.avatarUrl : '../../images/avatar-default.svg'}}")
               view.nickname {{item.user.nickName}}
             view.rank_item-right
               text.score {{item.score}}
@@ -109,7 +106,7 @@
 }
 
 .rank_others {
-  box-sizing: border-box; 
+  box-sizing: border-box;
   height: 800rpx;
   box-sizing: border-box;
   // padding: 64rpx 60rpx;
@@ -121,7 +118,7 @@
     align-items: center;
     justify-content: space-between;
     height: 80rpx;
-    box-sizing: border-box; 
+    box-sizing: border-box;
     font-family: PingFangSC-Regular;
     font-size: 28rpx;
     color:#4a4a4a;

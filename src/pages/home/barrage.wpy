@@ -1,48 +1,15 @@
-<style lang="scss">
-@import '../../scss/_variables.scss';
-
-.barrage_wrapper {
-  width: 100%;
-  height: $videoHeight;
-  position: absolute;
-  top: 0;
-  right: 0;
-  z-index: 9;
-  display: flex;
-  background: rgba(0, 0, 0, 0.3);
-  overflow: hidden;
-
-  .barrage {
-    position: absolute;
-    top: 0;
-    right: -100%;
-    z-index: 9;
-    white-space:nowrap;
-    height: 60rpx;
-    color: #fff;
-  }
-}
-
-.hide_barrage_wrapper {
-  background: rgba(0, 0, 0, 0);
-}
-</style>
-
 <template lang="pug">
   view.barrage_wrapper(
     id="barrage_wrapper"
     class="{{ isShowBarrage ? '' : 'hide_barrage_wrapper' }}"
-    @tap.stop="toggleBarrageBtn"
-  )
+    @tap.stop="toggleBarrageBtn")
     block(
       wx:for="{{ barrages }}"
-      wx:key="{{ index }}"
-    )
+      wx:key="{{ index }}")
       view(
         id="barrage{{ index }}"
         class="barrage"
-        animation="{{animationDatas[index]}}"
-        ) {{item.text}}
+        animation="{{animationDatas[index]}}") {{item.text}}
 </template>
 
 <script>
@@ -124,3 +91,33 @@
     }
   }
 </script>
+
+<style lang="scss">
+@import '../../scss/_variables.scss';
+
+.barrage_wrapper {
+  width: 100%;
+  height: $videoHeight;
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 9;
+  display: flex;
+  background: rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+
+  .barrage {
+    position: absolute;
+    top: 0;
+    right: -100%;
+    z-index: 9;
+    white-space:nowrap;
+    height: 60rpx;
+    color: #fff;
+  }
+}
+
+.hide_barrage_wrapper {
+  background: rgba(0, 0, 0, 0);
+}
+</style>

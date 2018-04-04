@@ -6,8 +6,7 @@
       canvas-id="canvas")
     view.btn(
       wx:if="{{isLoaded}}"
-      @tap="savePhoto"
-    ) 保存到相册
+      @tap="savePhoto") 保存到相册
 </template>
 
 <script>

@@ -2,34 +2,26 @@
   view.container
     CaseVideo(
       wx:if="{{isVideoSrc}}"
-      :video.sync="video"
-      )
+      :video.sync="video")
     VideoPlaceholder(
       wx:else
-      :video.sync="video"
-    )
+      :video.sync="video")
     view.content(
-      wx:if="{{isStart}}"
-    )
+      wx:if="{{isStart}}")
       Question(
         :index.sync="index"
-        :questions.sync="questions"
-      )
+        :questions.sync="questions")
     view.content(
-      wx:else
-    )
+      wx:else)
       Deadline(
         :expired_at.sync="expired_at"
-        :bonusPool.sync="bonusPool"
-      )
+        :bonusPool.sync="bonusPool")
       form(
         report-submit=true
-        @submit="startAnswer"
-      )
+        @submit="startAnswer")
         button(
           class="startAnswerBtn"
-          form-type="submit"
-        ) 开始答题
+          form-type="submit") 开始答题
       Card(
         :pid.sync="pid"
         :card.sync="card"
@@ -37,18 +29,14 @@
         :userInfo.sync="userInfo"
         :total_score.sync="total_score"
         :total_bonus.sync="total_bonus"
-        :is_answer.sync="is_answer"
-      )
+        :is_answer.sync="is_answer")
     Share(
-      wx:if="{{isShowShare}}"
-    )
+      wx:if="{{isShowShare}}")
     Comment(
       wx:if="{{ isShowCommentBlock }}"
-      :comments.sync="comments"
-    )
+      :comments.sync="comments")
     Poster(
-      wx:if="{{isShowPoster}}"
-    )
+      wx:if="{{isShowPoster}}")
 </template>
 
 <script>

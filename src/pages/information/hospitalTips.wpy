@@ -1,22 +1,17 @@
 <template lang="pug">
   view(
     class="tips_wrapper {{comClass}}"
-    wx-if="{{isShowSmartTips}}"
-  )
+    wx-if="{{isShowSmartTips}}")
     scroll-view(
       class="scroll_view"
-      scroll-y
-    )
+      scroll-y)
       repeat(
         for="{{tips}}"
-        key="key"
-      )
+        key="key")
         view.tip(
-          @tap="checked({{item.name}})"
-        ) {{item.name}}
+          @tap="checked({{item.name}})") {{item.name}}
     view.close(
-      @tap="hideTips"
-    ) 关闭
+      @tap="hideTips") 关闭
 </template>
 
 <script>

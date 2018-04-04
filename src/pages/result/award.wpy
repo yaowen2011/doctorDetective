@@ -1,13 +1,12 @@
 <template lang="pug">
   view.award_wrapper
     image.avatar(
-        src="{{avatarUrl}}"
-      )
+      src="{{avatarUrl}}")
      //- 答题奖金展示区域
     view.reward_block
       view.reward_up
         view.tip 本次答题获得
-        view.reward 
+        view.reward
           text {{bonus}}
           text.unit 元
       view.reward_bottom
@@ -16,12 +15,10 @@
           text.total_reward {{total_bonus}}
           text.unit 元
         view(
-          @tap="goHome"
-        )
+          @tap="goHome")
           Btn.handle_button 返回主页
         view(
-          @tap="goRankPage"
-        )
+          @tap="goRankPage")
           Btn.handle_button 查看实时榜单
 </template>
 
@@ -98,12 +95,12 @@
 }
 
 .reward_block{
-  @include verticalCenter();  
+  @include verticalCenter();
   justify-content: space-between;
   height: 700rpx;
 }
 .reward_up {
-  @include verticalHorizontalCenter();  
+  @include verticalHorizontalCenter();
   margin-top: 40rpx;
 
   .tip {
