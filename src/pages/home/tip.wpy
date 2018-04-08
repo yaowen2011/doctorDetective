@@ -30,12 +30,12 @@
 <style lang="scss">
 .tip_container {
   position:absolute;
-  bottom:100%;
-  // right:25%;
+  bottom:120%;
   right:15%;
 }
 
 .talkbubble {
+  width: 154rpx;
   position: relative;
   padding: 20rpx 30rpx;
 	border-radius: 20rx;
