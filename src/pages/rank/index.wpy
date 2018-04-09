@@ -1,31 +1,59 @@
 <template lang="pug">
   view.container
-    view.card_wrapper
-      view.rank_self
-        image.avatar(src="{{avatarUrl ? avatarUrl : '../../images/avatar-default.svg' }}")
-        view.ranking 您目前实时排名：
-          text.ranking_score {{sort}}
-          text.unit 位
-      scroll-view.rank_others(
-        scroll-y)
-        repeat(
-          for="{{list}}"
-          key="index")
-          view.rank_item
-            view.rank_item-left
-              view.number {{index + 1}}.
-              image.avatar(
-                src="{{item.user.avatarUrl ? item.user.avatarUrl : '../../images/avatar-default.svg'}}")
-              view.nickname {{item.user.nickName}}
-            view.rank_item-right
-              text.score {{item.score}}
-              text.unit 分
-        //- view 加载更多
-</template>
+    swiper.swiper(
+      previous-margin="60rpx"
+      next-margin="60rpx"
+      @change="change"
+      @animationfinish="animationfinish")
+      swiper-item.swiper_item
+        view.card_wrapper(
+          class="{{isScale ? 'not_scale' : 'scale'}}"
+        )
+          view.rank_self
+            image.avatar(src="{{avatarUrl ? avatarUrl : '../../images/avatar-default.svg' }}")
+            view.ranking 您目前实时排名：
+              text.ranking_score {{personalSort}}
+              text.unit  位
+          scroll-view.rank_others(
+            scroll-y)
+            repeat(
+              for="{{personalList}}"
+              key="index")
+              view.rank_item
+                view.rank_item-left
+                  view.number {{index + 1}}.
+                  image.avatar(
+                    src="{{item.user.avatarUrl ? item.user.avatarUrl : '../../images/avatar-default.svg'}}")
+                  view.nickname {{item.user.nickName}}
+                view.rank_item-right
+                  text.score {{item.score}}
+                  text.unit 分
+      swiper-item.swiper_item
+        view.card_wrapper(
+          class="{{isScale ? 'scale' : 'not_scale'}}"
+        )
+          view.rank_self
+            image.avatar(src="{{avatarUrl ? avatarUrl : '../../images/avatar-default.svg' }}")
+            view.ranking 您所在机构排名：
+              text.ranking_score {{hpSort}}
+              text.unit  位
+          scroll-view.rank_others(
+            scroll-y)
+            repeat(
+              for="{{hpList}}"
+              key="index")
+              view.rank_item
+                view.rank_item-left
+                  view.number {{index + 1}}.
+                  view.hp_name {{item.name}}
+                view.rank_item-right
+                  text.score {{item.score}}
+                  text.unit 分
+  </template>
 
 <script>
   import wepy from 'wepy'
-  import { postRank } from '@/utils/api'
+  import { postPersonalRank, postHospitalRank } from '@/utils/api'
 
   export default class RankPage extends wepy.page {
     config = {
@@ -33,21 +61,52 @@
     }
 
     data = {
-      sort: 0,                 // 当前排名
-      list: [],                // 排名列表
-      avatarUrl: ''            // 用户头像
+      pid: '',
+      isScale: true,
+      current: 0,
+      personalSort: 0,                 // 当前个人排名
+      personalList: [],                // 个人排名列表
+      avatarUrl: '',                   // 当前用户头像
+      hpList: [],                      // 医院排名列表
+      hpSort: 0,                       // 个人所在机构排名
     }
 
-    async onLoad ({ pid = '' }) {
-      this.avatarUrl = wepy.getStorageSync('userInfo').avatarUrl
-      let params = {
-        method: 'POST',
-        data: { pid }
+    methods = {
+      change (e) {
+        let { current } = e.detail
+        if (current > this.current) {
+          this.current = current
+          this.isScale = false
+        } else {
+          this.current = current
+          this.isScale = true
+        }
+      },
+      animationfinish () {}
+    }
+
+    async onLoad ({ pid = '5ac5742de9c0467416467691' }) {
+      try {
+        // person '5ac5742de9c0467416467691'
+        // hp '5ac97220e9c0460881538d21'
+        this.avatarUrl = wepy.getStorageSync('userInfo').avatarUrl
+        let params = {
+          method: 'POST',
+          data: { pid }
+        }
+        let { data: { sort, list: { data: list } } } = await postPersonalRank(params)
+        this.personalList = list
+        this.personalSort = sort
+        let { data: { my_hp, hp: { data: hpList } } } = await postHospitalRank(params)
+        this.hpList = hpList
+        this.hpSort = my_hp
+        this.$apply()
+      } catch (error) {
+        wepy.showToast({
+          title: '数据加载失败',
+          icon: 'none'
+        })
       }
-      let { data: { sort, list: { data: list } } } = await postRank(params)
-      this.list = list
-      this.sort = sort
-      this.$apply()
     }
   }
 </script>
@@ -60,24 +119,63 @@
   font-size: 28rpx;
   color: #39393a;
 }
+page,
+.container {
+  width: 100vw;
+  height: 100vh;
+}
 
 .container {
   @include verticalHorizontalCenter();
-  background: linear-gradient(to bottom right, #4020B8, #D263DD );
+  background: linear-gradient(to bottom right, #3023AE, #C86DD7 );
+}
+
+.swiper {
+  width: 100%;
+  height: 100%;
+
+  .swiper_item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .scale {
+      transform: scale(0.9);
+      transition: transform 0.6s ease-in-out;
+    }
+
+    .not_scale {
+      transform: scale(1);
+      transition: transform 0.6s ease-in-out;
+    }
+  }
 }
 
 .card_wrapper {
-  width: 650rpx;
+  position: relative;
+  width: 610rpx;
   height: 1080rpx;
   box-sizing: border-box;
   border-radius: 40rpx;
   background: #fff;
   padding: 20rpx;
+  /* box-shadow: 0 4rpx 60rpx 0 rgba(0, 0, 0, 0.2); */
+
+  &:after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    z-index: -99;
+    margin-left: -250rpx;
+    width: 450rpx;
+    height: 10rpx;
+    box-shadow: 0 30rpx 40rpx 0 rgba(0, 0, 0, 0.2);
+  }
 }
 
 .rank_self {
   height: 200rpx;
-  width: 610rpx;
   box-sizing: border-box;
   border-bottom: 2rpx #D7D8D7 solid;
   display: flex;
@@ -108,9 +206,7 @@
 .rank_others {
   box-sizing: border-box;
   height: 800rpx;
-  box-sizing: border-box;
-  // padding: 64rpx 60rpx;
-  padding:10rpx 60rpx 0 40rpx;
+  padding-top: 10rpx;
 
   .rank_item {
     display: flex;
@@ -118,6 +214,7 @@
     align-items: center;
     justify-content: space-between;
     height: 80rpx;
+    margin: 0 20rpx;
     box-sizing: border-box;
     font-family: PingFangSC-Regular;
     font-size: 28rpx;
@@ -131,12 +228,19 @@
     }
     .number{
       width: 60rpx;
+      margin-right: 20rpx;
     }
 
+    .nickname {
+      width: 300rpx;
+    }
+
+    .hp_name {
+      width: 342rpx;
+    }
     .score {
       margin-right: 10rpx;
     }
-
   }
 }
 
@@ -148,7 +252,7 @@
     width: 60rpx;
     height: 60rpx;
     border-radius: 50%;
-    margin: 0 20rpx;
+    margin-right: 20rpx;
   }
 }
 </style>
