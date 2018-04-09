@@ -64,7 +64,7 @@
 @import '../../scss/_layout.scss';
 .container {
   @include verticalCenter();
-  background: linear-gradient(to bottom right, #4020B8, #D263DD );
+  background: linear-gradient(to bottom right, #3023AE, #C86DD7 );
   padding: 128rpx 50rpx;
 }
 </style>
