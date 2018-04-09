@@ -27,7 +27,7 @@
 <script>
   import wepy from 'wepy'
   import Btn from '@/components/btn'
-  import { getBonus } from '@/utils/api'
+
   export default class FailComponent extends wepy.component {
     props = {
       pid: {
@@ -63,25 +63,7 @@
         })
       },
       async goReward() {
-        let params = {
-          method: 'POST',
-          data: {
-            pid: this.pid
-          }
-        }
-        let { data: { error_code, bonus } } = await getBonus(params)
-        switch (error_code) {
-          case 0:
-            this.$emit('updateBonus', bonus)
-            this.$emit('hideFinalScore')
-            break
-
-          case 5005:
-            wepy.navigateTo({
-              url: `/pages/information/index?pid=${this.pid}`
-            })
-            break
-        }
+        this.$emit('goReward')
       }
     }
   }
@@ -114,7 +96,6 @@
   height: 1080rpx;
   border-radius: 40rpx;
   background: #fff;
-  // padding: 20rpx;
   padding: 20rpx 20rpx 0 20rpx;
 }
 
@@ -154,7 +135,6 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  // align-self: flex-start;
 
   .total_score_wrapper {
     font-family: PingFangSC-Semibold;

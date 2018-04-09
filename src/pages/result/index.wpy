@@ -20,6 +20,7 @@
   import FinalScore from './finalScore'
   import Award from './award'
 
+  import { getBonus } from '@/utils/api'
   export default class ResultPage extends wepy.page {
     onLoad ({ isShowRewardBtn = '', pid = '', score = 0, total_score = 0, bonus = 0, total_bonus = 0 }) {
       this.pid = pid
@@ -48,13 +49,41 @@
     }
 
     events = {
-      'updateBonus': (bonus) => {
-        this.bonus = bonus
-        this.total_bonus = this.total_bonus + bonus
-        this.$apply()
-      },
-      'hideFinalScore': () => {
-        this.isShowFinalScore = false
+      'goReward': async () => {
+        try {
+          let params = {
+            method: 'POST',
+            data: {
+              pid: this.pid
+            }
+          }
+          let { data: { error_code, bonus } } = await getBonus(params)
+          switch (error_code) {
+            case 0:
+              this.bonus = Number(bonus).toFixed(2)
+              this.total_bonus = Number(this.total_bonus + bonus).toFixed(2)
+              this.isShowFinalScore = false
+              this.$apply()
+              break
+            case 5005:
+              wepy.navigateTo({
+                url: `/pages/information/index?pid=${this.pid}`
+              })
+              break
+            case 5007:
+              wepy.showModal({
+                title: '提示',
+                content: '你已获奖，正在排队计算中，返回首页查看',
+                showCancel: false
+              })
+              break
+          }
+        } catch (error) {
+          wepy.showToast({
+            title: '网络异常',
+            icon: 'none'
+          })
+        }
       }
     }
   }
