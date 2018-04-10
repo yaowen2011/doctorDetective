@@ -30,7 +30,7 @@
         this.currentQuestion = currentQuestion
       },
       'handleAnswer': async () => {
-        this.answer = ''
+        let answer = ''
         this.canHandleAnser = false
         this.$apply()
         if (!this.currentQuestion.choice) return
@@ -38,10 +38,13 @@
         let choice = this.currentQuestion.choice
         for (let i = 0; i < choice.length; i++) {
           if (choice[i].checked) {
-            this.answer += choice[i].option
-            this.$apply()
+            answer += `${choice[i].option} `
           }
         }
+        this.answer = answer.trim().split('').sort().map((option) => {
+          if (option) return option
+        }).join('').trim()
+        this.$apply()
         let params = {
           method: 'POST',
           data: {
