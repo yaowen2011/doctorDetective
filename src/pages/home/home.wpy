@@ -101,6 +101,11 @@
                 showCancel: false
               })
             } else {
+              let modal = await wepy.showModal({
+                title: '提示',
+                content: '开始答题后，一旦中途退出，则成绩无效(详情请查看活动规则)。'
+              })
+              if (!modal.confirm) return
               wepy.navigateTo({
                 url: `/pages/answer/index?pid=${this.pid}&total_bonus=${this.total_bonus}&total_score=${this.total_score}`
               })
