@@ -222,7 +222,6 @@
 
         if (video.src) {
           this.isVideoSrc = true
-          if (!this.isSign) this.isVideoSrc = false
           this.videoContext = wepy.createVideoContext('caseVideo')
         } else {
           this.isVideoSrc = false
@@ -277,6 +276,7 @@
     // 签到
     async sign () {
       let { data: { is_sign: isSign, sign_log } } = await sign()
+      if (this.isVideoSrc && !isSign) this.isVideoSrc = false
       this.isSign = Boolean(isSign)
       this.signState = this.initSignState(sign_log)
       this.willSign = sign_log.findIndex(value => {
