@@ -1,0 +1,93 @@
+<template lang="pug">
+  view.award_card(
+    style="border-color: {{bigAwardMsg ? '' : signState[willSign].bgColor}};")
+    view.award_icon(
+      style="background: {{bigAwardMsg ? '' : signState[willSign].bgColor}};")
+      image.icon_active(
+        src="{{bigAwardMsg ? '/images/boxsp.svg' : signState[willSign].src}}")
+    view.award_card_inner
+      view.award_title(
+        style="color: {{continuousCount === 3 ? '#FDC700' : continuousCount === 7 ? '#FDC700' : ''}}") 恭喜
+      view.award_content {{bigAwardMsg ? bigAwardMsg : awardMsg}}
+</template>
+
+<script>
+  import wepy from 'wepy'
+  export default class SignAwardComponent extends wepy.component {
+    props = {
+      willSign: {
+        type: Number,
+        default: 0
+      },
+      signState: {
+        type: Array,
+        default: {}
+      },
+      continuousCount: {
+        type: Number,
+        default: 0
+      },
+      awardMsg: {
+        type: String,
+        default: ''
+      },
+      bigAwardMsg: {
+        type: String,
+        default: ''
+      }
+    }
+  }
+</script>
+
+<style lang="scss" scoped>
+@import '../../scss/_layout.scss';
+
+.award_card {
+  @include verticalHorizontalCenter();
+  position: relative;
+  width: 550rpx;
+  height: 400rpx;
+  border-radius: 40rpx;
+  background: #fff;
+  border: 10rpx solid #fad961;
+
+  .award_icon {
+    @include verticalHorizontalCenter();
+    position: absolute;
+    top: -70rpx;
+    left: 50%;
+    margin-left: -70rpx;
+    width: 140rpx;
+    height: 140rpx;
+    border-radius: 50%;
+    background: linear-gradient(145deg, #fad961 0%, #d78924 100%);
+
+    .icon_active {
+      width: 90rpx;
+      height: 90rpx;
+    }
+  }
+
+  .award_card_inner {
+    @include horizontalCenter();
+    padding-top: 88rpx;
+    width: 100%;
+    height: 100%;
+    border-radius: 29rpx;
+    font-family: PingFangSC-Medium;
+    font-size: 36rpx;
+    color: #4a4a4a;
+
+    .award_title {
+      color: #DD28D3;
+      font-family: PingFangSC-Semibold;
+      font-size: 48rpx;
+    }
+
+    .award_content {
+      padding: 0 20rpx;
+      text-align: center;
+    }
+  }
+}
+</style>

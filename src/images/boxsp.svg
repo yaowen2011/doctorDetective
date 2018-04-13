@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="45px" height="45px" viewBox="0 0 45 45" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 49 (51002) - http://www.bohemiancoding.com/sketch -->
+    <title>邀请奖励sp</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <linearGradient x1="73.0955256%" y1="100%" x2="-21.2191051%" y2="5.09460747%" id="linearGradient-1">
+            <stop stop-color="#FAD961" offset="0%"></stop>
+            <stop stop-color="#D88924" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="8.2635498%" y1="-85.1890625%" x2="86.6210938%" y2="85.1618304%" id="linearGradient-2">
+            <stop stop-color="#FAD961" offset="0%"></stop>
+            <stop stop-color="#D88924" offset="100%"></stop>
+        </linearGradient>
+    </defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="每周签到奖励-弹窗神秘大奖" transform="translate(-166.000000, -247.000000)" fill-rule="nonzero">
+            <g id="Group" transform="translate(50.000000, 234.000000)">
+                <g id="签到板" transform="translate(103.000000, 0.000000)">
+                    <g id="邀请奖励sp" transform="translate(13.000000, 13.000000)">
+                        <path d="M8.13616072,45 C3.81696427,45 2,43.3615819 2,40 L2,19 C0.59374996,18.6045198 0,17.8107344 0,16.6242937 L0,12.1751412 C0,10.6920904 0.70312502,9.99999994 4.11830356,10 L41.9866071,10 C44.296875,10 45,10.8898305 45,12.3728814 L45,16.6242937 C45,18.1073446 44.8080357,18.9011299 43,19 C43,20.4661017 43,35.7372881 43,39 C43,42.3615819 40.78125,44.9999999 36.4620536,45 L27.8236607,45 L8.13616072,45 Z" id="Shape" fill="#FFFFFF"></path>
+                        <path d="M14.1068285,0.250275706 C12.333157,-0.743269582 11.7419332,1.44253003 11.5448586,2.93284793 C11.347784,4.42316583 11.347784,6.41025635 13.3185301,6.41025641 L20.3146789,6.41025641 C22.1868878,6.41025641 22.1868878,4.82058396 20.8073655,3.92639322 C19.7234551,3.33026606 16.2746493,1.44253003 14.1068285,0.250275706 Z M33.2230663,2.93284793 C33.0259917,1.44253003 32.5333051,-0.743269582 30.6610962,0.250275706 C28.5918128,1.44253003 25.0444697,3.23091151 23.9605593,3.92639322 C22.4824997,4.82058396 22.4824997,6.41025641 24.4532458,6.41025641 L31.4493947,6.41025641 C33.3216036,6.41025641 33.3216036,4.42316589 33.2230663,2.93284793 Z" id="Shape" fill="#FFFFFF"></path>
+                        <polygon id="Shape" fill="url(#linearGradient-1)" points="18 19 25.0512821 19 25.0512821 45 18 45"></polygon>
+                        <polygon id="Shape" fill="url(#linearGradient-2)" points="2 19 43 19 43 25 2 25"></polygon>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

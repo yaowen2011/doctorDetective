@@ -1,0 +1,311 @@
+<template lang="pug">
+  view.sign_card.zoomIn
+    view.award_header
+      view.title 每周签到奖励
+    view.award_list
+      block(
+        wx:for="{{signState}}"
+        wx:key="{{index}}")
+        view.award_item
+          view.icon_block(
+            class="{{willSign === index ? 'bounce' : ''}}"
+            style="background: {{item.bgColor}}")
+            image.icon(
+              src="{{item.src}}")
+            image.icon_sign(
+              wx:if="{{item.log === 0 || item.log === 1}}"
+              src="{{item.log === 0 ? '/images/sign_forget.svg' : item.log === 1 ? '/images/sign_finished.svg' : ''}}")
+            view(
+              wx:if="{{item.log === 0 || item.log === 1}}"
+              class="{{item.log === 0 ? 'mask_forget' : item.log === 1 ? 'mask_finished' : ''}}")
+          view.week(
+            class="{{willSign + 2 === index ? 'week_continuous' : willSign + 6 === index ? 'week_continuous': ''}}") {{item.day}}
+    view.receiveAward(
+      @tap="receiveAward") 点击签到
+    view.signAward(
+      wx:if="{{isSignAward}}"
+      @tap="toggleSignAward")
+      SignAward(
+        wx:if="{{awardMsg}}"
+        class="zoomIn {{isSignAward ? '' : 'zoomOut'}}"
+        :willSign.sync="willSign"
+        :awardMsg.sync="awardMsg"
+        :bigAwardMsg.sync=""
+        :signState.sync="signState"
+        :continuousCount.sync="continuousCount")
+      BigSignAward(
+        wx:if="{{bigAwardMsg}}"
+        class="zoomIn {{isSignAward ? '' : 'zoomOut'}}"
+        :willSign.sync="willSign"
+        :awardMsg.sync=""
+        :bigAwardMsg.sync="bigAwardMsg"
+        :signState.sync="signState"
+        :continuousCount.sync="continuousCount")
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import SignAward from './signAward'
+  export default class SignComponent extends wepy.component {
+    props = {
+      willSign: {
+        type: Number,
+        default: 0
+      },
+      signState: {
+        type: Array,
+        default: []
+      },
+      continuousCount: {
+        type: Number,
+        default: 0
+      },
+      awardMsg: {
+        type: String,
+        default: ''
+      },
+      bigAwardMsg: {
+        type: String,
+        default: ''
+      }
+    }
+
+    data = {
+      isSignAward: false,
+      isGoHome: false
+    }
+
+    components = {
+      SignAward,
+      BigSignAward: SignAward,
+    }
+
+    events = {
+      'toggleSignAward': (isShow) => {
+        this.isSignAward = isShow
+        this.$apply()
+      }
+    }
+
+    methods = {
+      receiveAward () {
+        this.$emit('receiveAward')
+      },
+      toggleSignAward () {
+        this.isSignAward = false
+        this.$apply()
+        setTimeout(() => {
+          wepy.redirectTo({
+            url: `/pages/home/home`
+          })
+        }, 400)
+      }
+    }
+  }
+</script>
+
+<style lang="scss">
+@import '../../scss/_layout.scss';
+@import '../../scss/_element.scss';
+@import '../../scss/_animate.scss';
+
+@include bounce();
+@include zoomIn();
+@include zoomOut();
+
+.bounce {
+  animation: bounce 1s ease .6s infinite;
+}
+.zoomIn {
+  animation: zoomIn .6s;
+}
+.zoomOut {
+  animation: zoomOut .6s;
+}
+
+.sign_card {
+  position: relative;
+  @include verticalCenter();
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 auto;
+
+  width: 650rpx;
+  height: 980rpx;
+  background: #fff;
+  border-radius: 40rpx;
+  padding: 0 25rpx;
+  box-shadow: 0px 2px 30px 0px rgba(0, 0, 0, 0.5);
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    z-index: -9;
+    margin-left: -225rpx;
+    width: 450rpx;
+    height: 20rpx;
+    box-shadow: 0px 15px 20px 0px rgba(0, 0, 0, 0.2);
+    border-radius: 40rpx;
+    background: transparent;
+  }
+}
+
+.award_header {
+  position: absolute;
+  top: -68rpx;
+  left:50%;
+  margin-left:-282rpx;
+  width: 564rpx;
+  height: 134rpx;
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    top: 22rpx;
+    width: 100rpx;
+    height: 112rpx;
+    background-image: linear-gradient(128deg, #af0df8 0%, #e42ccb 100%, #ee32c3 100%);
+  }
+
+  &::before {
+    left: 0;
+  }
+
+  &::after {
+    right: 0;
+  }
+
+  .title {
+    @include verticalHorizontalCenter();
+    position: absolute;
+    top: 0;
+    left: 52rpx;
+    z-index: 9;
+    width: 460rpx;
+    height: 120rpx;
+    margin: 0 auto;
+    font-family: PingFangSC-Semibold;
+    font-size: 60rpx;
+    color: #fff;
+    background-image: linear-gradient(134deg, #af0df8 0%, #e42ccb 100%, #ee32c3 100%);
+
+    &::before,
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -14rpx;
+      width: 0;
+      height: 0;
+      border-color: transparent #9013fe;
+      border-style: solid;
+    }
+
+    &::before {
+      left: 0;
+      border-width: 0 50rpx 14rpx 0;
+    }
+
+    &::after {
+      right: 0;
+      border-width: 0 0 14rpx 50rpx;
+    }
+  }
+}
+
+.award_list {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  height: 600rpx;
+  font-family: PingFangSC-Semibold;
+  font-size: 28rpx;
+  color: #d926d5;
+  margin-top: 138rpx;
+
+  .award_item {
+    @include verticalHorizontalCenter();
+    width: 200rpx;
+
+    .icon_block {
+      @include verticalHorizontalCenter();
+      position: relative;
+      width: 140rpx;
+      height: 140rpx;
+      border-radius: 50%;
+
+      .icon {
+        width: 100rpx;
+        height: 100rpx;
+      }
+
+      .icon_sign {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        z-index: 9;
+        width: 36rpx;
+        height: 36rpx;
+      }
+
+      .mask_forget,
+      .mask_finished {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        border-radius: 50%;
+      }
+      .mask_finished {
+        background: rgba($color: #fff, $alpha: 0.7)
+      }
+      .mask_forget{
+        background: rgba($color: #000, $alpha: 0.4)
+      }
+    }
+
+    .week {
+      margin: 10rpx 0 40rpx 0;
+    }
+
+    .week_continuous {
+      color: #50e3c2;
+    }
+
+  }
+}
+
+.receiveAward {
+  @include btn($width: 350rpx, $height: 100rpx, $size: 48rpx, $radius:60rpx);
+  margin-bottom: 50rpx;
+  box-shadow: 0 8rpx 20rpx 0 rgba(226, 0, 255, 0.3);
+  border: 2rpx solid rgba(255, 255, 255, 0.2);
+  position: relative;
+
+  &::before {
+    content: '';
+    width: 272rpx;
+    height: 4rpx;
+    position: absolute;
+    bottom: -4rpx;
+    left: 50%;
+    margin-left: -136rpx;
+    background: transparent;
+    box-shadow: 0 6rpx 40rpx 0 rgba(226, 0, 255, 0.8);
+  }
+}
+
+.signAward {
+  @include verticalHorizontalCenter();
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 99;
+  background: rgba(74, 73, 74, 0.6);
+}
+</style>

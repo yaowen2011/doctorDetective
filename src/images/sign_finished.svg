@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="18px" height="18px" viewBox="0 0 18 18" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 49 (51002) - http://www.bohemiancoding.com/sketch -->
+    <title>签到完成</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="每周签到奖励" transform="translate(-97.000000, -235.000000)">
+            <g id="签到完成" transform="translate(97.000000, 235.000000)">
+                <g>
+                    <g fill="#75C819" id="Oval-5">
+                        <circle cx="9" cy="9" r="9"></circle>
+                    </g>
+                    <g id="Group" transform="translate(8.717514, 7.717514) rotate(-315.000000) translate(-8.717514, -7.717514) translate(4.717514, 2.217514)" fill="#FFFFFF">
+                        <rect id="Rectangle" x="0" y="9" width="8" height="2" rx="1"></rect>
+                        <rect id="Rectangle-Copy" transform="translate(7.000000, 5.500000) rotate(-90.000000) translate(-7.000000, -5.500000) " x="1.5" y="4.5" width="11" height="2" rx="1"></rect>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

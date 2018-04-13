@@ -1,42 +1,52 @@
 <template lang="pug">
-  view.container
-    CaseVideo(
-      wx:if="{{isVideoSrc}}"
-      :video.sync="video")
-    VideoPlaceholder(
-      wx:else
-      :video.sync="video")
-    view.content
-      Deadline(
-        :expired_at.sync="expired_at"
-        :bonusPool.sync="bonusPool")
-      form(
-        report-submit=true
-        @submit="startAnswer")
-        button(
-          class="startAnswerBtn"
-          form-type="submit") 开始答题
-      Card(
-        :pid.sync="pid"
-        :card.sync="card"
-        :honor.sync="honor"
-        :userInfo.sync="userInfo"
-        :total_score.sync="total_score"
-        :total_bonus.sync="total_bonus"
-        :is_answer.sync="is_answer")
-    Share(
-      wx:if="{{isShowShare}}")
-    Comment(
-      wx:if="{{ isShowCommentBlock }}"
-      :comments.sync="comments")
-    Poster(
+  view.home
+    Sign(
+      wx:if="{{!isSign}}"
+      :awardMsg.sync="awardMsg"
+      :bigAwardMsg.sync="bigAwardMsg"
+      :willSign.sync="willSign"
+      :signState.sync="signState"
+      :continuousCount.sync="continuousCount")
+    view.container(
+      wx:else)
+      CaseVideo(
+        wx:if="{{isVideoSrc}}"
+        :video.sync="video")
+      VideoPlaceholder(
+        wx:else
+        :video.sync="video")
+      view.content
+        Deadline(
+          :expired_at.sync="expired_at"
+          :bonusPool.sync="bonusPool")
+        form(
+          report-submit=true
+          @submit="startAnswer")
+          button(
+            class="startAnswerBtn"
+            form-type="submit") 开始答题
+        Card(
+          :pid.sync="pid"
+          :card.sync="card"
+          :honor.sync="honor"
+          :userInfo.sync="userInfo"
+          :total_score.sync="total_score"
+          :total_bonus.sync="total_bonus"
+          :is_answer.sync="is_answer")
+      Share(
+        wx:if="{{isShowShare}}")
+      Comment(
+        wx:if="{{ isShowCommentBlock }}"
+        :comments.sync="comments")
+      Poster(
       wx:if="{{isShowPoster}}")
-</template>
+  </template>
 
 <script>
   import wepy from 'wepy'
   import Panel from '@/components/panel'
   import Btn from '@/components/btn'
+  import Sign from './sign'
   import CaseVideo from './caseVideo'
   import Deadline from './deadline'
   import Card from './hCard'
@@ -46,10 +56,16 @@
   import Poster from './poster'
 
   import { getLoginToken } from '@/utils/login'
-  import { getVideo, postFormId, getComments, postComment, getPosterState } from '@/utils/api'
+  import { sign, getVideo, postFormId, getComments, postComment, getPosterState } from '@/utils/api'
 
   export default class HomePage extends wepy.page {
     data = {
+      isSign: true,                     // 今天签到情况
+      willSign: 0,                      // 今天签到索引
+      signState: [],                    // 一周签到情况
+      awardMsg: '',                     // 获奖信息
+      bigAwardMsg: '',                  // 获得大奖信息
+      continuousCount: 0,               // 连续签到的天数
       video: {},                        // 病历视频
       isVideoSrc: false,                // 是否有视频地址
       videoContext: {},                 // video 上下文对象
@@ -76,6 +92,7 @@
     components = {
       Panel,
       Btn,
+      Sign,
       CaseVideo,
       Deadline,
       Card,
@@ -83,6 +100,20 @@
       VideoPlaceholder,
       Comment,
       Poster
+    }
+
+    watch = {
+      isSign: (newValue) => {
+        if (!newValue) return
+        if (this.isVideoSrc) {
+          this.$invoke(this.$com.CaseVideo, 'initComments', this.comments)
+        } else {
+          this.$broadcast('beginBarrage', this.comments)
+        }
+      },
+      token: async (newValue, oldValue) => {
+        if (newValue) this.sign()
+      }
     }
 
     methods = {
@@ -130,6 +161,25 @@
     }
 
     events = {
+      'receiveAward': async () => {
+        try {
+          let { data: { LX: continuousCount, bmsg: bigAwardMsg, msg: awardMsg, error, sign_log } } = await sign({method: 'POST'})
+          if (error !== 0) return
+          if (error === 0) {
+            if (this.video.src) this.isVideoSrc = true
+            this.$broadcast('toggleSignAward', true)
+            this.signState = this.initSignState(sign_log)
+            this.continuousCount = continuousCount
+            this.awardMsg = awardMsg
+            this.$apply()
+            await this.timeout(1000)
+            this.bigAwardMsg = bigAwardMsg
+            this.$apply()
+          }
+        } catch (error) {
+          console.log(error)
+        }
+      },
       'toggleCommentsBlock': (params) => {
         this.isShowCommentBlock = params
       },
@@ -161,29 +211,41 @@
     }
 
     async onLoad ({ share_uid = '', scene = '' }) {
-      if (share_uid) this.share_uid = share_uid
-      if (scene) this.share_uid = decodeURIComponent(scene)
-      let { data: { data: { video: { data: video } } } } = await getVideo({isNeedToken: false})
-      this.video = video
-      if (video.src) {
-        this.isVideoSrc = true
-        this.videoContext = wepy.createVideoContext('caseVideo')
-      } else {
-        this.isVideoSrc = false
+      try {
+        if (share_uid) this.share_uid = share_uid
+        if (scene) this.share_uid = decodeURIComponent(scene)
+
+        this.signState = this.initSignState()
+
+        let { data: { show = 0 } } = await getPosterState({isNeedToken: false})
+        let { data: { data: { video: { data: video } } } } = await getVideo({isNeedToken: false})
+
+        if (video.src) {
+          this.isVideoSrc = true
+          if (!this.isSign) this.isVideoSrc = false
+          this.videoContext = wepy.createVideoContext('caseVideo')
+        } else {
+          this.isVideoSrc = false
+        }
+
+        this.video = video
+        this.isShowPoster = show
+        this.$apply()
+      } catch (error) {
+        console.log(error)
       }
-      let { data: { show = 0 } } = await getPosterState({isNeedToken: false})
-      this.isShowPoster = show
-      this.$apply()
     }
 
     async onShow () {
       try {
         await this.login({ share_uid: this.share_uid })
         await this.getComments()
-        // 更新视频的弹幕列表
-        this.$invoke(this.$com.CaseVideo, 'initComments', this.comments)
-        if (this.isVideoSrc) return
-        this.$broadcast('beginBarrage', this.comments)
+        if (!this.isSign) return
+        if (this.isVideoSrc) {
+          this.$invoke(this.$com.CaseVideo, 'initComments', this.comments)
+        } else {
+          this.$broadcast('beginBarrage', this.comments)
+        }
       } catch (error) {
         console.log(error)
       }
@@ -209,6 +271,66 @@
             title: '分享失败'
           })
         }
+      }
+    }
+
+    // 签到
+    async sign () {
+      let { data: { is_sign: isSign, sign_log } } = await sign()
+      this.isSign = Boolean(isSign)
+      this.signState = this.initSignState(sign_log)
+      this.willSign = sign_log.findIndex(value => {
+        return value === -1
+      })
+      this.$apply()
+    }
+
+    // 初始化签到状态
+    initSignState (signState = []) {
+      let initSignState = [
+        {
+          day: '星期一',
+          bgColor: '#fa6577',
+          src: '/images/box01.svg',
+        },
+        {
+          day: '星期二',
+          bgColor: '#f5a523',
+          src: '/images/box02.svg',
+        },
+        {
+          day: '星期三',
+          bgColor: '#f5a523',
+          src: '/images/box03.svg',
+        },
+        {
+          day: '星期四',
+          bgColor: '#ffec00',
+          src: '/images/box04.svg',
+        },
+        {
+          day: '星期五',
+          bgColor: '#31d2ae',
+          src: '/images/box05.svg',
+        },
+        {
+          day: '星期六',
+          bgColor: '#bf76ff',
+          src: '/images/box06.svg',
+        },
+        {
+          day: '星期日',
+          bgColor: '#61a5f5',
+          src: '/images/box07.svg',
+        },
+      ]
+      if (signState.length === initSignState.length) {
+        return initSignState.map((item, index) => {
+          item.log = signState[index]
+          return item
+        })
+      } else {
+        return initSignState
       }
     }
 
@@ -279,6 +401,12 @@
       await postFormId(params)
     }
 
+    async timeout (ms) {
+      return new Promise((resolve, reject) => {
+        this.timer = setTimeout(resolve, ms)
+      })
+    }
+
     // 函数防抖
     debounce (fn, ms = 1000) {
       if (this.timer) {
@@ -296,10 +424,29 @@
 @import '../../scss/_variables.scss';
 @import '../../scss/_element.scss';
 
+page {
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(to bottom right, #3023AE, #C86DD7 );
+}
+
+.home,
 .container {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  /* overflow: hidden; */
+}
+
+.home {
+  @include verticalHorizontalCenter();
+}
+.container {
+  @include horizontalCenter();
   font-family: PingFangSC-Regular;
   font-size: 14px;
-  background: linear-gradient(to bottom right, #3023AE, #C86DD7 );
 }
 .content {
   width: 100%;
