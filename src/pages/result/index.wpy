@@ -91,6 +91,12 @@
 
 <style lang="scss">
 @import '../../scss/_layout.scss';
+
+page,
+.container{
+  height: 100%;
+}
+
 .container {
   @include verticalCenter();
   background: linear-gradient(to bottom right, #3023AE, #C86DD7 );

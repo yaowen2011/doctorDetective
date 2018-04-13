@@ -50,6 +50,11 @@
 @import '../../scss/_layout.scss';
 @import '../../scss/_element.scss';
 
+page,
+.container{
+  height: 100%;
+}
+
 // 按钮样式
 .handle_button {
   @include btn($width:350rpx, $height:100rpx, $radius: 60rpx, $size: 36rpx);
