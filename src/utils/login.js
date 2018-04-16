@@ -31,10 +31,12 @@ const getLoginCode = async () => {
 const getLoginToken = async (params = {}, callback = () => {}) => {
   // 利用iv和encryptedData去服务器换取token
   try {
+    let { share_uid = '' } = params
     let { code, iv, encryptedData, userInfo } = await getLoginCode()
-    let { data: { bonus, card, expired, expired_at, honor, is_answer, pid, score, token, total_bonus, uid } } = await wepy.request({ url: auth, data: { code, iv, encryptedData } })
+    let { data: { bonus, card, expired, expired_at, honor, is_answer, pid, score, token, total_bonus, uid } } = await wepy.request({ url: auth, data: { code, iv, encryptedData, share_uid } })
     wepy.setStorageSync('userInfo', userInfo)
     wepy.setStorageSync('token', token)
+    wepy.setStorageSync('uid', uid)
     callback()
     return { userInfo, bonus, card, expired, expired_at, honor, is_answer, pid, score, token, total_bonus, uid }
   } catch (error) {
