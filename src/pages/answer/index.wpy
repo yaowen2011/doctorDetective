@@ -144,7 +144,7 @@
           if (data === 0 && finished === 1) {
             await this.showTip('很遗憾！您被淘汰了！')
             this.$invoke(this.$com.Question.$com.Timer, 'clearTimer')
-            wepy.redirectTo({
+            wepy.navigateTo({
               url: `/pages/result/index?score=${total}&pid=${this.pid}&total_score=${this.total_score}`
             })
           }
@@ -160,7 +160,7 @@
           if (data === 0 && finished === 1) {
             await this.showTip('很遗憾！您被淘汰了！')
             this.$invoke(this.$com.Question.$com.Timer, 'clearTimer')
-            wepy.redirectTo({
+            wepy.navigateTo({
               url: `/pages/result/index?score=${total}&pid=${this.pid}&total_score=${this.total_score}`
             })
           }
@@ -177,14 +177,14 @@
           if (data === 1 && finished === 1) {
             await this.showTip('答对啦！答题结束！')
             this.$invoke(this.$com.Question.$com.Timer, 'clearTimer')
-            wepy.redirectTo({
+            wepy.navigateTo({
               url: `/pages/result/index?isShowRewardBtn=1&score=${total}&pid=${this.pid}&total_bonus=${this.total_bonus}&total_score=${this.total_score}`
             })
           }
           if (data === 0 && finished === 1) {
             await this.showTip('答错啦！答题结束！')
             this.$invoke(this.$com.Question.$com.Timer, 'clearTimer')
-            wepy.redirectTo({
+            wepy.navigateTo({
               url: `/pages/result/index?isShowRewardBtn=1&score=${total}&pid=${this.pid}&total_bonus=${this.total_bonus}&total_score=${this.total_score}`
             })
           }
