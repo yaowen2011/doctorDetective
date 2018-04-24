@@ -20,13 +20,8 @@
           :t_label.sync="t_label"
           :expired_at.sync="expired_at"
           :bonusPool.sync="bonusPool")
-        button.startAnswerBtn 开始答题
-        //- form(
-        //-   report-submit=true
-        //-   @submit="startAnswer")
-        //-   button(
-        //-     class="startAnswerBtn"
-        //-     form-type="submit") 开始答题
+        button.startAnswerBtn(
+          @tap="startAnswer") 开始答题
         Card(
           :pid.sync="pid"
           :card.sync="card"
