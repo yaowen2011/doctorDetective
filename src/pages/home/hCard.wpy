@@ -95,17 +95,9 @@
         })
       },
       goRankPage () {
-        if (!this.is_answer) {
-          wepy.showModal({
-            title: '提示',
-            content: '参与答题后即可查看本期排名',
-            showCancel: false
-          })
-        } else {
-          wepy.navigateTo({
-            url: `/pages/rank/index?pid=${this.pid}`
-          })
-        }
+        wepy.navigateTo({
+          url: `/pages/rank/index?pid=${this.pid}`
+        })
       },
       goBonusPage () {
         wepy.navigateTo({
