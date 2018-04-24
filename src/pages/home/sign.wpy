@@ -19,7 +19,7 @@
               wx:if="{{item.log === 0 || item.log === 1}}"
               class="{{item.log === 0 ? 'mask_forget' : item.log === 1 ? 'mask_finished' : ''}}")
           view.week(
-            class="{{willSign + 2 === index ? 'week_continuous' : willSign + 6 === index ? 'week_continuous': ''}}") {{item.day}}
+            class="{{willSign === index ? 'week_continuous' : willSign + 4 === index ? 'week_continuous': ''}}") {{item.day}}
     form(
       report-submit=true
       @submit="receiveAward")
