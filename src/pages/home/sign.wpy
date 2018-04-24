@@ -20,8 +20,12 @@
               class="{{item.log === 0 ? 'mask_forget' : item.log === 1 ? 'mask_finished' : ''}}")
           view.week(
             class="{{willSign + 2 === index ? 'week_continuous' : willSign + 6 === index ? 'week_continuous': ''}}") {{item.day}}
-    view.receiveAward(
-      @tap="receiveAward") 点击签到
+    form(
+      report-submit=true
+      @submit="receiveAward")
+      button(
+        class="receiveAward"
+        form-type="submit") 点击签到
     view.signAward(
       wx:if="{{isSignAward}}"
       @tap="toggleSignAward")
@@ -88,8 +92,8 @@
     }
 
     methods = {
-      receiveAward () {
-        this.$emit('receiveAward')
+      receiveAward (event) {
+        this.$emit('receiveAward', event)
       },
       toggleSignAward () {
         this.isSignAward = false

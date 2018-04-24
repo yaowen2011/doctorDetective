@@ -20,12 +20,13 @@
           :t_label.sync="t_label"
           :expired_at.sync="expired_at"
           :bonusPool.sync="bonusPool")
-        form(
-          report-submit=true
-          @submit="startAnswer")
-          button(
-            class="startAnswerBtn"
-            form-type="submit") 开始答题
+        button.startAnswerBtn 开始答题
+        //- form(
+        //-   report-submit=true
+        //-   @submit="startAnswer")
+        //-   button(
+        //-     class="startAnswerBtn"
+        //-     form-type="submit") 开始答题
         Card(
           :pid.sync="pid"
           :card.sync="card"
@@ -121,12 +122,7 @@
 
     methods = {
       // 开始答题
-      async startAnswer (event) {
-        const fn = async () => {
-          await this.postFormId(event)
-        }
-        this.debounce(fn)
-
+      async startAnswer () {
         switch (this.expired) {
           case 0:
             if (this.is_answer === 1) {
@@ -164,21 +160,25 @@
     }
 
     events = {
-      'receiveAward': async () => {
+      'receiveAward': async (event) => {
         try {
-          let { data: { LX: continuousCount, bmsg: bigAwardMsg, msg: awardMsg, error, sign_log } } = await sign({method: 'POST'})
-          if (error !== 0) return
-          if (error === 0) {
-            if (this.video.src) this.isVideoSrc = true
-            this.$broadcast('toggleSignAward', true)
-            this.signState = this.initSignState(sign_log)
-            this.continuousCount = continuousCount
-            this.awardMsg = awardMsg
-            this.$apply()
-            await this.timeout(1000)
-            this.bigAwardMsg = bigAwardMsg
-            this.$apply()
+          const fn = async () => {
+            await this.postFormId(event)
+            let { data: { LX: continuousCount, bmsg: bigAwardMsg, msg: awardMsg, error, sign_log } } = await sign({method: 'POST'})
+            if (error !== 0) return
+            if (error === 0) {
+              if (this.video.src) this.isVideoSrc = true
+              this.$broadcast('toggleSignAward', true)
+              this.signState = this.initSignState(sign_log)
+              this.continuousCount = continuousCount
+              this.awardMsg = awardMsg
+              this.$apply()
+              await this.timeout(1000)
+              this.bigAwardMsg = bigAwardMsg
+              this.$apply()
+            }
           }
+          this.debounce(fn)
         } catch (error) {
           console.log(error)
         }
