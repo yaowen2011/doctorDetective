@@ -17,6 +17,7 @@
         :video.sync="video")
       view.content
         Deadline(
+          :t_label.sync="t_label"
           :expired_at.sync="expired_at"
           :bonusPool.sync="bonusPool")
         form(
@@ -71,6 +72,7 @@
       videoContext: {},                 // video 上下文对象
       isShowShare: false,               // 是否显示分享模块
       isShowCommentBlock: false,        // 是否显示屏幕模块
+      t_label: '',                      // 答题时间提示
       share_uid: '',                    // 分享人的 uid
       token: '',                        // token
       userInfo: {},                     // 用户信息
@@ -336,7 +338,7 @@
     }
 
     async login (params) {
-      let { token, userInfo, uid, card, score, pid, bonus, expired, expired_at, is_answer, total_bonus, honor } = await getLoginToken(params)
+      let { token, userInfo, uid, card, score, pid, bonus, expired, expired_at, is_answer, total_bonus, honor, t_label } = await getLoginToken(params)
       this.token = token
       this.userInfo = userInfo
       this.uid = uid
@@ -349,6 +351,7 @@
       this.is_answer = is_answer
       this.bonusPool = total_bonus
       this.honor = honor
+      this.t_label = t_label
       this.$apply()
     }
 

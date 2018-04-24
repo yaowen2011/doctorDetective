@@ -1,7 +1,7 @@
 <template lang="pug">
   view.deadline
     view.tips
-      view 本期答题截止时间
+      view {{t_label}}
       view.tips_buttom {{expired_at}}
     view.tips
       view 奖金
@@ -13,6 +13,10 @@
 
   export default class DeadlineComponent extends wepy.component {
     props = {
+      t_label: {
+        type: String,
+        defalut: ''
+      },
       expired_at: {
         type: String,
         default: '**日 **:**'
