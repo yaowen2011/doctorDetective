@@ -2,20 +2,28 @@
   view
     view.tip_container(
       wx:if="{{isShowTip}}")
-      view.talkbubble {{tipcontent}}
+      view(
+        class="shadow {{isCorrect ? '' : 'shadow_error'}}")
+        view(
+          class="talkbubble {{isCorrect ? '' : 'talkbubble_error'}} {{tipcontent.length > 9 ? 'talkbubble_lang' : ''}}") {{tipcontent}}
+        view(
+          class="angle {{isCorrect ? '' : 'angle_error'}}")
 </template>
 
 <script>
   import wepy from 'wepy'
   export default class Tip extends wepy.component {
     data = {
-      isShowTip: false,
+      isShowTip: true,
+      isCorrect: true,
       tipcontent: '默认提示消息'
     }
 
-    showTip (tipcontent = '') {
+    showTip (tipcontent = '', isCorrect = false) {
+      console.log('tipcontent', tipcontent, 'isCorrect', isCorrect)
       this.isShowTip = true
       this.tipcontent = tipcontent
+      this.isCorrect = isCorrect
       this.$apply()
     }
 
@@ -28,47 +36,68 @@
 </script>
 
 <style lang="scss">
+@import '../../scss/_layout.scss';
+
 .tip_container {
   position:absolute;
   bottom:120%;
   right:15%;
 }
 
-.talkbubble {
-  width: 154rpx;
+.shadow{
+  width: 100rpx;
+  height: 100rpx;
   position: relative;
-  padding: 20rpx 30rpx;
-	border-radius: 20rx;
-  border: 2rpx #9b9b9b solid;
-  border-radius: 16rpx;
+  left: 50%;
+  top: 50%;
+  margin-left: -50rpx;
+  margin-top: -50rpx;
+  box-shadow: 0 40rpx 40rpx 0 rgba(130, 248, 0, 0.8);
+}
+
+.angle {
+  position: absolute;
+  left: -18rpx;
+  bottom: -18rpx;
+  width: 0;
+  height: 0;
+  transform: rotate(80deg);
+  border-color: transparent #55d615;
+  border-style: solid;
+  border-width: 0 36rpx 36rpx 0;
+}
+
+.talkbubble {
+  @include verticalHorizontalCenter();
+  position: absolute;
+  top: -20rpx;
+  left: -20rpx;
+  z-index: 99;
+  width: 140rpx;
+  height: 140rpx;
+  border-radius: 50%;
+  padding: 20rpx;
   background-color: #fff;
   font-family: PingFangSC-Medium;
   font-size: 24rpx;
-  color: #9b9b9b;
+  color: #fff;
   text-align: center;
+  background: linear-gradient(142deg,#9ee922 0%,#2aca0d 100%);
 }
 
-.talkbubble:before {
-	content: " ";
-  position: absolute;
-  top: 100%;
-  left: 40%;
-  width: 0;
-  height: 0;
-  border-left: 22rpx solid transparent;
-  border-top: 22rpx solid #9b9b9b;
-  border-right: 22rpx solid transparent;
+.shadow_error {
+  box-shadow: 0 40rpx 40rpx 0 rgba(253, 56, 81, 0.65);
 }
 
-.talkbubble:after {
-	content: " ";
-  position: absolute;
-  top: 100%;
-  left: 41%;
-  width: 0;
-  height: 0;
-  border-left: 20rpx solid transparent;
-  border-top: 20rpx solid #fff;
-  border-right: 20rpx solid transparent;
+.angle_error {
+  border-color: transparent #f9427d;
+}
+
+.talkbubble_error {
+  background: linear-gradient(136deg,#ff8080 0%,#f4147a 100%);
+}
+
+.talkbubble_lang {
+  font-size: 20rpx;
 }
 </style>
