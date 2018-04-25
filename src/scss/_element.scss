@@ -32,3 +32,41 @@
     font-size: $fontSize
   }
 }
+
+@mixin medal($width: 60rpx, $width:60rpx, $left: 0, $right: 0, $bgColor: #ffcb54, $borderWidth: 10rpx, $borderColor: #f7be1f, $fontSize: 36rpx) {
+  width: $width;
+  height: $width;
+  display: flex;
+  box-sizing: border-box;
+  position: relative;
+  left: $left;
+  top: $right;
+  z-index: 20;
+  border-radius: 50%;
+  background: $bgColor;
+  border: $borderWidth solid $borderColor;
+  font-size: $fontSize;
+  color: #fff;
+
+  &:before {
+    content: '';
+    position: absolute;
+    top: 100%;
+    right: 4rpx;
+    z-index: 5;
+    border-color: transparent #f75829;
+    border-style: solid;
+    border-width: 0 0 28rpx 32rpx;
+  }
+
+  &:after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 4rpx;
+    z-index: 10;
+    border-color: transparent #cb3206;
+    border-style: solid;
+    border-width: 0 32rpx 28rpx 0;
+  }
+}

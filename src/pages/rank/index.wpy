@@ -7,21 +7,38 @@
       @animationfinish="animationfinish")
       swiper-item.swiper_item
         view.card_wrapper(
-          class="{{isScale ? 'not_scale' : 'scale'}}"
-        )
-          view.rank_self
-            image.avatar(src="{{avatarUrl ? avatarUrl : '../../images/avatar-default.svg' }}")
-            view.ranking 您目前实时排名：
-              text.ranking_score {{personalSort}}
-              text.unit  位
-          scroll-view.rank_others(
+          class="{{isScale ? 'not_scale' : 'scale'}}")
+          view.rank_person_top3
+            block(
+              wx:for="{{personalListTopThree}}"
+              wx:key="{{index}}")
+              view.rank_person_top3_item
+                view.avatar_block
+                  image.avatar(
+                    src="{{item.user.avatarUrl ? item.user.avatarUrl : '../../images/avatar-default.svg'}}")
+                  image.crown(
+                    src="{{item.crownSrc}}")
+                  image.star1(
+                    wx:if="{{index === 0}}"
+                    src="../../images/star.svg")
+                  image.star2(
+                    wx:if="{{index === 0}}"
+                    src="../../images/star.svg")
+                  image.star3(
+                    wx:if="{{index === 0}}"
+                    src="../../images/star.svg")
+                  view.medal
+                    view.medal_placeholder {{index + 1}}
+                view.nickname {{item.user.nickName}}
+                viwe.score  {{item.score}}分
+          scroll-view.rank_list.rank_list_person(
             scroll-y)
             repeat(
               for="{{personalList}}"
               key="index")
               view.rank_item
                 view.rank_item-left
-                  view.number {{index + 1}}.
+                  view.number {{index + 4}}.
                   image.avatar(
                     src="{{item.user.avatarUrl ? item.user.avatarUrl : '../../images/avatar-default.svg'}}")
                   view.nickname {{item.user.nickName}}
@@ -30,21 +47,16 @@
                   text.unit 分
       swiper-item.swiper_item
         view.card_wrapper(
-          class="{{isScale ? 'scale' : 'not_scale'}}"
-        )
-          view.rank_self
-            image.avatar(src="{{avatarUrl ? avatarUrl : '../../images/avatar-default.svg' }}")
-            view.ranking 您所在机构排名：
-              text.ranking_score {{hpSort}}
-              text.unit  位
-          scroll-view.rank_others(
+          class="{{isScale ? 'scale' : 'not_scale'}}")
+          scroll-view.rank_list.rank_list_hp(
             scroll-y)
             repeat(
               for="{{hpList}}"
               key="index")
               view.rank_item
                 view.rank_item-left
-                  view.number {{index + 1}}.
+                  view.number
+                    view.medal_placeholder {{index > 2 ? index + 1 + '.' : index + 1}}
                   view.hp_name {{item.name}}
                 view.rank_item-right
                   text.score {{item.score}}
@@ -64,6 +76,7 @@
       pid: '',
       isScale: true,
       current: 0,
+      personalListTopThree: [],
       personalSort: 0,                 // 当前个人排名
       personalList: [],                // 个人排名列表
       avatarUrl: '',                   // 当前用户头像
@@ -85,17 +98,19 @@
       animationfinish () {}
     }
 
-    async onLoad ({ pid = '5ac5742de9c0467416467691' }) {
+    async onLoad ({ pid = '' }) {
       try {
-        // person '5ac5742de9c0467416467691'
-        // hp '5ac97220e9c0460881538d21'
         this.avatarUrl = wepy.getStorageSync('userInfo').avatarUrl
         let params = {
           method: 'POST',
           data: { pid }
         }
         let { data: { sort, list: { data: list } } } = await postPersonalRank(params)
-        this.personalList = list
+        this.personalListTopThree = list.slice(0, 3).map((item, index) => {
+          item.crownSrc = `../../images/crown${index + 1}.svg`
+          return item
+        })
+        this.personalList = list.slice(3, list.length - 1)
         this.personalSort = sort
         let { data: { my_hp, hp: { data: hpList } } } = await postHospitalRank(params)
         this.hpList = hpList
@@ -113,6 +128,7 @@
 
 <style lang="scss">
 @import '../../scss/_layout.scss';
+@import '../../scss/_element.scss';
 
 .unit {
   font-family: PingFangSC-Semibold;
@@ -158,8 +174,7 @@ page,
   box-sizing: border-box;
   border-radius: 40rpx;
   background: #fff;
-  padding: 20rpx;
-  /* box-shadow: 0 4rpx 60rpx 0 rgba(0, 0, 0, 0.2); */
+  overflow: hidden;
 
   &:after {
     content: '';
@@ -174,39 +189,152 @@ page,
   }
 }
 
-.rank_self {
-  height: 200rpx;
-  box-sizing: border-box;
-  border-bottom: 2rpx #D7D8D7 solid;
+.rank_person_top3 {
+  position: relative;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 40rpx;
-  margin-bottom: 20rpx;
+  box-sizing: border-box;
+  height: 430rpx;
+  border-bottom: 2rpx solid #f0f0f0;
 
-  .avatar {
-    width: 100rpx;
-    height: 100rpx;
-    border-radius: 50%;
-  }
-
-  .ranking {
+  .rank_person_top3_item {
+    position: absolute;
+    top: 0;
+    width: 200rpx;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-sizing: border-box;
     font-family: PingFangSC-Semibold;
-    font-size: 28rpx;
-    color: #39393a;
+    font-size: 24rpx;
+    color: #8b572a;
+    padding-top: 136rpx;
 
-    .ranking_score {
-      font-family: DINCondensed-Bold;
-      color: #bf00e3;
-      font-size: 40rpx;
+    &:nth-child(1) {
+      left: 210rpx;
+      padding-top: 60rpx;
+      .avatar_block {
+        background: linear-gradient(136deg,#ffd643 0%,#f7c136 43%,#e38813 100%);
+
+        .star1,
+        .star2,
+        .star3 {
+          position: absolute;
+          width: 26rpx;
+          height: 26rpx;
+          transform: rotate(45deg);
+        }
+
+        .star1 {
+          top: 26rpx;
+          left: -26rpx;
+        }
+
+        .star2 {
+          top: -30rpx;
+          left: -10rpx;
+          width: 50rpx;
+          height: 50rpx;
+        }
+
+        .star3 {
+          bottom: 0;
+          right: -6rpx;
+          transform: rotate(30deg);
+        }
+      }
+    }
+
+    &:nth-child(2) {
+      float: left;
+      padding-left: 44rpx;
+      .avatar_block {
+        background: linear-gradient(136deg,#b5b5b5 0%,#e4e4e4 100%);
+
+        .medal {
+          .medal_placeholder {
+            background: #bababa;
+            border: 10rpx solid #d3d3d3;
+          }
+        }
+      }
+    }
+
+    &:nth-child(3) {
+      right: 0;
+      padding-right: 44rpx;
+      .avatar_block {
+        background: linear-gradient(140deg,#ffbe72 0%,	#d9621f 100%);
+
+        .medal {
+          .medal_placeholder {
+            background: #e37b12;
+            border: 10rpx solid #ff9129;
+          }
+        }
+      }
+
+    }
+
+    .avatar_block {
+      position: relative;
+      display: flex;
+      width: 146rpx;
+      height: 146rpx;
+      margin-bottom: 56rpx;
+      border-radius: 50%;
+
+      .avatar {
+        margin: auto;
+        box-sizing: border-box;
+        width: 130rpx;
+        height: 130rpx;
+        border-radius: 50%;
+      }
+
+      .crown {
+        width: 74rpx;
+        height: 66rpx;
+        position: absolute;
+        right: -10rpx;
+        top: -40rpx;
+        z-index: -5;
+        transform: rotate(30deg);
+      }
+
+      .medal {
+        @include medal();
+        position: absolute;
+        top: 104rpx;
+        left: 50%;
+        margin-left: -30rpx;
+
+        .medal_placeholder {
+          display: flex;
+          box-sizing: border-box;
+          align-items: center;
+          justify-content: center;
+          width: 60rpx;
+          height: 60rpx;
+          border-radius: 50%;
+          background: #ffcb54;
+          border: 10rpx solid #f7be1f;
+          position: absolute;
+          top: -10rpx;
+          left: -10rpx;
+          z-index: 999;
+
+          .number_content {
+            margin: auto;
+          }
+        }
+      }
     }
   }
 }
 
-.rank_others {
+.rank_list {
   box-sizing: border-box;
-  height: 800rpx;
-  padding-top: 10rpx;
 
   .rank_item {
     display: flex;
@@ -220,12 +348,6 @@ page,
     font-size: 28rpx;
     color:#4a4a4a;
 
-    .number,
-    .score {
-      font-family: DINCondensed-Bold;
-      color: #bf00e3;
-      font-size: 40rpx;
-    }
     .number{
       width: 60rpx;
       margin-right: 20rpx;
@@ -240,6 +362,113 @@ page,
     }
     .score {
       margin-right: 10rpx;
+    }
+  }
+}
+
+.rank_list_person {
+  position: absolute;
+  top: 430rpx;
+  left: 0;
+  width: 100%;
+  height: 650rpx;
+
+  .rank_item {
+    height: 120rpx;
+    margin: 0;
+    padding: 0 20rpx 0 40rpx;
+    border-bottom: 2rpx solid #f0f0f0;
+
+    .number,
+    .score {
+      font-family: DINAlternate-Bold;
+      font-size: 40rpx;
+      color: #4a4a4a;
+    }
+
+    .score {
+      font-size: 40rpx;
+      color: #464f51;
+    }
+  }
+}
+
+.rank_list_hp {
+  height: 100%;
+
+  .rank_item {
+    position: relative;
+    height: 120rpx;
+    margin: 0;
+    padding: 0 20rpx 0 40rpx;
+    border-bottom: 2rpx solid #f0f0f0;
+
+    .number,
+    .score {
+      font-family: DINAlternate-Bold;
+      font-size: 40rpx;
+      color: #4a4a4a;
+    }
+
+    .score {
+      font-size: 40rpx;
+      color: #464f51;
+    }
+  }
+
+  .rank_item:nth-child(1),
+  .rank_item:nth-child(2),
+  .rank_item:nth-child(3) {
+    padding-left: 20rpx;
+
+    .number {
+      @include medal();
+      margin-right: 40rpx;
+
+      .medal_placeholder {
+        display: flex;
+        box-sizing: border-box;
+        align-items: center;
+        justify-content: center;
+        width: 60rpx;
+        height: 60rpx;
+        border-radius: 50%;
+        background: #ffcb54;
+        border: 10rpx solid #f7be1f;
+        position: absolute;
+        top: -10rpx;
+        left: -10rpx;
+        z-index: 999;
+
+        .number_content {
+          margin: auto;
+        }
+      }
+    }
+  }
+
+  .rank_item:nth-child(1) {
+    height: 180rpx;
+    background: linear-gradient(135deg,#ffe99c 0%,#fcc42d 100%);
+  }
+
+  .rank_item:nth-child(2) {
+    background: linear-gradient(135deg,#b5b5b5 0%,#e4e4e4 100%);
+    .number {
+      .medal_placeholder {
+        background: #bababa;
+        border: 10rpx solid #d3d3d3;
+      }
+    }
+  }
+
+  .rank_item:nth-child(3) {
+    background: linear-gradient(135deg,#ffbe72 0%,#ff833d 100%);
+    .number {
+      .medal_placeholder {
+        background: #e37b12;
+        border: 10rpx solid #ff9129;
+      }
     }
   }
 }

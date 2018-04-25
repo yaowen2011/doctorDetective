@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="20px" height="19px" viewBox="0 0 20 19" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 49 (51002) - http://www.bohemiancoding.com/sketch -->
+    <title>Star</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <linearGradient x1="37.2018914%" y1="50%" x2="85.5828536%" y2="100%" id="linearGradient-1">
+            <stop stop-color="#FFD743" offset="0%"></stop>
+            <stop stop-color="#F7C136" offset="42.8648844%"></stop>
+            <stop stop-color="#E38814" offset="100%"></stop>
+        </linearGradient>
+    </defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="个人榜单" transform="translate(-235.000000, -114.000000)" fill="url(#linearGradient-1)">
+            <polygon id="Star" points="245 129 239.122147 132.09017 240.244717 125.545085 235.489435 120.90983 242.061074 119.954915 245 114 247.938926 119.954915 254.510565 120.90983 249.755283 125.545085 250.877853 132.09017"></polygon>
+        </g>
+    </g>
+</svg>
