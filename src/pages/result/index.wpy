@@ -86,6 +86,27 @@
         }
       }
     }
+
+    onShareAppMessage () {
+      let { share_uid = '' } = { share_uid: wepy.getStorageSync('uid') }
+      return {
+        title: '参与医学知识竞答，赢现金大奖！',
+        path: `/pages/home/home?share_uid=${share_uid}`,
+        success: (res) => {
+          this.$apply()
+          wepy.showToast({
+            title: '分享成功'
+          })
+        },
+        fail: () => {
+          this.$apply()
+          wepy.showToast({
+            title: '分享失败',
+            icon: 'none'
+          })
+        }
+      }
+    }
   }
 </script>
 
