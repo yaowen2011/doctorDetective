@@ -16,6 +16,7 @@
   import wepy from 'wepy'
   export default class BarrageComponent extends wepy.component {
     data = {
+      timer: 0,                           // 定时器
       barrages: [],                       // 弹幕数据
       isShowBarrage: true,                // 是否显示弹幕墙
       animationDatas: [],                 // 动画数据
@@ -38,9 +39,7 @@
               timingFunction: 'linear',
               delay: 0
             })
-            animation.opacity(0).step()
-            animation.right(-this.barrageWrapperW).step()
-            animation.opacity(1).step()
+            animation.right(this.barrageWrapperW).step()
             this.animationDatas[i] = animation.export()
           }
           this.isShowBarrage = false
@@ -55,29 +54,41 @@
         this.$emit('toggleBarrageBtn')
       }
     }
-    async onLoad () {
-      let { width, height } = await this.getBoundingClientRect({ id: '#barrage_wrapper', height: 0, width: 0 })
-      this.barrageWrapperW = width
-      this.barrageWrapperH = height
-      this.$apply()
+
+    async beginBarrage () {
+      try {
+        clearTimeout(this.timer)
+        await this.timeout(300)
+        let { width: barrageWrapperW, height: barrageWrapperH } = await this.getBoundingClientRect({ id: '#barrage_wrapper' })
+        this.barrageWrapperW = barrageWrapperW
+        this.barrageWrapperH = barrageWrapperH
+        this.$apply()
+
+        for (let i of this.barrages.keys()) {
+          let animation = wepy.createAnimation({
+            transformOrigin: '50% 50% 0',
+            duration: 10,
+            timingFunction: 'linear',
+            delay: 300 * i
+          })
+          let randomTop = Math.round(Math.random() * (barrageWrapperH - 40))
+          animation.top(randomTop).step()
+          animation.right(barrageWrapperW).step({ duration: 4500 })
+          animation.opacity(0).step()
+          animation.right(-barrageWrapperW).step()
+          animation.opacity(1).step()
+          this.animationDatas[i] = animation.export()
+          this.$apply()
+        }
+      } catch (error) {
+        console.log(error)
+      }
     }
 
-    beginBarrage () {
-      for (let i of this.barrages.keys()) {
-        let animation = wepy.createAnimation({
-          transformOrigin: '50% 50% 0',
-          duration: 10,
-          timingFunction: 'linear',
-          delay: 300 * i
-        })
-        let randomTop = Math.round(Math.random() * (this.barrageWrapperH - 40))
-        animation.top(randomTop).step()
-        animation.right(this.barrageWrapperW).step({ duration: 4000 })
-        animation.opacity(0).step()
-        animation.right(-this.barrageWrapperW).step()
-        animation.opacity(1).step()
-        this.animationDatas[i] = animation.export()
-      }
+    async timeout (ms) {
+      return new Promise((resolve, reject) => {
+        this.timer = setTimeout(resolve, ms)
+      })
     }
 
     // 查找并返回节点相关信息
@@ -112,6 +123,7 @@
     right: -100%;
     z-index: 9;
     white-space:nowrap;
+    font-size: 34rpx;
     height: 60rpx;
     color: #fff;
   }
