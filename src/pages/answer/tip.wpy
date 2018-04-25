@@ -14,7 +14,7 @@
   import wepy from 'wepy'
   export default class Tip extends wepy.component {
     data = {
-      isShowTip: true,
+      isShowTip: false,
       isCorrect: true,
       tipcontent: '默认提示消息'
     }
