@@ -25,6 +25,12 @@
       Question
     }
 
+    watch = {
+      questions: () => {
+        wepy.hideLoading()
+      }
+    }
+
     events = {
       'updateOptionAndQuesion': (currentQuestion) => {
         this.currentQuestion = currentQuestion
@@ -69,8 +75,17 @@
       },
     }
 
-    async onLoad ({ pid = '', total_score = 0, total_bonus = 0 }) {
+    onLoad (params) {
+      this.initData(params)
+    }
+
+    async initData (params) {
       try {
+        wepy.showLoading({
+          title: '题目加载中',
+          mask: true
+        })
+        let { pid = '', total_score = 0, total_bonus = 0 } = params
         this.pid = pid
         this.total_score = total_score
         this.total_bonus = total_bonus
@@ -78,24 +93,15 @@
         this.$apply()
         this.$invoke(this.$com.Question.$com.Timer, 'startTimer')
       } catch (error) {
+        wepy.hideLoading()
         wepy.showToast({
           title: '数据加载失败',
           icon: 'none'
         })
+        wepy.navigateBack({
+          delta: 1
+        })
       }
-    }
-
-    onUnload () {
-      wepy.redirectTo({
-        url: `/pages/home/home`,
-        complete: () => {
-          wepy.showModal({
-            title: '提示',
-            content: '您已退出本次答题',
-            showCancel: false
-          })
-        }
-      })
     }
 
     // 获取本期所有题
@@ -134,15 +140,15 @@
 
         if (index >= 0 && index < 3) {
           if (data === 1 && alive === 0) {
-            await this.showTip('答对啦！好棒！')
+            await this.showTip('答对啦！好棒！', true)
             this.nextQuestion()
           }
           if (data === 1 && alive === 1) {
-            await this.showTip('答错啦！自动使用复活卡！')
+            await this.showTip('答错啦！自动使用复活卡！', true)
             this.nextQuestion()
           }
           if (data === 0 && finished === 1) {
-            await this.showTip('很遗憾！您被淘汰了！')
+            await this.showTip('很遗憾！您被淘汰了！', false)
             this.$invoke(this.$com.Question.$com.Timer, 'clearTimer')
             wepy.navigateTo({
               url: `/pages/result/index?score=${total}&pid=${this.pid}&total_score=${this.total_score}`
@@ -150,15 +156,15 @@
           }
         } else if (index === 3) {
           if (data === 1 && alive === 0) {
-            await this.showTip('答对啦！恭喜进入晋级赛！')
+            await this.showTip('答对啦！恭喜晋级！', true)
             this.nextQuestion()
           }
           if (data === 1 && alive === 1) {
-            await this.showTip('自动使用复活卡！恭喜进入晋级赛！')
+            await this.showTip('自动使用复活卡！恭喜晋级！', true)
             this.nextQuestion()
           }
           if (data === 0 && finished === 1) {
-            await this.showTip('很遗憾！您被淘汰了！')
+            await this.showTip('很遗憾！您被淘汰了！', false)
             this.$invoke(this.$com.Question.$com.Timer, 'clearTimer')
             wepy.navigateTo({
               url: `/pages/result/index?score=${total}&pid=${this.pid}&total_score=${this.total_score}`
@@ -166,23 +172,23 @@
           }
         } else if (index > 3 && index < len - 1) {
           if (data === 1 && finished === 0) {
-            await this.showTip('答对啦！好棒！')
+            await this.showTip('答对啦！好棒！', true)
             this.nextQuestion()
           }
           if (data === 0 && finished === 0) {
-            await this.showTip('答错啦！下一题加油哦！')
+            await this.showTip('答错啦！下一题加油哦！', false)
             this.nextQuestion()
           }
         } else if (index === len - 1) {
           if (data === 1 && finished === 1) {
-            await this.showTip('答对啦！答题结束！')
+            await this.showTip('答对啦！答题结束！', true)
             this.$invoke(this.$com.Question.$com.Timer, 'clearTimer')
             wepy.navigateTo({
               url: `/pages/result/index?isShowRewardBtn=1&score=${total}&pid=${this.pid}&total_bonus=${this.total_bonus}&total_score=${this.total_score}`
             })
           }
           if (data === 0 && finished === 1) {
-            await this.showTip('答错啦！答题结束！')
+            await this.showTip('答错啦！答题结束！', false)
             this.$invoke(this.$com.Question.$com.Timer, 'clearTimer')
             wepy.navigateTo({
               url: `/pages/result/index?isShowRewardBtn=1&score=${total}&pid=${this.pid}&total_bonus=${this.total_bonus}&total_score=${this.total_score}`
@@ -206,10 +212,10 @@
     }
 
     // 展示提示框
-    async showTip (tipcontent) {
-      this.$invoke(this.$com.Question.$com.Tip, 'showTip', tipcontent)
+    async showTip (tipcontent, isCorrect) {
+      this.$invoke(this.$com.Question.$com.Tip, 'showTip', tipcontent, isCorrect)
       await this.timeout(1000)
-      this.$invoke(this.$com.Question.$com.Tip, 'hideTip', tipcontent)
+      this.$invoke(this.$com.Question.$com.Tip, 'hideTip', tipcontent, isCorrect)
     }
 
     // 切换到下一题
