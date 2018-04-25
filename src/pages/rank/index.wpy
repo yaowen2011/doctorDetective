@@ -36,9 +36,10 @@
             repeat(
               for="{{personalList}}"
               key="index")
-              view.rank_item
+              view.rank_item(
+                wx:if="{{index > 2}}")
                 view.rank_item-left
-                  view.number {{index + 4}}.
+                  view.number {{index + 1}}.
                   image.avatar(
                     src="{{item.user.avatarUrl ? item.user.avatarUrl : '../../images/avatar-default.svg'}}")
                   view.nickname {{item.user.nickName}}
@@ -110,7 +111,7 @@
           item.crownSrc = `../../images/crown${index + 1}.svg`
           return item
         })
-        this.personalList = list.slice(3, list.length - 1)
+        this.personalList = list
         this.personalSort = sort
         let { data: { my_hp, hp: { data: hpList } } } = await postHospitalRank(params)
         this.hpList = hpList
