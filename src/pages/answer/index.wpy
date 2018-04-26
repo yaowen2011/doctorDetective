@@ -36,12 +36,18 @@
         this.currentQuestion = currentQuestion
       },
       'handleAnswer': async () => {
-        let answer = ''
-        this.canHandleAnser = false
-        this.$apply()
-        if (!this.currentQuestion.choice) return
-        this.$invoke(this.$com.Question.$com.Timer, 'clearTimer')
+        if (!this.currentQuestion.choice) {
+          wepy.showToast({
+            title: '请选择答案后再提交',
+            icon: 'none',
+            mask: true,
+            duration: 1000
+          })
+          return
+        }
+
         let choice = this.currentQuestion.choice
+        let answer = ''
         for (let i = 0; i < choice.length; i++) {
           if (choice[i].checked) {
             answer += `${choice[i].option} `
@@ -50,7 +56,11 @@
         this.answer = answer.trim().split('').sort().map((option) => {
           if (option) return option
         }).join('').trim()
+        this.canHandleAnser = false
+        this.currentQuestion = {}
         this.$apply()
+        this.$invoke(this.$com.Question.$com.Timer, 'clearTimer')
+
         let params = {
           method: 'POST',
           data: {
@@ -60,18 +70,13 @@
             answer: this.answer
           }
         }
-        let res = {}
         // 判断正在答的题是否为最后一题
         if (this.index < this.questions.length - 1) {
-          res = await postAnswer(params)
-          this.handleAnswerResponse(res)
+          this.handleAnswerResponse(await postAnswer(params))
         } else {
           params.data.finished = 1
-          res = await postAnswer(params)
-          this.handleAnswerResponse(res)
+          this.handleAnswerResponse(await postAnswer(params))
         }
-        this.currentQuestion = {}
-        this.$apply()
       },
     }
 
