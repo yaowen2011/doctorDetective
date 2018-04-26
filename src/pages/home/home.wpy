@@ -4,6 +4,7 @@
       wx:if="{{!isSign}}"
       :awardMsg.sync="awardMsg"
       :bigAwardMsg.sync="bigAwardMsg"
+      :forgetSign.sync="forgetSign"
       :willSign.sync="willSign"
       :signState.sync="signState"
       :continuousCount.sync="continuousCount")
@@ -59,6 +60,7 @@
     data = {
       isSign: 1,                        // 今天签到情况
       willSign: 0,                      // 今天签到索引
+      forgetSign: 0,                    // 漏签的索引
       signState: [],                    // 一周签到情况
       awardMsg: '',                     // 获奖信息
       bigAwardMsg: '',                  // 获得大奖信息
@@ -273,13 +275,16 @@
 
     // 签到
     async sign () {
-      let { data: { is_sign: isSign, sign_log } } = await sign()
+      let { data: { is_sign: isSign, sign_log, LX } } = await sign()
       if (this.isVideoSrc && !isSign) this.isVideoSrc = false
+      let forgetSign = sign_log.lastIndexOf(0)
+      let willSign = sign_log.indexOf(-1)
+
       this.isSign = Boolean(isSign)
+      this.continuousCount = LX
       this.signState = this.initSignState(sign_log)
-      this.willSign = sign_log.findIndex(value => {
-        return value === -1
-      })
+      this.forgetSign = forgetSign
+      this.willSign = willSign === 0 ? 0 : isSign ? willSign - 1 : willSign
       this.$apply()
     }
 

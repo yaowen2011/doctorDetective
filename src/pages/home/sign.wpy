@@ -19,7 +19,7 @@
               wx:if="{{item.log === 0 || item.log === 1}}"
               class="{{item.log === 0 ? 'mask_forget' : item.log === 1 ? 'mask_finished' : ''}}")
           view.week(
-            class="{{willSign === index ? 'week_continuous' : willSign + 4 === index ? 'week_continuous': ''}}") {{item.day}}
+            class="{{forgetSign + 3 === index ? 'week_continuous' : forgetSign + 7 === index ? 'week_continuous': ''}}") {{item.day}}
     form(
       report-submit=true
       @submit="receiveAward")
@@ -52,6 +52,10 @@
   import SignAward from './signAward'
   export default class SignComponent extends wepy.component {
     props = {
+      forgetSign: {
+        type: Number,
+        default: 0
+      },
       willSign: {
         type: Number,
         default: 0
