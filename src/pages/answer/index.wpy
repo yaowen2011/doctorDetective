@@ -36,16 +36,6 @@
         this.currentQuestion = currentQuestion
       },
       'handleAnswer': async () => {
-        if (!this.currentQuestion.choice) {
-          wepy.showToast({
-            title: '请选择答案后再提交',
-            icon: 'none',
-            mask: true,
-            duration: 1000
-          })
-          return
-        }
-
         let choice = this.currentQuestion.choice
         let answer = ''
         for (let i = 0; i < choice.length; i++) {
@@ -57,7 +47,6 @@
           if (option) return option
         }).join('').trim()
         this.canHandleAnser = false
-        this.currentQuestion = {}
         this.$apply()
         this.$invoke(this.$com.Question.$com.Timer, 'clearTimer')
 
@@ -72,11 +61,15 @@
         }
         // 判断正在答的题是否为最后一题
         if (this.index < this.questions.length - 1) {
-          this.handleAnswerResponse(await postAnswer(params))
+          await this.handleAnswerResponse(await postAnswer(params))
         } else {
           params.data.finished = 1
-          this.handleAnswerResponse(await postAnswer(params))
+          await this.handleAnswerResponse(await postAnswer(params))
         }
+
+        this.canHandleAnser = true
+        this.currentQuestion = {}
+        this.$apply()
       },
     }
 
@@ -226,7 +219,6 @@
     // 切换到下一题
     nextQuestion () {
       this.index++
-      this.canHandleAnser = true
       this.$apply()
       this.$invoke(this.$com.Question.$com.Timer, 'startTimer')
     }

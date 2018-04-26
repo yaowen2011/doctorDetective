@@ -48,7 +48,8 @@
     }
 
     data = {
-      startTime: 0
+      startTime: 0,
+      currentQuestion: {}
     }
 
     components = {
@@ -75,6 +76,7 @@
                 currentQuestion.choice[i].checked = true
               }
             }
+            this.currentQuestion = currentQuestion
             this.$emit('updateOptionAndQuesion', currentQuestion)
             break
           case 2:
@@ -87,22 +89,50 @@
                 }
               }
             }
+            this.currentQuestion = currentQuestion
             this.$emit('updateOptionAndQuesion', currentQuestion)
             break
         }
       },
       handleAnswer () {
-        if (this.canHandleAnser) {
-          const fn = () => {
-            this.$emit('handleAnswer')
+        const fn = () => {
+          let choice = this.currentQuestion.choice
+          if (choice) {
+            let flag = false
+            for (let i = 0; i < choice.length; i++) {
+              if (choice[i].checked) flag = true
+            }
+            if (flag) {
+              if (this.canHandleAnser) {
+                this.$emit('handleAnswer')
+                this.currentQuestion = {}
+              } else {
+                wepy.showToast({
+                  title: '您的答案已提交，正在处理',
+                  icon: 'none'
+                })
+              }
+            } else {
+              wepy.showToast({
+                title: '请选择答案后再提交',
+                icon: 'none',
+                mask: true,
+                duration: 1000
+              })
+              return
+            }
+          } else {
+            wepy.showToast({
+              title: '请选择答案后再提交',
+              icon: 'none',
+              mask: true,
+              duration: 1000
+            })
+            return
           }
-          this.throttling(fn)
-        } else {
-          wepy.showToast({
-            title: '您的答案已提交，正在处理',
-            icon: 'none'
-          })
         }
+
+        this.throttling(fn)
       }
     }
 
