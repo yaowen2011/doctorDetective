@@ -20,7 +20,6 @@
     }
 
     showTip (tipcontent = '', isCorrect = false) {
-      console.log('tipcontent', tipcontent, 'isCorrect', isCorrect)
       this.isShowTip = true
       this.tipcontent = tipcontent
       this.isCorrect = isCorrect
