@@ -80,8 +80,8 @@
 </script>
 
 <style lang="scss" scoped>
-@import '../../scss/_layout.scss';
-@import '../../scss/_variables.scss';
+@import '../../../scss/_layout.scss';
+@import '../../../scss/_variables.scss';
 
 .poster_wrapper {
   position: fixed;
@@ -90,7 +90,7 @@
   left: 0;
   right: 0;
   z-index: 99999;
-  
+
   .model {
     height: 100%;
     background-color: rgba(74, 73, 74, 0.7);
@@ -132,7 +132,7 @@
           font-size: 24rpx;
           text-align: center;
         }
-        
+
         .image {
           width: 100%;
           height: 350rpx;

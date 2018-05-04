@@ -59,8 +59,8 @@
 </script>
 
 <style lang="scss">
-@import '../../scss/_variables.scss';
-@import '../../scss/_layout.scss';
+@import '../../../scss/_variables.scss';
+@import '../../../scss/_layout.scss';
 
 .videoPlaceholder {
   width: 100%;

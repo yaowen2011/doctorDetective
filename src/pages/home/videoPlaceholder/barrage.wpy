@@ -104,7 +104,7 @@
 </script>
 
 <style lang="scss">
-@import '../../scss/_variables.scss';
+@import '../../../scss/_variables.scss';
 
 .barrage_wrapper {
   width: 100%;

@@ -113,9 +113,9 @@
 </script>
 
 <style lang="scss">
-@import '../../scss/_layout.scss';
-@import '../../scss/_element.scss';
-@import '../../scss/_animate.scss';
+@import '../../../scss/_layout.scss';
+@import '../../../scss/_element.scss';
+@import '../../../scss/_animate.scss';
 
 @include bounce();
 @include zoomIn();
