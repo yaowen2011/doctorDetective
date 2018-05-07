@@ -13,7 +13,7 @@
 
     // 初始化数据
     initData () {
-      this.number = 20
+      this.number = 30
       this.isClearTimer = false
       this.$apply()
     }
