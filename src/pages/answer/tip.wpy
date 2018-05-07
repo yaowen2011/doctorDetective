@@ -38,9 +38,9 @@
 @import '../../scss/_layout.scss';
 
 .tip_container {
-  position:absolute;
-  bottom:120%;
-  right:15%;
+  position: absolute;
+  bottom: 150%;
+  right: 10%;
 }
 
 .shadow{
