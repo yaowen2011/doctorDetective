@@ -12,26 +12,21 @@
       view.designation 级别：{{honor}}
       view.total_score 总积分：{{total_score}} 分
     view.bottom
-      view.left
-        view.resurrection(
-          @tap="showShareBlock")
-          image(
-            src="../../images/resurrection.svg")
-          view.resurrection_sign x
-          view.resurrection_count {{card}}
-        view(
-          @tap="showShareBlock") 复活卡
-
-      view.right
-        view.bonus_count(
-          @tap="goBonusPage") {{total_bonus}}
+      view.left(
+        @tap="goPropsPage")
+        view.resurrection
+          image.props(
+            src="../../images/propsBox.svg")
+        view 道具箱
+      view.right(
+          @tap="goBonusPage")
+        view.bonus_count {{total_bonus}}
           text.unit 元
-        view(
-          @tap="goBonusPage") 账户余额
+        view 账户余额
     view.btn_block
       view(
         @tap="goRankPage")
-        Btn.checkRankingsBtn 查看排名
+        Btn.checkRankingsBtn 查看榜单
       view(
         @tap="toggleCommentsBlock")
         Btn.hotCommet 热评
@@ -102,6 +97,11 @@
       goBonusPage () {
         wepy.navigateTo({
           url: `/pages/bonus/index?total_bonus=${this.total_bonus}&pid=${this.pid}`
+        })
+      },
+      goPropsPage () {
+        wepy.navigateTo({
+          url: `/pages/props/index`
         })
       },
       toggleCommentsBlock () {
@@ -181,8 +181,6 @@
   padding-top: 20rpx;
 
   .left,.right {
-    // @include horizontalCenter();
-    // height: 250rpx;
     @include verticalHorizontalCenter();
     width: 50%;
     font-family: PingFangSC-Medium;
@@ -205,19 +203,11 @@
       @include verticalCenter();
       flex-direction: row;
       align-items: center;
-      image {
-        width: 42rpx;
-        height: 60rpx;
-      }
+      margin-bottom: 20rpx;
 
-      .resurrection_sign {
-        margin: 0 36rpx;
-      }
-
-      .resurrection_count {
-        font-family: ingFangSC-Medium;
-        font-size: 60rpx;
-        color: #bd10e0;
+      .props {
+        width: 62rpx;
+        height: 62rpx;
       }
     }
   }
