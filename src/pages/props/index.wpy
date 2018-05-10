@@ -11,13 +11,14 @@
             view.porps_wrapper
               view.icon_wrapper(
                 style="background: {{item.wrapperBg}}")
-                block(
+                image(
                   wx:if="{{item.aliasSrc}}"
-                  wx:for="{{item.aliasSrc}}"
-                  wx:key="{{index}}")
-                  image(
-                    src="{{item.src}}"
-                    style="position: absolute; width: {{item.w}}; height: {{item.h}}; top: {{item.t}}; left: {{item.l}}")
+                  src="{{item.aliasSrc[0].src}}"
+                  style="position: absolute; width: {{2*item.aliasSrc[0].w}}rpx; height: {{2*item.aliasSrc[0].h}}rpx; top: {{2*item.aliasSrc[0].t}}rpx; left: {{2*item.aliasSrc[0].l}}rpx")
+                image(
+                  wx:if="{{item.aliasSrc}}"
+                  src="{{item.aliasSrc[1].src}}"
+                  style="position: absolute; width: {{2*item.aliasSrc[1].w}}rpx; height: {{2*item.aliasSrc[1].h}}rpx; top: {{2*item.aliasSrc[1].t}}rpx; left: {{2*item.aliasSrc[1].l}}rpx")
                 image.icon_props(
                   style="width: {{2*item.style.w}}rpx; height: {{2*item.style.h}}rpx; margin-top: {{2*item.style.marginT}}rpx"
                   src="{{item.src}}")
@@ -132,7 +133,7 @@ export default class HomePage extends wepy.page {
                 src: '/images/-1.svg',
                 w: 25,
                 h: 26,
-                t: 63,
+                t: 33,
                 l: 7,
               },
               {
@@ -191,14 +192,14 @@ export default class HomePage extends wepy.page {
             },
             aliasSrc: [
               {
-                src: '/images/A?.svg',
+                src: '/images/A.svg',
                 w: 26,
                 h: 20,
                 t: 54,
                 l: 7,
               },
               {
-                src: '/images/B?.svg',
+                src: '/images/B.svg',
                 w: 27,
                 h: 25,
                 t: 46,
