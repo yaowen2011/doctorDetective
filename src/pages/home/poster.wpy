@@ -1,0 +1,38 @@
+<template lang="pug">
+  view.poster_wrapper(
+      @tap="hidePoster")
+      image.poster(
+        src="http://audio.geekheal.net/QA/GG/card.png")
+</template>
+
+<script>
+  import wepy from 'wepy'
+
+  export default class PosterComponent extends wepy.component {
+    methods = {
+      hidePoster () {
+        this.$emit('hidePoster')
+      },
+    }
+  }
+</script>
+
+<style lang="scss">
+@import '../../scss/_layout.scss';
+
+.poster_wrapper {
+  @include verticalHorizontalCenter();
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 99999;
+  background-color: rgba(74, 73, 74, 0.7);
+
+  .poster {
+    width: 650rpx;
+    height: 940rpx;
+  }
+}
+</style>
