@@ -22,9 +22,11 @@
             class="{{forgetSign + 3 === index ? 'week_continuous' : forgetSign + 7 === index ? 'week_continuous': ''}}") {{item.day}}
     form(
       report-submit=true
-      @submit="receiveAward")
+      @submit="collectFormId")
       button(
         class="receiveAward"
+        open-type="getUserInfo"
+        bindgetuserinfo="collectUserInfo"
         form-type="submit") 点击签到
     view.signAward(
       wx:if="{{isSignAward}}"
@@ -96,8 +98,8 @@
     }
 
     methods = {
-      receiveAward (event) {
-        this.$emit('receiveAward', event)
+      collectFormId (event) {
+        this.$emit('collectFormId', event)
       },
       toggleSignAward () {
         this.isSignAward = false
@@ -107,6 +109,9 @@
             url: `/pages/home/home`
           })
         }, 400)
+      },
+      collectUserInfo (event) {
+        this.$emit('collectUserInfo', event)
       }
     }
   }
