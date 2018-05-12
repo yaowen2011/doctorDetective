@@ -1,0 +1,13 @@
+{
+  "description": "project description",
+  "setting": {
+    "urlCheck": false,
+    "es6": false,
+    "postcss": false,
+    "minified": false
+  },
+  "compileType": "miniprogram",
+  "appid": "wx1fe58ef5bea3b1fd",
+  "projectname": "doctor detective",
+  "miniprogramRoot": "./dist"
+}
