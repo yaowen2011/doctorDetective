@@ -28,6 +28,8 @@ module.exports = {
     'camelcase': 0,
     'comma-dangle': 0,
     'new-cap': 0,
-    'no-useless-return': 0
+    'no-useless-return': 0,
+    'no-undef': 0,
+    'no-unneeded-ternary': 0
   }
 }
