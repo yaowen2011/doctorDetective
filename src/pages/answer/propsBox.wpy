@@ -1,0 +1,151 @@
+<template lang="pug">
+  view.props_box
+    scroll-view.scroll_view(
+      wx:if="{{isShowPropsBox}}"
+      scroll-x)
+      view.props_block
+        block(
+          wx:for="{{props}}"
+          wx:key="{{index}}")
+          view.props_item_shadow(
+            style="box-shadow: 0 30rpx 30rpx {{item.wrapperBg}};"
+            @tap="useProp({{item}})")
+            view.props_item_shadow_viod
+            view.props_item(
+              style="background: {{item.wrapperBg}}")
+              text.props_num(
+                style="padding: {{item.num > 9 ? '10rpx' : ''}}; top: {{item.num > 9 ? '-10rpx' : ''}}; right: {{item.num > 9 ? '-10rpx' : ''}}") {{item.num > 99 ? '99+' : item.num}}
+              view.props_icon_block
+                image(
+                  style="width: {{2*item.style.w}}rpx; height: {{2*item.style.h}}rpx; margin-top: {{2*item.style.marginT}}rpx; margin-left: {{2*item.style.marginL}}rpx; box-sizing: border-box;"
+                  src="{{item.src}}")
+    view.props_box_btn(
+      @tap="togglePropsBox") 道具箱
+</template>
+
+<script>
+  import wepy from 'wepy'
+
+  export default class PropsBoxComponent extends wepy.component {
+    props = {
+      isShowPropsBox: {
+        type: Boolean,
+        default: false
+      },
+      props: {
+        type: Array,
+        default: []
+      },
+    }
+
+    data = {
+      startTime: 0,
+    }
+
+    methods = {
+      useProp (dataset) {
+        const fn = () => {
+          this.$emit('useProp', dataset)
+        }
+        this.throttling(fn, 300)
+      },
+      togglePropsBox () {
+        this.$emit('togglePropsBox', !this.isShowPropsBox)
+      }
+    }
+
+    // 函数节流
+    throttling (fn, ms = 1000) {
+      let curTime = +new Date()
+      if (!this.startTime) {
+        this.startTime = curTime
+        fn()
+      }
+      if (curTime - this.startTime > ms) {
+        this.startTime = curTime
+        fn()
+      } else if (this.startTime !== curTime) {
+        wepy.showToast({
+          title: '你点击的太快了',
+          icon: 'none'
+        })
+      }
+    }
+  }
+</script>
+
+<style lang="scss">
+@import '../../scss/_layout.scss';
+
+.props_box {
+  position: relative;
+
+  .scroll_view {
+    position: absolute;
+    top: -150rpx;
+    left: 0;
+    width: 570rpx;
+    display: flex;
+
+    .props_block {
+      height: 146rpx;
+      padding-top: 10rpx;
+      display: flex;
+    }
+
+    .props_item_shadow,
+    .props_item_shadow_viod {
+      width: 80rpx;
+      height: 80rpx;
+      border-radius: 50%;
+    }
+
+    .props_item_shadow {
+      position: relative;
+      margin: 20rpx 44rpx 0 20rpx;
+
+
+      .props_item {
+        position: absolute;
+        top: -20rpx;
+        left: -20rpx;
+        width: 120rpx;
+        height: 120rpx;
+        border-radius: 50%;
+
+        .props_icon_block {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          border-radius: 50%;
+          background: transparent;
+          overflow: hidden;
+        }
+
+        .props_num {
+          position: absolute;
+          top: 0;
+          right: 0;
+          z-index: 99;
+          padding: 0 10rpx;
+          border-radius: 50%;
+          font-size: 20rpx;
+          background: red;
+          color:#fff;
+        }
+      }
+    }
+  }
+}
+
+.props_box_btn {
+  @include verticalHorizontalCenter();
+  width: 180rpx;
+  height: 80rpx;
+
+  background: linear-gradient(128deg,#af0df8 0%,#e42ccb 100%,#ee32c3 100%);
+  border-radius: 60rpx;
+}
+</style>
