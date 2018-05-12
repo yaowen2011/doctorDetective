@@ -7,29 +7,44 @@
           Timer
       view.question_wrapper
         view.question_subject(
-          class="{{questions[index].subject.length > 14 ? 'question_subject-multi' : ''}}"
+          style="font-size: {{questions[index].subject.length > 12 ? '28rpx' : ''}}"
         ) {{ index+1 }}. {{questions[index].subject}}
-        view.question_options
+        view.question_options(
+          style="font-size: {{questions[index].choice.length > 4 ? '28rpx': ''}}; padding-top: {{questions[index].choice.length > 4 ? '24rpx': ''}}")
           repeat(
             for="{{questions[index].choice}}"
             key="index"
           )
             view.question_option(
-              class="{{item.checked ? 'question_option-active' : ''}}"
+              class="{{item.checked ? 'question_option-active' : ''}} {{item.disabled ? 'question_option-disabled' : ''}}"
+              style="font-size: {{item.content.length > 12 ? '28rpx': ''}};"
+              disabled="{{item.disabled}}"
               @tap="getAnswer({{item}}, {{index}})"
-            ) {{index == 0 ? 'A' : index == 1 ? 'B' : index == 2 ? 'C' : index == 3 ? 'D' : 'E'}}. {{item.content}}
+            ) {{item.showOption}}. {{item.content}}
 
       view.handle_wrapper
         Tip
+        PropsBox(
+          :props.sync="props"
+          :isShowPropsBox.sync="isShowPropsBox")
         view.handle_solution(
           @tap="handleAnswer"
         ) 提交答案
+      XbResult(
+        wx:if="{{isShowXbResult}}"
+        :groupUserAnswer.sync="groupUserAnswer")
+      DrWhyResult(
+        wx:if="{{isShowDrWhyResult}}"
+        :optionList.sync="optionList")
 </template>
 
 <script>
   import wepy from 'wepy'
   import Tip from './tip'
   import Timer from './timer'
+  import PropsBox from './propsBox'
+  import XbResult from './xbResult'
+  import DrWhyResult from './drWhyResult'
 
   export default class QuestionComponent extends wepy.component {
     props = {
@@ -44,28 +59,59 @@
       canHandleAnser: {
         type: Boolean,
         default: true
+      },
+      groupUserAnswer: {
+        type: Array,
+        default: []
+      },
+      props: {
+        type: Array,
+        default: []
+      },
+      optionList: {
+        type: Array,
+        default: []
       }
     }
 
     data = {
       startTime: 0,
-      currentQuestion: {}
+      currentQuestion: {},
+      isShowPropsBox: false,
+      isShowXbResult: false,
+      isShowDrWhyResult: false
     }
 
     components = {
       Tip,
-      Timer
+      Timer,
+      PropsBox,
+      XbResult,
+      DrWhyResult,
     }
 
     events = {
       'timeup': async () => {
+        this.isShowPropsBox = false
+        this.isShowXbResult = false
+        this.isShowDrWhyResult = false
         await this.$emit('updateOptionAndQuesion', this.questions[this.index])
         await this.$emit('handleAnswer')
-      }
+      },
+      'togglePropsBox': (state) => {
+        this.isShowPropsBox = state
+      },
+      'toggleXbResult': (state) => {
+        this.isShowXbResult = state
+      },
+      'toggleDrWhyResult': (state) => {
+        this.isShowDrWhyResult = state
+      },
     }
 
     methods = {
       getAnswer (item, index) {
+        if (item.disabled) { return }
         let currentQuestion = this.questions[this.index]
         switch (currentQuestion.type) {
           case 1:
@@ -106,6 +152,7 @@
               if (this.canHandleAnser) {
                 this.$emit('handleAnswer')
                 this.currentQuestion = {}
+                this.isShowPropsBox = false
               } else {
                 wepy.showToast({
                   title: '您的答案已提交，正在处理',
@@ -212,11 +259,12 @@
   padding: 0 30rpx 16rpx 30rpx;
   border-bottom: 2rpx #E0E1E0 solid;
 }
-.question_subject-multi {
-  font-size: 28rpx;
-}
+
 .question_options {
   padding: 40rpx;
+  font-family: PingFangSC-Regular;
+  font-size: 36rpx;
+  color: #db10e0;
 
   .question_option {
     @include verticalCenter();
@@ -226,9 +274,6 @@
     border-radius: 10rpx;
     padding: 14rpx 34rpx 14rpx 50rpx;
     margin-bottom: 16rpx;
-    font-family: PingFangSC-Regular;
-    font-size: 36rpx;
-    color: #db10e0;
   }
 
   // 选中状态时样式
@@ -236,9 +281,18 @@
     background: linear-gradient(90deg, #df23f1 0%, #bc0fe0 100%);
     color: #fff;
   }
+
+  // 被标记出错误时的样式
+  .question_option-disabled {
+    background: red;
+    border-color: red;
+    color: #fff;
+  }
 }
 .handle_wrapper {
-  @include verticalHorizontalCenter();
+  display: flex;
+  box-sizing: border-box;
+  padding-left: 50rpx;
   position: absolute;
   left: 0;
   bottom: 50rpx;
@@ -248,17 +302,13 @@
   font-size: 36rpx;
 
   .handle_solution {
-    height: 100rpx;
+    @include verticalHorizontalCenter();
+    height: 80rpx;
     width: 350rpx;
+    margin-left: 20rpx;
 
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    align-self: center;
-
-    background: #db10e0;
-    border-radius: 50rpx;
+    background: linear-gradient(128deg,#af0df8 0%,#e42ccb 100%,#ee32c3 100%);
+    border-radius: 60rpx;
   }
 }
 </style>

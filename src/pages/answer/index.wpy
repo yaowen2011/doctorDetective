@@ -1,15 +1,19 @@
-<template lang="pug">
+<template lang='pug'>
   Question(
-    :index.sync="index"
-    :questions.sync="questions"
-    :canHandleAnser.sync="canHandleAnser")
+    :index.sync='index'
+    :props.sync="props"
+    :questions.sync='questions'
+    :optionList.sync='optionList'
+    :groupUserAnswer.sync='groupUserAnswer'
+    :canHandleAnser.sync='canHandleAnser')
 </template>
 
 <script>
   import wepy from 'wepy'
   import Question from './question'
 
-  import { getQuestions, postAnswer } from '@/utils/api'
+  import { getQuestions, postAnswer, getProps, postProp, postUserAnswer } from '@/utils/api'
+  import md5 from 'blueimp-md5'
   import { transformObject } from '@/utils/utils'
   export default class AnswerPage extends wepy.page {
     data = {
@@ -21,6 +25,9 @@
       questions: [],                  // 本期所有题目信息
       currentQuestion: {},            // 正在作答的题
       canHandleAnser: true,           // 是否能够发送请求处理答案
+      props: [],                      // 道具列表
+      groupUserAnswer: [],            // 随机三个当前排名前20用的答案
+      optionList: [],                 // 当前已答用户的每个选项的比例
     }
 
     components = {
@@ -73,6 +80,132 @@
         this.currentQuestion = {}
         this.$apply()
       },
+      'useProp': async (dataset) => {
+        try {
+          let { name, num } = dataset
+          if (num === 0) return
+
+          let { type, _id: qid } = this.questions[this.index]
+          let salt = 'GeEkHeAl@YZST'
+          let timestamp = new Date().getTime()
+          let sign = md5(`${timestamp}${salt}`)
+          let params = {
+            method: 'POST',
+            data: {
+              qid,
+              name,
+              sign,
+              timestamp,
+              pid: this.pid,
+            }
+          }
+
+          switch (name) {
+            case 'ZRSYTX':
+              if (type === 2) {
+                wepy.showToast({
+                  title: '单选题才可以用该道具',
+                  icon: 'none'
+                })
+                return
+              }
+              let { data: { error: zrError, eAnswer: zrResult } } = await postProp(params)
+              if (zrError === 0) {
+                this.markErrorOption(zrResult)
+                this.props.forEach(item => {
+                  if (item.name === name && item.num > 0) {
+                    item.num--
+                    this.$apply()
+                  }
+                })
+              }
+              break
+            case 'HSZWRNS':
+              if (type === 2) {
+                wepy.showToast({
+                  title: '单选题才可以用该道具',
+                  icon: 'none'
+                })
+                return
+              }
+              let { data: { error: hsError, eAnswer: hsAnswer } } = await postProp(params)
+              if (hsError === 0) {
+                this.markErrorOption(hsAnswer)
+                this.props.forEach(item => {
+                  if (item.name === name && item.num > 0) {
+                    item.num--
+                    this.$apply()
+                  }
+                })
+              }
+              break
+            case 'XBDDA':
+              let { data: { error: xbError, data } } = await postProp(params)
+              if (data) this.$broadcast('toggleXbResult', true)
+              if (xbError === 0) {
+                this.formatUserAnswer(data)
+                this.props.forEach(item => {
+                  if (item.name === name && item.num > 0) {
+                    item.num--
+                    this.$apply()
+                  }
+                })
+              } else if (xbError === 6666) {
+                wepy.showToast({
+                  title: '暂无该题的答题记录',
+                  icon: 'none'
+                })
+              }
+              break
+            case 'DrWhyXC':
+              let { data: { error: drError, eAnswer: drAnswer } } = await postProp(params)
+              if (drAnswer) this.$broadcast('toggleDrWhyResult', true)
+              if (drError === 0) {
+                this.formatOptionList(drAnswer)
+                this.props.forEach(item => {
+                  if (item.name === name && item.num > 0) {
+                    item.num--
+                    this.$apply()
+                  }
+                })
+              } else if (drError === 6666) {
+                wepy.showToast({
+                  title: '暂无该题的答题记录',
+                  icon: 'none'
+                })
+              }
+              break
+          }
+        } catch (error) {
+          console.log('error', error)
+        }
+      },
+      'seeUserAnswer': async (dataset) => {
+        let { uid, index } = dataset
+        let { _id: qid } = this.questions[this.index]
+        let salt = 'GeEkHeAl@YZST'
+        let timestamp = new Date().getTime()
+        let sign = md5(`${timestamp}${salt}`)
+        let params = {
+          method: 'POST',
+          data: {
+            uid,
+            qid,
+            sign,
+            timestamp,
+            pid: this.pid,
+          }
+        }
+        let { data: { eAnswer } } = await postUserAnswer(params)
+        eAnswer.split('').forEach(el => {
+          this.questions[this.index].choice.forEach(item => {
+            if (item.option === el) {
+              this.groupUserAnswer[index].answer += item.showOption
+              this.$apply()
+            }
+          })
+        })
+      }
     }
 
     onLoad (params) {
@@ -91,6 +224,7 @@
         this.total_bonus = total_bonus
         this.questions = await this.getQuestions()
         this.$apply()
+        await this.getProps()
         this.$invoke(this.$com.Question.$com.Timer, 'startTimer')
       } catch (error) {
         wepy.hideLoading()
@@ -104,28 +238,204 @@
       }
     }
 
+    // 获取道具
+    async getProps () {
+      let { data: { props } } = await getProps()
+      if (props.length === 0) return
+      this.formatProps(props).forEach(item => {
+        if (item.name !== 'double' && item.name !== 'r_card') {
+          this.props.push(item)
+          this.$apply()
+        }
+      })
+    }
+
+    // 格式化道具数据格式
+    formatProps (props) {
+      for (let [i, item] of props.entries()) {
+        switch (item.name) {
+          case 'HSZWRNS':
+            props[i] = {
+              ...item,
+              cnName: '护士长的温柔凝视',
+              src: `/images/props1.svg`,
+              features: '去掉单选题的一个错误答案',
+              wrapperBg: '#ff71a0',
+              style: {
+                w: 36,
+                h: 63,
+                marginT: 10,
+                marginL: 10
+              }
+            }
+            break
+          case 'ZRSYTX':
+            props[i] = {
+              ...item,
+              cnName: '主任的善意提醒',
+              features: '去掉单选题的两个错误答案',
+              src: `/images/props2.svg`,
+              wrapperBg: '#73dd71',
+              style: {
+                w: 36,
+                h: 55,
+                marginT: 5,
+                marginL: 14
+              }
+            }
+            break
+          case 'DrWhyXC':
+            props[i] = {
+              ...item,
+              cnName: 'DrWhy的小抄',
+              features: '查看当前已答题用户的每个选项比例',
+              src: `/images/props3.svg`,
+              wrapperBg: '#72cced',
+              style: {
+                w: 39,
+                h: 59,
+                marginT: 5,
+                marginL: 12
+              }
+            }
+            break
+          case 'XBDDA':
+            props[i] = {
+              ...item,
+              cnName: '学霸的选择题答案',
+              features: '查看随机三个当前排名前20用户的答案',
+              src: `/images/props4.svg`,
+              wrapperBg: '#ffdf13',
+              nameBg: '#98840a',
+              style: {
+                w: 50,
+                h: 59,
+                marginT: 14,
+                marginL: 10
+              }
+            }
+            break
+          case 'r_card':
+            props[i] = {
+              ...item,
+              cnName: '复活卡',
+              features: '一次复活的机会',
+              src: `/images/props5.svg`,
+              wrapperBg: '#ec5858',
+              nameBg: '#863535',
+              style: {
+                w: 50,
+                h: 59,
+                marginT: 10,
+                marginL: 10
+              }
+            }
+            break
+          case 'double':
+            props[i] = {
+              ...item,
+              cnName: '奖金翻倍卡',
+              features: '奖金系数翻倍',
+              src: `/images/props6.svg`,
+              wrapperBg: '#50e3c2',
+              nameBg: '#359680',
+              style: {
+                w: 92,
+                h: 126,
+                marginT: 10,
+                marginL: 10
+              }
+            }
+            break
+        }
+      }
+      return props
+    }
+
+    // 标记出错误选项
+    markErrorOption (aErrorOption) {
+      aErrorOption.forEach((errorOption) => {
+        this.questions[this.index].choice.forEach(item => {
+          if (errorOption === item.option) {
+            item.disabled = true
+            this.$apply()
+          }
+        })
+      })
+    }
+
+    // 格式化学霸的答案数据格式
+    formatUserAnswer (groupUserAnswer) {
+      this.groupUserAnswer = groupUserAnswer.map(item => {
+        let { user: { avatar, nickName, uid } } = item
+        if (!avatar) avatar = '/images/avatar-default.svg'
+        if (!nickName) nickName = '匿名用户'
+        return {avatar, nickName, uid, answer: ''}
+      })
+      this.$apply()
+    }
+
+    // 格式选项占比数据格式
+    formatOptionList (orginOption) {
+      let optionList = []
+      let obj = {}
+      for (let key of Object.keys(orginOption)) {
+        obj = {
+          option: key.split(''),
+          optionStr: '',
+          proportion: orginOption[key],
+          proportionWidth: orginOption[key] < 7 ? 32 : 195 * orginOption[key] / 100,
+          proportionValue: `${orginOption[key]}%`
+        }
+        obj.option.forEach(option => {
+          this.questions[this.index].choice.forEach(item => {
+            if (option === item.option) {
+              obj.optionStr += item.showOption
+            }
+          })
+        })
+        obj.optionStr = obj.optionStr.split('').sort().join('')
+        obj.optionStr = obj.optionStr ? obj.optionStr : '空'
+        optionList.push(obj)
+      }
+      this.optionList = optionList
+      this.$apply()
+    }
+
     // 获取本期所有题
     async getQuestions () {
-      let params = {
-        method: 'POST',
-        data: {
-          pid: this.pid
+      try {
+        let params = {
+          method: 'POST',
+          data: {
+            pid: this.pid
+          }
         }
-      }
-      let { data: { data: questions } } = await getQuestions(params)
-      let quesitonsOutStates = []
-      for (let i = 0; i < questions.length; i++) {
-        let choice = []
-        for (let j = 0; j < questions[i].choice.length; j++) {
-          choice.push(transformObject(questions[i].choice[j]))
+        let { data: { data: questions } } = await getQuestions(params)
+        let quesitonsOutStates = []
+        let showOptions = ['A', 'B', 'C', 'D', 'E', 'F']
+        for (let i of questions.keys()) {
+          let choice = []
+          for (let j of questions[i].choice.keys()) {
+            choice.push(questions[i].choice[j])
+          }
+          choice = this.shuffle(choice.map(item => transformObject(item)))
+
+          for (let [k, item] of choice.entries()) {
+            item.showOption = showOptions[k]
+            item.disabled = false
+          }
+
+          questions[i].choice = choice
+          quesitonsOutStates.push(questions[i].out)
         }
-        questions[i].choice = this.shuffle(choice)
-        quesitonsOutStates.push(questions[i].out)
+        this.lastOutIndex = quesitonsOutStates.lastIndexOf(1)
+        this.lastInIndex = quesitonsOutStates.lastIndexOf(0)
+        this.$apply()
+        return questions
+      } catch (error) {
+
       }
-      this.lastOutIndex = quesitonsOutStates.lastIndexOf(1)
-      this.lastInIndex = quesitonsOutStates.lastIndexOf(0)
-      this.$apply()
-      return questions
     }
 
     // 处理答题响应
@@ -155,7 +465,7 @@
             if (!data && finished) {
               await this.showTip('很遗憾！您被淘汰了！', false)
               this.$invoke(this.$com.Question.$com.Timer, 'clearTimer')
-              wepy.navigateTo({
+              wepy.redirectTo({
                 url: `/pages/result/index?score=${total}&pid=${this.pid}&total_score=${this.total_score}`
               })
             }
@@ -171,7 +481,7 @@
             if (!data && finished) {
               await this.showTip('很遗憾！您被淘汰了！', false)
               this.$invoke(this.$com.Question.$com.Timer, 'clearTimer')
-              wepy.navigateTo({
+              wepy.redirectTo({
                 url: `/pages/result/index?score=${total}&pid=${this.pid}&total_score=${this.total_score}`
               })
             }
@@ -181,14 +491,14 @@
             if (data && finished) {
               await this.showTip('答对啦！答题结束！', true)
               this.$invoke(this.$com.Question.$com.Timer, 'clearTimer')
-              wepy.navigateTo({
+              wepy.redirectTo({
                 url: `/pages/result/index?isShowRewardBtn=1&score=${total}&pid=${this.pid}&total_bonus=${this.total_bonus}&total_score=${this.total_score}`
               })
             }
             if (!data && finished) {
               await this.showTip('答错啦！答题结束！', false)
               this.$invoke(this.$com.Question.$com.Timer, 'clearTimer')
-              wepy.navigateTo({
+              wepy.redirectTo({
                 url: `/pages/result/index?isShowRewardBtn=1&score=${total}&pid=${this.pid}&total_bonus=${this.total_bonus}&total_score=${this.total_score}`
               })
             }
@@ -242,5 +552,5 @@
   }
 </script>
 
-<style lang="scss">
+<style lang='scss'>
 </style>
