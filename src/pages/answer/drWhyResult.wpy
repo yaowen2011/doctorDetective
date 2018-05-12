@@ -1,0 +1,114 @@
+<template lang="pug">
+  view.dr_wrapper
+    view.dr_model(
+      @tap="toggleDrWhyResult")
+    view.dr_card_block
+      scroll-view.scroll_view(
+        scroll-y)
+        view.dr_card_title 当前问题的选项比例
+        block(
+          wx:for="{{optionList}}"
+          wx:key="{{index}}")
+          view.dr_answer_item
+            view.dr_answer_option {{item.optionStr}}
+            view.dr_answer_proportion_blcok
+              view.dr_answer_proportion(
+                style="width: {{2 * item.proportionWidth}}rpx;") {{item.proportionValue}}
+</template>
+
+<script>
+  import wepy from 'wepy'
+  export default class drResultComponent extends wepy.component {
+    props = {
+      optionList: {
+        type: Array,
+        default: []
+      },
+    }
+
+    methods = {
+      toggleDrWhyResult () {
+        this.$emit('toggleDrWhyResult', false)
+      }
+    }
+  }
+</script>
+
+<style lang="scss">
+@import '../../scss/_layout.scss';
+.dr_wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+
+  .dr_model {
+    width: 100%;
+    height: 100%;
+    background: rgba(73, 73, 73, 0.6);
+  }
+
+  .scroll_view {
+    height: 100%;
+  }
+
+  .dr_card_block {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 590rpx;
+    height: 650rpx;
+    background: #fff;
+    border-radius: 40rpx;
+    overflow: hidden;
+    padding: 40rpx;
+    box-sizing: border-box;
+
+    .dr_card_title {
+      text-align: center;
+      margin: 20rpx;
+      font-family: PingFangSC-Regular;
+      font-size: 24rpx;
+      color: #9b9b9b;
+    }
+
+    .dr_answer_item {
+      display: flex;
+      margin-top: 40rpx;
+      align-items: center;
+
+      .dr_answer_option {
+        @include verticalHorizontalCenter();
+        width: 100rpx;
+        height: 50rpx;
+        font-family: PingFangSC-Medium;
+        font-size: 36rpx;
+        color: #9013FE;
+        margin-right: 20rpx;
+      }
+
+      .dr_answer_proportion_blcok {
+        position: relative;
+        width: 390rpx;
+        height: 30rpx;
+
+        .dr_answer_proportion {
+          height: 100%;
+          position: absolute;
+          top: 0;
+          left: 0;
+          background-image: linear-gradient(120deg,#af0df8 0%,#e42ccb 100%,#ee32c3 100%);
+	        border-radius: 6rpx;
+          text-align: center;
+          font-family: PingFangSC-Medium;
+          font-size: 20rpx;
+          color: #fff;
+        }
+      }
+    }
+  }
+}
+</style>
