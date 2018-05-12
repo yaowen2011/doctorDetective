@@ -37,7 +37,7 @@
         wx:if="{{ isShowCommentBlock }}"
         :comments.sync="comments")
       Poster(
-      wx:if="{{isShowPoster}}")
+        wx:if="{{isShowPoster}}")
   </template>
 
 <script>
@@ -50,11 +50,10 @@
   import Sign from './sign/index'
   import Deadline from './deadline'
   import CaseVideo from './caseVideo'
-  import Poster from './poster/index'
+  import Poster from './poster'
   import VideoPlaceholder from './videoPlaceholder/index'
 
-  import { getLoginToken } from '@/utils/login'
-  import { sign, getVideo, postFormId, getComments, postComment, getPosterState } from '@/utils/api'
+  import { getUserData, getToken, getUserInfo, sign, getVideo, postFormId, getComments, postComment, getPosterState, postGid } from '@/utils/api'
 
   export default class HomePage extends wepy.page {
     data = {
@@ -103,18 +102,36 @@
     }
 
     watch = {
-      isSign: (newValue) => {
-        if (!newValue) return
-        if (!this.token && this.video.src) this.isVideoSrc = true
-        if (this.isVideoSrc) {
-          this.$invoke(this.$com.CaseVideo, 'initComments', this.comments)
-        } else {
-          this.$broadcast('beginBarrage', this.comments)
+      isSign: async (newValue, oldValue) => {
+        if (newValue) {
+          this.userInfo = wepy.getStorageSync('userInfo')
+          if (this.token && this.video.src) {
+            this.isVideoSrc = true
+          }
+          if (this.isVideoSrc) {
+            this.$invoke(this.$com.CaseVideo, 'initComments', this.comments)
+          } else {
+            this.$broadcast('beginBarrage', this.comments)
+          }
+
+          await this.getUserData()
+          await this.getComments()
+          if (!this.isSign) return
+          if (this.isVideoSrc) {
+            this.$invoke(this.$com.CaseVideo, 'initComments', this.comments)
+          } else {
+            this.$broadcast('beginBarrage', this.comments)
+          }
+        }
+        if (!oldValue || oldValue === 1) {
+          let { data: { show = 0 } } = await getPosterState({isNeedToken: false})
+          if (show && this.video.src) {
+            this.isVideoSrc = false
+          }
+          this.isShowPoster = show
+          this.$apply()
         }
       },
-      token: async (newValue, oldValue) => {
-        if (newValue) this.sign()
-      }
     }
 
     methods = {
@@ -157,27 +174,41 @@
     }
 
     events = {
-      'receiveAward': async (event) => {
-        try {
-          const fn = async () => {
-            await this.postFormId(event)
-            let { data: { LX: continuousCount, bmsg: bigAwardMsg, msg: awardMsg, error, sign_log } } = await sign({method: 'POST'})
-            if (error !== 0) return
-            if (error === 0) {
-              if (this.video.src) this.isVideoSrc = true
-              this.$broadcast('toggleSignAward', true)
-              this.signState = this.initSignState(sign_log)
-              this.continuousCount = continuousCount
-              this.awardMsg = awardMsg
-              this.$apply()
-              await this.timeout(1000)
-              this.bigAwardMsg = bigAwardMsg
-              this.$apply()
-            }
+      'collectFormId': async (event) => {
+        let { detail: { formId } } = event
+        let params = {
+          method: 'POST',
+          data: {
+            formId,
           }
-          this.debounce(fn)
-        } catch (error) {
-          console.log(error)
+        }
+        await postFormId(params)
+      },
+      'collectUserInfo': async (event) => {
+        let { authSetting } = await wepy.getSetting()
+        if (authSetting['scope.userInfo']) {
+          let { detail: { iv, encryptedData, userInfo } } = event
+          wepy.setStorageSync('userInfo', userInfo)
+          await getUserInfo({ data: { iv, encryptedData } })
+          let { data: { LX: continuousCount, bmsg: bigAwardMsg, msg: awardMsg, error, sign_log } } = await sign({method: 'POST'})
+          if (error !== 0) return
+          if (error === 0) {
+            if (this.video.src) this.isVideoSrc = true
+            this.$broadcast('toggleSignAward', true)
+            this.signState = this.initSignState(sign_log)
+            this.continuousCount = continuousCount
+            this.awardMsg = awardMsg
+            this.$apply()
+            await this.timeout(1000)
+            this.bigAwardMsg = bigAwardMsg
+            this.$apply()
+          }
+        } else {
+          wepy.showModal({
+            title: '提示',
+            content: '您已拒绝授权，请重新点击并授权',
+            showCancel: false
+          })
         }
       },
       'toggleCommentsBlock': (params) => {
@@ -206,18 +237,24 @@
         this.isShowShare = false
       },
       'hidePoster': () => {
+        if (this.video.src) {
+          this.isVideoSrc = true
+        }
         this.isShowPoster = false
       }
     }
 
     async onLoad ({ share_uid = '', scene = '' }) {
       try {
+        wepy.showShareMenu({withShareTicket: true})
         if (share_uid) this.share_uid = share_uid
         if (scene) this.share_uid = decodeURIComponent(scene)
 
         this.signState = this.initSignState()
 
-        let { data: { show = 0 } } = await getPosterState({isNeedToken: false})
+        await this.getToken({ share_uid })
+        await this.sign()
+
         let { data: { data: { video: { data: video } } } } = await getVideo({isNeedToken: false})
 
         if (video.src) {
@@ -228,7 +265,6 @@
         }
 
         this.video = video
-        this.isShowPoster = show
         this.$apply()
       } catch (error) {
         console.log(error)
@@ -237,7 +273,8 @@
 
     async onShow () {
       try {
-        await this.login({ share_uid: this.share_uid })
+        if (!this.isSign) return
+        await this.getUserData()
         await this.getComments()
         if (!this.isSign) return
         if (this.isVideoSrc) {
@@ -256,20 +293,71 @@
         title: '参与医学知识竞答，赢现金大奖！',
         path: `/pages/home/home?share_uid=${share_uid}`,
         imageUrl: '../../images/poster.png',
-        success: (res) => {
+        success: ({ shareTickets }) => {
           this.isShowShare = false
           this.$apply()
-          wepy.showToast({
-            title: '分享成功'
+
+          wx.getShareInfo({
+            shareTicket: shareTickets[0],
+            success: async ({ encryptedData, iv }) => {
+              try {
+                let params = {
+                  method: 'POST',
+                  data: {
+                    st: shareTickets[0],
+                    gid: [
+                      { encryptedData, iv },
+                    ]
+                  }
+                }
+                let { data: { error_code } } = await postGid(params)
+                if (error_code === 0) {
+                  wepy.showModal({
+                    title: '分享成功',
+                    content: '快去道具箱里查看新道具吧！',
+                    showCancel: false
+                  })
+                } else {
+                  wepy.showToast({
+                    title: '同一个群每天只能分享一次',
+                    icon: 'none'
+                  })
+                }
+              } catch (error) {
+                console.log(error)
+              }
+            }
           })
         },
         fail: () => {
           this.isShowShare = false
           this.$apply()
           wepy.showToast({
-            title: '分享失败'
+            title: '分享失败',
+            icon: 'none'
           })
         }
+      }
+    }
+
+    // 获取 token
+    async getToken ({ share_uid = '' }) {
+      try {
+        let { code } = await wepy.login()
+        let params = {
+          data: {
+            code,
+            share_uid,
+          },
+          isNeedToken: false,
+        }
+
+        let { data: { token } } = await getToken(params)
+        this.token = token
+        this.$apply()
+        wepy.setStorageSync('token', token)
+      } catch (error) {
+
       }
     }
 
@@ -337,9 +425,9 @@
       }
     }
 
-    async login (params) {
-      let { token, userInfo, uid, card, score, pid, bonus, expired, expired_at, is_answer, total_bonus, honor, t_label } = await getLoginToken(params)
-      this.token = token
+    // 获取用户相关展示数据
+    async getUserData () {
+      let { data: { userInfo, uid, card, score, pid, bonus, expired, expired_at, is_answer, total_bonus, honor, t_label } } = await getUserData()
       this.userInfo = userInfo
       this.uid = uid
       this.card = card
@@ -353,6 +441,8 @@
       this.honor = honor
       this.t_label = t_label
       this.$apply()
+      wepy.setStorageSync('uid', uid)
+      wepy.setStorageSync('userInfo', userInfo)
     }
 
     // 请求所有评论
