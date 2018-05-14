@@ -2,14 +2,16 @@
   view.analysis_wrapper
     view.analysis_title 上期答案解析
     swiper.analysis_swiper(
-      indicator-dots)
+      indicator-dots
+      indicator-color="#d7d7d7"
+      indicator-active-color="#bc0fe0")
       block(
         wx:for="{{questions}}"
         wx:key="{{item._id}}")
         swiper-item
           scroll-view.analysis_swiper_item(
             scroll-y)
-            view.item_title {{index + 1}}. {{item.subject}}
+            view.item_title {{index + 1}}. {{item.subject}} {{item.type === 2 ? '(多选)' : ''}}
             view.item_choice_block
               block(
                 wx:for="{{item.choice}}"
@@ -89,14 +91,17 @@ page {
 
   .analysis_title {
     @include verticalHorizontalCenter();
-    height: 100rpx;
+    height: 130rpx;
     font-family: PingFangSC-Medium;
-    font-size: 40rpx;
+    font-size: 36rpx;
+    color: #93529f;
+    background: #f1f1f1;
+    border-radius: 40rpx 40rpx 0 0;
   }
 }
 
 .analysis_swiper {
-  height: 840rpx;
+  height: 810rpx;
 }
 
 .analysis_swiper_item {
@@ -107,15 +112,15 @@ page {
 
   .item_title {
     font-family: PingFangSC-Medium;
-    font-size: 40rpx;
-    color: #5db001;
+    font-size: 28rpx;
+    color: #4a4a4a;
     text-indent: 20rpx;
-    padding: 20rpx;
+    padding: 30rpx 20rpx;
   }
 
   .item_choice_block {
     padding: 40rpx 30rpx;
-    margin: 40rpx 20rpx 20rpx 20rpx;
+    margin: 0 20rpx 20rpx 20rpx;
     border-top: 2rpx solid #d7d7d7;
     border-bottom: 2rpx solid #d7d7d7;
 
