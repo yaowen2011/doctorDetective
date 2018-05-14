@@ -16,7 +16,8 @@ export default class DoctorDetectiveAPP extends wepy.app {
       'pages/result/index',
       'pages/withdraw/index',
       'pages/shareCard/index',
-      'pages/information/index'
+      'pages/information/index',
+      'pages/answerAnalysis/index'
     ],
     window: {
       backgroundTextStyle: 'light',
