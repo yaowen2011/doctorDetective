@@ -7,7 +7,7 @@
           text.rule_icon ?
           text 活动规则
         image.avatar(
-          @tap="goBonusPage"
+          @tap="goMyCenterPage"
           src="{{userInfo.avatarUrl ? userInfo.avatarUrl : '../../images/avatar-default.svg'}}")
       view.designation 级别：{{honor}}
       view.total_score 总积分：{{total_score}} 分
@@ -102,6 +102,12 @@
       goPropsPage () {
         wepy.navigateTo({
           url: `/pages/props/index`
+        })
+      },
+      goMyCenterPage () {
+        // 暂时没有个人中心，重定向到答案解析页面
+        wepy.navigateTo({
+          url: `/pages/answerAnalysis/index`
         })
       },
       toggleCommentsBlock () {
