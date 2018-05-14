@@ -1,0 +1,163 @@
+<template lang="pug">
+  view.analysis_wrapper
+    view.analysis_title 上期答案解析
+    swiper.analysis_swiper(
+      indicator-dots)
+      block(
+        wx:for="{{questions}}"
+        wx:key="{{item._id}}")
+        swiper-item
+          scroll-view.analysis_swiper_item(
+            scroll-y)
+            view.item_title {{index + 1}}. {{item.subject}}
+            view.item_choice_block
+              block(
+                wx:for="{{item.choice}}"
+                wx:key="{{index}}")
+                view.item_choice(
+                  class="{{item.isAnswer ? 'item_choice_active' : ''}}") {{item.option}}. {{item.content}}
+            view.item_analysis_block
+              view.item_analysis_mark 解析:
+              viwe.item_analysis_content {{item.analysis ? item.analysis : '暂无解析'}}
+</template>
+
+<script>
+import wepy from 'wepy'
+
+import { postAnswerAnalysis } from '@/utils/api'
+import { transformObject } from '@/utils/utils'
+export default class AnswerAnalysisPage extends wepy.page {
+  data = {
+    questions: []
+  }
+
+  async onLoad () {
+    wepy.showLoading({
+      title: '加载中'
+    })
+    let { data: { questions } } = await postAnswerAnalysis({method: 'POST'})
+    this.questions = this.formatQuestions(questions)
+    this.$apply()
+    wepy.hideLoading()
+  }
+
+  formatQuestions (questions) {
+    for (let [i, question] of questions.entries()) {
+      for (let [j, choice] of question.choice.entries()) {
+        choice = transformObject(choice)
+        choice.isAnswer = false
+        question.answer.toUpperCase().split('').forEach(item => {
+          if (item === choice.option) choice.isAnswer = true
+        })
+        questions[i].choice[j] = choice
+      }
+    }
+    return questions
+  }
+}
+</script>
+
+<style lang="scss">
+@import '../../scss/_layout.scss';
+
+page {
+  @include verticalHorizontalCenter();
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(to bottom right, #3023AE, #C86DD7 );
+}
+.analysis_wrapper {
+  width: 650rpx;
+  height: 940rpx;
+  position: relative;
+  background: #fff;
+  border-radius: 40rpx;
+  box-shadow: 0 4rpx 60rpx 0 rgba(0, 0, 0, 0.5);
+
+  &::after {
+    content: '';
+    width: 450rpx;
+    height: 720rpx;
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    margin-left: -225rpx;
+    box-shadow: 0 30rpx 40rpx 0 rgba(0, 0, 0, 0.2);
+	  border-radius: 40rpx;
+    z-index: -1;
+  }
+
+  .analysis_title {
+    @include verticalHorizontalCenter();
+    height: 100rpx;
+    font-family: PingFangSC-Medium;
+    font-size: 40rpx;
+  }
+}
+
+.analysis_swiper {
+  height: 840rpx;
+}
+
+.analysis_swiper_item {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  padding-bottom:50rpx;
+
+  .item_title {
+    font-family: PingFangSC-Medium;
+    font-size: 40rpx;
+    color: #5db001;
+    text-indent: 20rpx;
+    padding: 20rpx;
+  }
+
+  .item_choice_block {
+    padding: 40rpx 30rpx;
+    margin: 40rpx 20rpx 20rpx 20rpx;
+    border-top: 2rpx solid #d7d7d7;
+    border-bottom: 2rpx solid #d7d7d7;
+
+    .item_choice {
+      box-sizing: border-box;
+      width: 550rpx;
+      border-radius: 10rpx;
+      border: 2rpx solid #bd0fe0;
+      margin-bottom: 16rpx;
+      padding: 16rpx 20rpx;
+      text-indent: 30rpx;
+      font-family: PingFangSC-Regular;
+      font-size: 36rpx;
+      color: #bd10e0;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+
+    .item_choice_active {
+      background: linear-gradient(125deg, #af0df8 0%, #e42ccb 100%, #ee32c3 100%);
+      color: #fff;
+    }
+  }
+
+  .item_analysis_block {
+    margin: 0 20rpx 50rpx 20rpx;
+    padding: 0 30rpx;
+    color: #4a4a4a;
+
+    .item_analysis_mark {
+      font-family: PingFangSC-Medium;
+      font-size: 28rpx;
+    }
+
+    .item_analysis_content {
+      font-family: PingFangSC-Regular;
+      font-size: 24rpx;
+      line-height: 0;
+	    letter-spacing: 0;
+    }
+  }
+}
+</style>
