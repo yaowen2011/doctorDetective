@@ -25,24 +25,16 @@
     }
 
     events = {
-      'beginBarrage': (comments) => {
+      'beginBarrage': async (comments) => {
         this.barrages = comments
         this.$apply()
-        this.beginBarrage()
+        await this.endBarrage()
+        await this.beginBarrage()
       },
-      'toggleBarrage': () => {
+      'toggleBarrage': async () => {
         if (this.isShowBarrage) {
-          for (let i of this.barrages.keys()) {
-            let animation = wepy.createAnimation({
-              transformOrigin: '50% 50% 0',
-              duration: 10,
-              timingFunction: 'linear',
-              delay: 0
-            })
-            animation.right(this.barrageWrapperW).step()
-            this.animationDatas[i] = animation.export()
-          }
           this.isShowBarrage = false
+          this.endBarrage()
         } else {
           this.isShowBarrage = true
           this.beginBarrage()
@@ -58,7 +50,7 @@
     async beginBarrage () {
       try {
         clearTimeout(this.timer)
-        await this.timeout(300)
+        await this.timeout(100)
         let { width: barrageWrapperW, height: barrageWrapperH } = await this.getBoundingClientRect({ id: '#barrage_wrapper' })
         this.barrageWrapperW = barrageWrapperW
         this.barrageWrapperH = barrageWrapperH
@@ -72,16 +64,32 @@
             delay: 300 * i
           })
           let randomTop = Math.round(Math.random() * (barrageWrapperH - 40))
-          animation.top(randomTop).step()
+          animation.opacity(1).top(randomTop).step()
           animation.right(barrageWrapperW).step({ duration: 4500 })
-          animation.opacity(0).step()
-          animation.right(-barrageWrapperW).step()
-          animation.opacity(1).step()
           this.animationDatas[i] = animation.export()
           this.$apply()
         }
       } catch (error) {
         console.log(error)
+      }
+    }
+
+    async endBarrage () {
+      clearTimeout(this.timer)
+      await this.timeout(100)
+      let { width: barrageWrapperW } = await this.getBoundingClientRect({ id: '#barrage_wrapper' })
+
+      for (let i of this.barrages.keys()) {
+        let right = 0
+        let { width: barrageW } = await this.getBoundingClientRect({id: `#barrage${i}`})
+        let animation = wepy.createAnimation({
+          duration: 10,
+          delay: 0
+        })
+        barrageWrapperW >= barrageW ? right = -barrageWrapperW : right = -barrageW
+        animation.opacity(0).top(0).right(right).step()
+        this.animationDatas[i] = animation.export()
+        this.$apply()
       }
     }
 
@@ -120,12 +128,13 @@
   .barrage {
     position: absolute;
     top: 0;
-    right: -100%;
+    right: 0;
     z-index: 9;
     white-space:nowrap;
     font-size: 34rpx;
     height: 60rpx;
     color: #fff;
+    opacity: 0;
   }
 }
 
