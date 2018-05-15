@@ -105,29 +105,15 @@
       isSign: async (newValue, oldValue) => {
         if (newValue) {
           this.userInfo = wepy.getStorageSync('userInfo')
-          if (this.token && this.video.src) {
-            this.isVideoSrc = true
-          }
-          if (this.isVideoSrc) {
-            this.$invoke(this.$com.CaseVideo, 'initComments', this.comments)
-          } else {
-            this.$broadcast('beginBarrage', this.comments)
-          }
-
+          if (this.token && this.video.src) this.isVideoSrc = true
           await this.getUserData()
           await this.getComments()
           if (!this.isSign) return
-          if (this.isVideoSrc) {
-            this.$invoke(this.$com.CaseVideo, 'initComments', this.comments)
-          } else {
-            this.$broadcast('beginBarrage', this.comments)
-          }
+          this.isVideoSrc ? this.$invoke(this.$com.CaseVideo, 'initComments', this.comments) : this.$broadcast('beginBarrage', this.comments)
         }
         if (!oldValue || oldValue === 1) {
           let { data: { show = 0 } } = await getPosterState({isNeedToken: false})
-          if (show && this.video.src) {
-            this.isVideoSrc = false
-          }
+          if (show && this.video.src) this.isVideoSrc = false
           this.isShowPoster = show
           this.$apply()
         }
@@ -266,22 +252,6 @@
 
         this.video = video
         this.$apply()
-      } catch (error) {
-        console.log(error)
-      }
-    }
-
-    async onShow () {
-      try {
-        if (!this.isSign) return
-        await this.getUserData()
-        await this.getComments()
-        if (!this.isSign) return
-        if (this.isVideoSrc) {
-          this.$invoke(this.$com.CaseVideo, 'initComments', this.comments)
-        } else {
-          this.$broadcast('beginBarrage', this.comments)
-        }
       } catch (error) {
         console.log(error)
       }
