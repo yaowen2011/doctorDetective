@@ -1,16 +1,50 @@
 <template lang='pug'>
-  Question(
-    :index.sync='index'
-    :props.sync="props"
-    :questions.sync='questions'
-    :optionList.sync='optionList'
-    :groupUserAnswer.sync='groupUserAnswer'
-    :canHandleAnser.sync='canHandleAnser')
+  view.question_block
+    view.card_wrapper
+      view.prompt_wrapper
+        text.prompt_progress 第{{ index + 1 }}/{{questions.length}}题{{questions[index].type === 2 ? '(多选)': ''}}
+        text.prompt_timer
+          Timer
+      view.question_wrapper
+        view.question_subject(
+          style="font-size: {{questions[index].subject.length > 12 ? '28rpx' : ''}}"
+        ) {{ index+1 }}. {{questions[index].subject}}
+        view.question_options(
+          style="font-size: {{questions[index].choice.length > 4 ? '28rpx': ''}}; padding-top: {{questions[index].choice.length > 4 ? '24rpx': ''}}")
+          repeat(
+            for="{{questions[index].choice}}"
+            key="index"
+          )
+            view.question_option(
+              class="{{item.checked ? 'question_option-active' : ''}} {{item.disabled ? 'question_option-disabled' : ''}}"
+              style="font-size: {{item.content.length > 12 ? '28rpx': ''}};"
+              disabled="{{item.disabled}}"
+              @tap="getAnswer({{item}}, {{index}})"
+            ) {{item.showOption}}. {{item.content}}
+
+      view.handle_wrapper
+        Tip
+        PropsBox(
+          :props.sync="props"
+          :isShowPropsBox.sync="isShowPropsBox")
+        view.handle_solution(
+          @tap="handleAnswer"
+        ) 提交答案
+      XbResult(
+        wx:if="{{isShowXbResult}}"
+        :groupUserAnswer.sync="groupUserAnswer")
+      DrWhyResult(
+        wx:if="{{isShowDrWhyResult}}"
+        :optionList.sync="optionList")
 </template>
 
 <script>
   import wepy from 'wepy'
-  import Question from './question'
+  import Tip from './tip'
+  import Timer from './timer'
+  import PropsBox from './propsBox'
+  import XbResult from './xbResult'
+  import DrWhyResult from './drWhyResult'
 
   import { getQuestions, postAnswer, getProps, postProp, postUserAnswer } from '@/utils/api'
   import md5 from 'blueimp-md5'
@@ -28,10 +62,18 @@
       props: [],                      // 道具列表
       groupUserAnswer: [],            // 随机三个当前排名前20用的答案
       optionList: [],                 // 当前已答用户的每个选项的比例
+      startTime: 0,
+      isShowPropsBox: false,
+      isShowXbResult: false,
+      isShowDrWhyResult: false
     }
 
     components = {
-      Question
+      Tip,
+      Timer,
+      PropsBox,
+      XbResult,
+      DrWhyResult,
     }
 
     watch = {
@@ -41,44 +83,21 @@
     }
 
     events = {
-      'updateOptionAndQuesion': (currentQuestion) => {
-        this.currentQuestion = currentQuestion
+      'timeup': async () => {
+        this.isShowPropsBox = false
+        this.isShowXbResult = false
+        this.isShowDrWhyResult = false
+        this.currentQuestion = this.questions[this.index]
+        this.handleAnswer()
       },
-      'handleAnswer': async () => {
-        let choice = this.currentQuestion.choice
-        let answer = ''
-        for (let i = 0; i < choice.length; i++) {
-          if (choice[i].checked) {
-            answer += `${choice[i].option} `
-          }
-        }
-        this.answer = answer.trim().split('').sort().map((option) => {
-          if (option) return option
-        }).join('').trim()
-        this.canHandleAnser = false
-        this.$apply()
-        this.$invoke(this.$com.Question.$com.Timer, 'clearTimer')
-
-        let params = {
-          method: 'POST',
-          data: {
-            pid: this.pid,
-            qid: this.currentQuestion._id,
-            finished: 0,
-            answer: this.answer
-          }
-        }
-        // 判断正在答的题是否为最后一题
-        if (this.index < this.questions.length - 1) {
-          await this.handleAnswerResponse(await postAnswer(params))
-        } else {
-          params.data.finished = 1
-          await this.handleAnswerResponse(await postAnswer(params))
-        }
-
-        this.canHandleAnser = true
-        this.currentQuestion = {}
-        this.$apply()
+      'togglePropsBox': (state) => {
+        this.isShowPropsBox = state
+      },
+      'toggleXbResult': (state) => {
+        this.isShowXbResult = state
+      },
+      'toggleDrWhyResult': (state) => {
+        this.isShowDrWhyResult = state
       },
       'useProp': async (dataset) => {
         try {
@@ -144,6 +163,7 @@
               if (data) this.$broadcast('toggleXbResult', true)
               if (xbError === 0) {
                 this.formatUserAnswer(data)
+                this.isShowXbResult = true
                 this.props.forEach(item => {
                   if (item.name === name && item.num > 0) {
                     item.num--
@@ -162,6 +182,7 @@
               if (drAnswer) this.$broadcast('toggleDrWhyResult', true)
               if (drError === 0) {
                 this.formatOptionList(drAnswer)
+                this.isShowDrWhyResult = true
                 this.props.forEach(item => {
                   if (item.name === name && item.num > 0) {
                     item.num--
@@ -208,6 +229,78 @@
       }
     }
 
+    methods = {
+      getAnswer (item, index) {
+        if (item.disabled) { return }
+        let currentQuestion = this.questions[this.index]
+        switch (currentQuestion.type) {
+          case 1:
+            for (let i = 0; i < currentQuestion.choice.length; i++) {
+              if (currentQuestion.choice[i].checked) {
+                currentQuestion.choice[i].checked = false
+              } else if (i === index) {
+                currentQuestion.choice[i].checked = true
+              }
+            }
+            this.currentQuestion = currentQuestion
+            break
+          case 2:
+            for (let i = 0; i < currentQuestion.choice.length; i++) {
+              if (i === index) {
+                if (currentQuestion.choice[i].checked) {
+                  currentQuestion.choice[i].checked = false
+                } else {
+                  currentQuestion.choice[i].checked = true
+                }
+              }
+            }
+            this.currentQuestion = currentQuestion
+            break
+        }
+      },
+      handleAnswer () {
+        const fn = () => {
+          let choice = this.currentQuestion.choice
+          if (choice) {
+            let flag = false
+            for (let i = 0; i < choice.length; i++) {
+              if (choice[i].checked) flag = true
+            }
+            if (flag) {
+              if (this.canHandleAnser) {
+                this.handleAnswer()
+                this.currentQuestion = {}
+                this.isShowPropsBox = false
+              } else {
+                wepy.showToast({
+                  title: '您的答案已提交，正在处理',
+                  icon: 'none'
+                })
+              }
+            } else {
+              wepy.showToast({
+                title: '请选择答案后再提交',
+                icon: 'none',
+                mask: true,
+                duration: 1000
+              })
+              return
+            }
+          } else {
+            wepy.showToast({
+              title: '请选择答案后再提交',
+              icon: 'none',
+              mask: true,
+              duration: 1000
+            })
+            return
+          }
+        }
+
+        this.throttling(fn)
+      }
+    }
+
     onLoad (params) {
       this.initData(params)
     }
@@ -218,15 +311,16 @@
           title: '题目加载中',
           mask: true
         })
-        let { pid = '', total_score = 0, total_bonus = 0 } = params
+        let { pid = '5afa429be9c046408f375ad1', total_score = 0, total_bonus = 0 } = params
         this.pid = pid
         this.total_score = total_score
         this.total_bonus = total_bonus
         this.questions = await this.getQuestions()
         this.$apply()
         await this.getProps()
-        this.$invoke(this.$com.Question.$com.Timer, 'startTimer')
+        this.$invoke(this.$com.Timer, 'startTimer')
       } catch (error) {
+        console.log(error)
         wepy.hideLoading()
         wepy.showToast({
           title: '数据加载失败',
@@ -236,6 +330,43 @@
           delta: 1
         })
       }
+    }
+
+    async handleAnswer () {
+      let choice = this.currentQuestion.choice
+      let answer = ''
+      for (let i = 0; i < choice.length; i++) {
+        if (choice[i].checked) {
+          answer += `${choice[i].option} `
+        }
+      }
+      this.answer = answer.trim().split('').sort().map((option) => {
+        if (option) return option
+      }).join('').trim()
+      this.canHandleAnser = false
+      this.$apply()
+      this.$invoke(this.$com.Timer, 'clearTimer')
+
+      let params = {
+        method: 'POST',
+        data: {
+          pid: this.pid,
+          qid: this.currentQuestion._id,
+          finished: 0,
+          answer: this.answer
+        }
+      }
+      // 判断正在答的题是否为最后一题
+      if (this.index < this.questions.length - 1) {
+        await this.handleAnswerResponse(await postAnswer(params))
+      } else {
+        params.data.finished = 1
+        await this.handleAnswerResponse(await postAnswer(params))
+      }
+
+      this.canHandleAnser = true
+      this.currentQuestion = {}
+      this.$apply()
     }
 
     // 获取道具
@@ -464,7 +595,7 @@
             }
             if (!data && finished) {
               await this.showTip('很遗憾！您被淘汰了！', false)
-              this.$invoke(this.$com.Question.$com.Timer, 'clearTimer')
+              this.$invoke(this.$com.Timer, 'clearTimer')
               wepy.redirectTo({
                 url: `/pages/result/index?score=${total}&pid=${this.pid}&total_score=${this.total_score}`
               })
@@ -480,7 +611,7 @@
             }
             if (!data && finished) {
               await this.showTip('很遗憾！您被淘汰了！', false)
-              this.$invoke(this.$com.Question.$com.Timer, 'clearTimer')
+              this.$invoke(this.$com.Timer, 'clearTimer')
               wepy.redirectTo({
                 url: `/pages/result/index?score=${total}&pid=${this.pid}&total_score=${this.total_score}`
               })
@@ -490,14 +621,14 @@
           if (this.index === this.lastInIndex) {
             if (data && finished) {
               await this.showTip('答对啦！答题结束！', true)
-              this.$invoke(this.$com.Question.$com.Timer, 'clearTimer')
+              this.$invoke(this.$com.Timer, 'clearTimer')
               wepy.redirectTo({
                 url: `/pages/result/index?isShowRewardBtn=1&score=${total}&pid=${this.pid}&total_bonus=${this.total_bonus}&total_score=${this.total_score}`
               })
             }
             if (!data && finished) {
               await this.showTip('答错啦！答题结束！', false)
-              this.$invoke(this.$com.Question.$com.Timer, 'clearTimer')
+              this.$invoke(this.$com.Timer, 'clearTimer')
               wepy.redirectTo({
                 url: `/pages/result/index?isShowRewardBtn=1&score=${total}&pid=${this.pid}&total_bonus=${this.total_bonus}&total_score=${this.total_score}`
               })
@@ -531,16 +662,16 @@
 
     // 展示提示框
     async showTip (tipcontent, isCorrect) {
-      this.$invoke(this.$com.Question.$com.Tip, 'showTip', tipcontent, isCorrect)
+      this.$invoke(this.$com.Tip, 'showTip', tipcontent, isCorrect)
       await this.timeout(1000)
-      this.$invoke(this.$com.Question.$com.Tip, 'hideTip', tipcontent, isCorrect)
+      this.$invoke(this.$com.Tip, 'hideTip', tipcontent, isCorrect)
     }
 
     // 切换到下一题
     nextQuestion () {
       this.index++
       this.$apply()
-      this.$invoke(this.$com.Question.$com.Timer, 'startTimer')
+      this.$invoke(this.$com.Timer, 'startTimer')
     }
 
     // 随机打乱数组
@@ -549,8 +680,133 @@
         return Math.random() - 0.5
       })
     }
+
+    // 函数节流
+    throttling (fn, ms = 1000) {
+      let curTime = +new Date()
+      if (!this.startTime) {
+        this.startTime = curTime
+        fn()
+      }
+      if (curTime - this.startTime > ms) {
+        this.startTime = curTime
+        fn()
+      } else if (this.startTime !== curTime) {
+        wepy.showToast({
+          title: '你点击的太快了',
+          icon: 'none'
+        })
+      }
+    }
   }
 </script>
 
-<style lang='scss'>
+<style lang="scss">
+@import '../../scss/_variables.scss';
+@import '../../scss/_layout.scss';
+
+.question_block {
+  @include verticalHorizontalCenter();
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 99999;
+  background: linear-gradient(to bottom right, #3023AE, #C86DD7 );
+}
+.card_wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 650rpx;
+  height: 980rpx;
+  border-radius: 40rpx;
+  background: #fff;
+  padding: 0 20rpx;
+  box-shadow: 0px 2px 30px 0px rgba(0, 0, 0, 0.5);
+}
+
+.prompt_wrapper {
+  @include horizontalCenter($direction:row);
+  justify-content: space-between;
+  padding: 20rpx 20rpx 10rpx 30rpx;
+  font-family: PingFangSC-Medium;
+  font-size: 28rpx;
+  color:#4a4a4a;
+
+  .prompt_progress {
+    align-self: flex-end;
+  }
+
+  .prompt_timer {
+    @include verticalHorizontalCenter();
+    width: 72rpx;
+    height: 72rpx;
+    border-radius: 50%;
+    border: 4rpx #db10e0 solid;
+    color: #db10e0;
+  }
+}
+
+.question_subject {
+  box-sizing: border-box;
+  font-family: PingFangSC-Medium;
+  font-size: 40rpx;
+  color: #4a4a4a;
+  padding: 0 30rpx 16rpx 30rpx;
+  border-bottom: 2rpx #E0E1E0 solid;
+}
+
+.question_options {
+  padding: 40rpx;
+  font-family: PingFangSC-Regular;
+  font-size: 36rpx;
+  color: #db10e0;
+
+  .question_option {
+    @include verticalCenter();
+
+    // height: 76rpx;
+    border: 2rpx #db10e0 solid;
+    border-radius: 10rpx;
+    padding: 14rpx 34rpx 14rpx 50rpx;
+    margin-bottom: 16rpx;
+  }
+
+  // 选中状态时样式
+  .question_option-active {
+    background: linear-gradient(90deg, #df23f1 0%, #bc0fe0 100%);
+    color: #fff;
+  }
+
+  // 被标记出错误时的样式
+  .question_option-disabled {
+    background: red;
+    border-color: red;
+    color: #fff;
+  }
+}
+.handle_wrapper {
+  display: flex;
+  box-sizing: border-box;
+  padding-left: 50rpx;
+  position: absolute;
+  left: 0;
+  bottom: 50rpx;
+  width: 100%;
+
+  color: #fff;
+  font-size: 36rpx;
+
+  .handle_solution {
+    @include verticalHorizontalCenter();
+    height: 80rpx;
+    width: 350rpx;
+    margin-left: 20rpx;
+
+    background: linear-gradient(128deg,#af0df8 0%,#e42ccb 100%,#ee32c3 100%);
+    border-radius: 60rpx;
+  }
+}
 </style>
