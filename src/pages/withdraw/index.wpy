@@ -55,7 +55,7 @@
           try {
             let checkUser = await this.checkUser()
             if (checkUser) {
-              if (this.total_bonus < 10) {
+              if (Number(this.amount) < 10) {
                 wepy.showToast({
                   title: '余额不满足提现要求',
                   icon: 'none'
