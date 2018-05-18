@@ -8,6 +8,7 @@ export default class DoctorDetectiveAPP extends wepy.app {
   config = {
     pages: [
       'pages/home/home',
+      'pages/my/index',
       'pages/rule/index',
       'pages/rank/index',
       'pages/props/index',
