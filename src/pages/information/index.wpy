@@ -52,16 +52,16 @@
   import HospitalTips from './hospitalTips'
   import DepartmentTips from './departmentTips'
 
-  import { postUserInfo, getHospital, getHospitalDepartment } from '@/utils/api'
+  import { postUserInfo, getHospital, getHospitalDepartment, getInformation } from '@/utils/api'
 
   export default class InformationPage extends wepy.page {
     config = {
       navigationBarTitleText: '填写信息'
     }
 
-    onLoad ({ pid = '', isBonus = '' }) {
-      this.pid = pid
-      this.isBonus = Boolean(isBonus)
+    async onLoad (params) {
+      let { data: { data } } = await getInformation()
+      this.initData({...params, ...data})
     }
 
     data = {
@@ -204,6 +204,16 @@
       selectJobtitle (item) {
         this.selectJobtitle = item
       }
+    }
+
+    initData (params) {
+      let { pid, isBonus, company = '', department = '', title = '' } = params
+      this.selectJobtitle = title
+      this.department = department
+      this.hospital = company
+      this.pid = pid
+      this.isBonus = Boolean(isBonus)
+      this.$apply()
     }
 
     // Promise化setTimeout
