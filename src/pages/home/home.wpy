@@ -24,7 +24,7 @@
         form(
           report-submit=true
           @submit="startAnswer")
-        button.startAnswerBtn(
+          button.startAnswerBtn(
             form-type="submit") 开始答题
         Card(
           :pid.sync="pid"
@@ -40,7 +40,8 @@
         wx:if="{{ isShowCommentBlock }}"
         :comments.sync="comments")
       Poster(
-        wx:if="{{isShowPoster}}")
+        wx:if="{{isShowPoster}}"
+        :posterSrc.sync="posterSrc")
   </template>
 
 <script>
@@ -88,6 +89,7 @@
       honor: '',                        // 级别称号
       comments: [],                     // 评论列表
       timer: null,                      // 定时器
+      posterSrc: '',                    // poster 的地址
       isShowPoster: false               // 是否显示 poster
     }
 
@@ -115,9 +117,10 @@
           this.isVideoSrc ? this.$invoke(this.$com.CaseVideo, 'initComments', this.comments) : this.$broadcast('beginBarrage', this.comments)
         }
         if (!oldValue || oldValue === 1) {
-          let { data: { show = 0 } } = await getPosterState({isNeedToken: false})
+          let { data: { show = 0, url: posterSrc } } = await getPosterState({isNeedToken: false})
           if (show && this.video.src) this.isVideoSrc = false
           this.isShowPoster = show
+          this.posterSrc = posterSrc
           this.$apply()
         }
       },
