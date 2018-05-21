@@ -2,13 +2,16 @@
   view.poster_wrapper(
       @tap="hidePoster")
       image.poster(
-        src="http://audio.geekheal.net/QA/GG/card.png")
+        src="{{posterSrc}}")
 </template>
 
 <script>
   import wepy from 'wepy'
 
   export default class PosterComponent extends wepy.component {
+    props = {
+      posterSrc: String
+    }
     methods = {
       hidePoster () {
         this.$emit('hidePoster')
