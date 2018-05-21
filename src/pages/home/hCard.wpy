@@ -1,16 +1,13 @@
 <template lang="pug">
   view.card
     view.top
-      view.rule_block
-        view.rule(
-            @tap="goRulePage")
-          text.rule_icon ?
-          text 活动规则
-        image.avatar(
-          @tap="goMyCenterPage"
-          src="{{userInfo.avatarUrl ? userInfo.avatarUrl : '../../images/avatar-default.svg'}}")
-      view.designation 级别：{{honor}}
-      view.total_score 总积分：{{total_score}} 分
+      view.rule_block(
+          @tap="goRulePage")
+        text.rule_icon ?
+        text 活动规则
+      image.avatar(
+        @tap="goMyPage"
+        src="{{userInfo.avatarUrl ? userInfo.avatarUrl : '../../images/avatar-default.svg'}}")
     view.bottom
       view.left(
         @tap="goPropsPage")
@@ -104,10 +101,9 @@
           url: `/pages/props/index`
         })
       },
-      goMyCenterPage () {
-        // 暂时没有个人中心，重定向到答案解析页面
+      goMyPage () {
         wepy.navigateTo({
-          url: `/pages/answerAnalysis/index`
+          url: `/pages/my/index?honor=${this.honor}&total_score=${this.total_score}`
         })
       },
       toggleCommentsBlock () {
@@ -133,6 +129,7 @@
   color: #9b9b9b;
 }
 .top {
+  position: relative;
   @include verticalHorizontalCenter();
   height: 194rpx;
   width: 610rpx;
@@ -142,20 +139,11 @@
 
   .rule_block {
     display: flex;
-    justify-content: space-between;
-    box-sizing: border-box;
+    align-items: center;
     position: absolute;
     top: 20rpx;
-    left: 0rpx;
-    width: 100%;
-    padding: 0 20rpx;
+    left: 10rpx;
 
-    .rule {
-      display: flex;
-      align-items: center;
-      margin-top:-25rpx;
-      box-sizing:border-box;
-    }
     .rule_icon {
       @include verticalHorizontalCenter();
       width: 24rpx;
@@ -166,11 +154,12 @@
       color: #fff;
       font-size: 24rpx;
     }
-    image {
-      height: 60rpx;
-      width: 60rpx;
-      border-radius: 50%;
-    }
+  }
+
+  .avatar {
+    width:130rpx;
+    height:130rpx;
+    border-radius:50%;
   }
 
   .designation {
