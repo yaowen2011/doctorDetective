@@ -164,6 +164,12 @@
             this.timer = null
             this.$apply()
             if (error_code === 0) {
+              let { confirm } = await wepy.showModal({
+                title: '提示',
+                content: '您的认证信息已提交审核, 通过后会立即更新您的信息',
+                showCancel: false
+              })
+              if (!confirm) return
               wepy.navigateBack({delta: 1})
             } else {
               wepy.showToast({
