@@ -21,8 +21,11 @@
           :t_label.sync="t_label"
           :expired_at.sync="expired_at"
           :bonusPool.sync="bonusPool")
+        form(
+          report-submit=true
+          @submit="startAnswer")
         button.startAnswerBtn(
-          @tap="startAnswer") 开始答题
+            form-type="submit") 开始答题
         Card(
           :pid.sync="pid"
           :card.sync="card"
@@ -122,7 +125,16 @@
 
     methods = {
       // 开始答题
-      async startAnswer () {
+      async startAnswer (event) {
+        let { detail: { formId } } = event
+        let params = {
+          method: 'POST',
+          data: {
+            formId,
+          }
+        }
+        await postFormId(params)
+
         switch (this.expired) {
           case 0:
             if (this.is_answer === 1) {
