@@ -5,7 +5,7 @@
         view.top-left-label 提现
       view.top-right
         view.wallet 到微信钱包
-        view.arrived-time 2~7个工作日到账
+        view.arrived-time 5个工作日内到账
     view.mid
       view.mid-left
         view.mid-left-label 提现金额
@@ -71,14 +71,16 @@
                 let { data: { error_code } } = await postCash(params)
                 switch (error_code) {
                   case 0:
-                    wepy.showToast({
-                      title: '提现成功！',
-                      icon: 'success'
+                    let { confirm } = await wepy.showModal({
+                      title: '提现成功',
+                      content: '5个工作日内到账',
+                      showCancel: false
                     })
-                    await this.timeout(1000)
-                    wepy.reLaunch({
-                      url: '/pages/home/home'
-                    })
+                    if (confirm) {
+                      wepy.reLaunch({
+                        url: '/pages/home/home'
+                      })
+                    }
                     break
                   case 6001:
                     wepy.showToast({
