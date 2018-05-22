@@ -61,7 +61,6 @@
       groupUserAnswer: [],            // 随机三个当前排名前20用的答案
       optionList: [],                 // 当前已答用户的每个选项的比例
       startTime: 0,
-      isShowPropsBox: false,
       isShowXbResult: false,
       isShowDrWhyResult: false
     }
@@ -265,7 +264,7 @@
               if (this.canHandleAnser) {
                 this.handleAnswer()
                 this.currentQuestion = {}
-                this.isShowPropsBox = false
+                this.$broadcast('hidePropsBox', false)
               } else {
                 wepy.showToast({
                   title: '您的答案已提交，正在处理',
@@ -300,6 +299,10 @@
       this.initData(params)
     }
 
+    onUnload () {
+      this.$invoke(this.$com.Timer, 'clearTimer')
+    }
+
     async initData (params) {
       try {
         wepy.showLoading({
@@ -313,17 +316,34 @@
         this.questions = await this.getQuestions()
         this.$apply()
         await this.getProps()
-        this.$invoke(this.$com.Timer, 'startTimer')
+        if (this.questions.length === 0) {
+          wepy.hideLoading()
+          let { confirm } = await wepy.showModal({
+            title: '获取题目失败',
+            content: '请返回重新获取题目',
+            showCancel: false
+          })
+          if (confirm) {
+            wepy.navigateBack({
+              delta: 1
+            })
+          }
+        } else {
+          this.$invoke(this.$com.Timer, 'startTimer')
+        }
       } catch (error) {
         console.log(error)
         wepy.hideLoading()
-        wepy.showToast({
-          title: '数据加载失败',
-          icon: 'none'
+        let { confirm } = await wepy.showModal({
+          title: '获取题目失败',
+          content: '请返回重新获取题目',
+          showCancel: false
         })
-        wepy.navigateBack({
-          delta: 1
-        })
+        if (confirm) {
+          wepy.navigateBack({
+            delta: 1
+          })
+        }
       }
     }
 
@@ -538,7 +558,13 @@
             pid: this.pid
           }
         }
-        let { data: { data: questions } } = await getQuestions(params)
+        let { data: { error_code, data: questions } } = await getQuestions(params)
+        if (error_code === 5002) {
+          wepy.setStorageSync('is_answer', 1)
+          wepy.navigateBack({
+            delta: 1
+          })
+        }
         let quesitonsOutStates = []
         let showOptions = ['A', 'B', 'C', 'D', 'E', 'F']
         for (let i of questions.keys()) {
