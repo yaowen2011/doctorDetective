@@ -311,7 +311,7 @@
           title: '题目加载中',
           mask: true
         })
-        let { pid = '5afa429be9c046408f375ad1', total_score = 0, total_bonus = 0 } = params
+        let { pid = '', total_score = 0, total_bonus = 0 } = params
         this.pid = pid
         this.total_score = total_score
         this.total_bonus = total_bonus
