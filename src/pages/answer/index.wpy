@@ -24,9 +24,7 @@
 
       view.handle_wrapper
         Tip
-        PropsBox(
-          :props.sync="props"
-          :isShowPropsBox.sync="isShowPropsBox")
+        PropsBox
         view.handle_solution(
           @tap="handleAnswer"
         ) 提交答案
@@ -84,14 +82,11 @@
 
     events = {
       'timeup': async () => {
-        this.isShowPropsBox = false
+        this.$broadcast('hidePropsBox', false)
         this.isShowXbResult = false
         this.isShowDrWhyResult = false
         this.currentQuestion = this.questions[this.index]
         this.handleAnswer()
-      },
-      'togglePropsBox': (state) => {
-        this.isShowPropsBox = state
       },
       'toggleXbResult': (state) => {
         this.isShowXbResult = state
@@ -379,6 +374,7 @@
           this.$apply()
         }
       })
+      this.$broadcast('updateProps', this.props)
     }
 
     // 格式化道具数据格式
