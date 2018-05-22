@@ -272,6 +272,20 @@
       }
     }
 
+    onHide () {
+      wepy.removeStorageSync('is_answer')
+    }
+
+    onShow () {
+      let is_answer = wepy.getStorageSync('is_answer')
+      if (is_answer.length !== 0 && is_answer === 1) {
+        wepy.showToast({
+          title: '您已答过题啦',
+          icon: 'none'
+        })
+      }
+    }
+
     onShareAppMessage (options) {
       let { share_uid = '' } = { share_uid: wepy.getStorageSync('uid') }
       return {
