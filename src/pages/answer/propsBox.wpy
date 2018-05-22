@@ -27,19 +27,19 @@
   import wepy from 'wepy'
 
   export default class PropsBoxComponent extends wepy.component {
-    props = {
-      isShowPropsBox: {
-        type: Boolean,
-        default: false
-      },
-      props: {
-        type: Array,
-        default: []
-      },
-    }
-
     data = {
       startTime: 0,
+      props: [],
+      isShowPropsBox: false,
+    }
+
+    events = {
+      'updateProps': (props) => {
+        this.props = props
+      },
+      'hidePropsBox': (params) => {
+        this.isShowPropsBox = params
+      },
     }
 
     methods = {
@@ -50,7 +50,7 @@
         this.throttling(fn, 300)
       },
       togglePropsBox () {
-        this.$emit('togglePropsBox', !this.isShowPropsBox)
+        this.isShowPropsBox = !this.isShowPropsBox
       }
     }
 
