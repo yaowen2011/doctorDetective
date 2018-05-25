@@ -11,6 +11,7 @@ export default class DoctorDetectiveAPP extends wepy.app {
       'pages/my/index',
       'pages/rule/index',
       'pages/rank/index',
+      'pages/guess/index',
       'pages/props/index',
       'pages/bonus/index',
       'pages/answer/index',
