@@ -1,0 +1,366 @@
+<template lang="pug">
+  scroll-view.container(
+    scroll-y)
+    view.profile_block
+      view
+        text 第
+        text.unit {{index}}
+        text 题
+      image.avatar(
+        lazy-load
+        src="{{userInfo.avatarUrl ? userInfo.avatarUrl : '/images/avatar-default.svg'}}")
+      view
+        text.gold 金币：
+        text.unit.gold_unit {{gold}}
+    view.image_block
+      image.tip_image(
+        lazy-load
+        mode="scaleToFill"
+        src="{{tipImage}}")
+      view.drug_block
+        block(
+          wx:for="{{aEnterCharacter}}"
+          wx:key="{{index}}")
+          view.character(
+            class="{{drugJudgedState === 'default' ? '' : drugJudgedState ? 'character_right' : 'character_wrong'}}"
+            @tap="cancelCharacter({{item}}, {{index}})") {{item ? item : ''}}
+    view.waitingcharacter_block
+      block(
+        wx:for="{{aWaitingCharacter}}"
+        wx:key="{{index}}")
+        view.waitingcharacter(
+          class="{{item.isActive ? 'waitingcharacter_active' : ''}}"
+          @tap="chooseCharacter({{item}}, {{index}})") {{item.content}}
+    view.tips_block
+      block(
+        wx:for="{{tips}}"
+        wx:key="{{index}}")
+        view.tip(
+          wx:if="{{item.isShow}}"
+          class="{{item.isActive ? 'tip_active' : ''}}"
+          @tap="useTips({{item}}, {{index}})") {{item.isActive ? item.clue : item.tip}}
+</template>
+
+<script>
+import wepy from 'wepy'
+import { postGuess, postTips, postDrug } from '@/utils/api'
+
+export default class GuessPage extends wepy.page {
+  config = {
+    navigationBarTitleText: '我药猜猜看'
+  }
+
+  data = {
+    userInfo: {},                                     // 用户信息
+    guessId: '',                                      // 要猜药品名的 ID
+    index: 1,                                         // 题的索引
+    tips: [],                                         // 提示线索
+    gold: 0,                                          // 用户所拥有的金币
+    tipImage: '',                                     // 药品提示图片
+    drugLen: 0,                                       // 药品名长度
+    aChooseCharacter: [],                             // 存储在待选字符区域选中的字符
+    aEnterCharacter: [],                              // 显示选中字符组合的药品名
+    aWaitingCharacter: [],                            // 待选字符
+    drugJudgedState: 'default',                       // 药品名判断状态, default(默认未提交判断)、true(正确)、false(错误)
+  }
+
+  watch = {
+    /**
+     * 监测选中字符数组变化
+     * @param newValue {Array} 变动后的选中字符数组
+     */
+    async aChooseCharacter(newValue) {
+      let len = newValue.length
+      if (len !== this.drugLen) return
+      let answer = ''
+      this.aEnterCharacter.forEach(item => {
+        answer += item
+      })
+      let params = {
+        method: 'POST',
+        data: {
+          index: this.index,
+          answer: answer
+        }
+      }
+      let { data: { data: { result } } } = await postDrug(params)
+      if (result) {
+        this.drugJudgedState = true
+        this.$apply()
+        await wepy.showToast({
+          title: '答对啦！',
+          icon: 'none'
+        })
+        this.initData()
+      } else {
+        this.drugJudgedState = false
+        this.$apply()
+        await wepy.showToast({
+          title: '答错了',
+          icon: 'none'
+        })
+      }
+    },
+  }
+
+  onLoad () {
+    this.initData()
+  }
+
+  methods = {
+    /**
+    * 更改药品名
+    * @param character {String} 药品名中的某个字
+    * @param cancleIndex {Number} 要更改某个字对应的索引
+    */
+    cancelCharacter(character, cancleIndex) {
+      if (!character) return
+      this.aEnterCharacter[cancleIndex] = ''
+      this.aChooseCharacter.pop()
+      this.aWaitingCharacter.forEach((item, index) => {
+        if (item.content === character) this.aWaitingCharacter[index].isActive = false
+      })
+    },
+
+    /**
+    * 从待选字列表中选出一个字，组合成药品名
+    * @param chooseItem {Object} 待选字列表中选中的字对象
+    * @param chooseIndex {Number} 待选字列表中选中字的索引
+    */
+    chooseCharacter(chooseItem, chooseIndex = 0) {
+      let { content, isActive } = chooseItem
+      let len = this.aChooseCharacter.length
+      let index = this.aEnterCharacter.indexOf('')
+      if (isActive || len >= this.drugLen) return
+      this.aChooseCharacter.push(content)
+      this.aEnterCharacter[index] = content
+      this.aWaitingCharacter[chooseIndex].isActive = true
+    },
+
+    /**
+     * 使用提示线索
+     * @param tip {Object} 提示线索对象
+     * @param tipIndex {Number} 提示线索对应的索引
+     */
+    async useTips(tip, tipIndex) {
+      if (tip.isActive) return
+      let { data: { error_code } } = await postTips({ method: 'POST', data: { index: this.index } })
+      if (error_code) return
+      let len = this.tips.length
+      if (tipIndex + 1 <= len - 1) this.tips[tipIndex + 1].isShow = true
+      this.tips[tipIndex].isActive = true
+      this.$apply()
+    },
+  }
+
+  /**
+  * 初始化页面数据
+  */
+  async initData () {
+    let { data: { guess: { _id: guessId, pic_url: tipImage, tips }, log: { index, gold }, option: { len, option } } } = await postGuess({ method: 'POST' })
+    this.userInfo = wepy.getStorageSync('userInfo')
+    this.drugJudgedState = 'default'
+    this.guessId = guessId
+    this.tipImage = tipImage
+    this.index = index
+    this.gold = gold
+    this.drugLen = len
+    this.aEnterCharacter = [...Array(len).fill('')]
+    this.tips = tips.map((item, index) => {
+      return {
+        clue: item,
+        isActive: false,
+        isShow: index === 0 ? true : false,
+        tip: `线索${index + 1}`
+      }
+    })
+    this.aWaitingCharacter = option.map(item => {
+      return { content: item, isActive: false }
+    })
+    this.$apply()
+  }
+}
+</script>
+
+<style lang="scss">
+@import '../../scss/_element.scss';
+@import '../../scss/_layout.scss';
+
+page {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  background: linear-gradient(to bottom right, #3023AE, #C86DD7 );
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 290rpx;
+    right: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 9;
+    background: #ededed;
+  }
+}
+
+.container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 99;
+
+
+  .profile_block {
+    margin: 30rpx auto 0 auto;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-sizing: border-box;
+    width: 670rpx;
+    height: 130rpx;
+    padding: 0 30rpx;
+    background: #fff;
+    border-radius: 12rpx;
+    position: relative;
+
+    font-family: PingFangSC-Medium;
+    font-size: 36rpx;
+    color: #4a4a4a;
+
+    .avatar {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      margin-left: -50rpx;
+      margin-top: -50rpx;
+      width: 100rpx;
+      height: 100rpx;
+      border-radius: 50%;
+    }
+
+    .unit {
+      color: #f5a623;
+    }
+
+    .gold {
+      font-family: PingFangSC-Regular;
+      font-size: 24rpx;
+      color: #464f51;
+    }
+
+    .gold_unit {
+      font-size: 40rpx;
+    }
+  }
+
+  .image_block {
+    margin: 10rpx auto 60rpx auto;
+
+    @include verticalHorizontalCenter();
+    box-sizing: border-box;
+    width: 670rpx;
+    height: 520rpx;
+
+    position: relative;
+    border-radius: 10rpx;
+    background-image: linear-gradient(136deg,#ffd643 0%,#f7c136 54%,#ffaf00 100%);
+
+    .tip_image {
+      width: 100%;
+      height: 100%;
+      border-radius: 10rpx;
+    }
+
+    .drug_block {
+      display: flex;
+      justify-content: center;
+      width: 100%;
+      height: 90rpx;
+      position: absolute;
+      bottom: -45rpx;
+      left: 0;
+      font-family: PingFangSC-Medium;
+      font-size: 48rpx;
+      color: #74746b;
+
+      .character {
+        @include verticalHorizontalCenter();
+        width: 90rpx;
+        height: 90rpx;
+        border-radius: 6rpx;
+        background: #fff;
+        border: 2rpx solid #e2e2e2;
+        margin-right: 10rpx;
+        box-shadow: inset 0 0 10rpx 0 rgba(155, 155, 155, 0.8);
+      }
+
+      .character_wrong {
+        border-color: #ff0a0a;
+        box-shadow: inset 0 0 10rpx 0 rgba(255, 10, 10, 0.8);
+      }
+
+      .character_right {
+        border-color: #25be4e;
+        box-shadow: inset 0 0 10rpx 0 rgba(37, 190, 78, 0.8);
+      }
+    }
+  }
+
+  .waitingcharacter_block {
+    margin: 0 auto;
+
+    width: 630rpx;
+    display: flex;
+    flex-wrap: wrap;
+    font-family: PingFangSC-Medium;
+    font-size: 36rpx;
+    color: #fff;
+
+    .waitingcharacter {
+      @include verticalHorizontalCenter();
+      box-sizing: border-box;
+      width: 70rpx;
+      height: 70rpx;
+      background-color: #ffd347;
+      border-radius: 6rpx;
+      border: 2rpx solid #f5a523;
+      margin: 0 10rpx 10rpx 0;
+    }
+
+    .waitingcharacter:nth-child(8n) {
+      margin-right: 0;
+    }
+
+    .waitingcharacter_active {
+      background: #fff;
+      color: #f5a623;
+    }
+  }
+
+  .tips_block {
+    margin: 0 auto;
+    width: 630rpx;
+
+    .tip {
+      @include verticalHorizontalCenter();
+      width: 630rpx;
+      height: 50rpx;
+      border-radius: 6rpx;
+      background: #9b9b9b;
+      font-family: PingFangSC-Regular;
+      font-size: 24rpx;
+      color: fff;
+      margin-bottom: 10rpx;
+    }
+
+    .tip_active {
+      color: #4a4a4a;
+      background: #fff;
+    }
+  }
+}
+</style>
