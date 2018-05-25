@@ -8,6 +8,7 @@
       image.avatar(
         @tap="goMyPage"
         src="{{userInfo.avatarUrl ? userInfo.avatarUrl : '../../images/avatar-default.svg'}}")
+      GuessCapsule
     view.bottom
       view.left(
         @tap="goPropsPage")
@@ -39,6 +40,7 @@
   import wepy from 'wepy'
   import Panel from '@/components/panel'
   import Btn from '@/components/btn'
+  import GuessCapsule from './guessCapsule'
 
   export default class CardComponent extends wepy.component {
     props = {
@@ -74,6 +76,7 @@
 
     components = {
       Panel,
+      GuessCapsule,
       Btn
     }
 
