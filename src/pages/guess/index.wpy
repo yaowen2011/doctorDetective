@@ -43,7 +43,11 @@
 
 <script>
 import wepy from 'wepy'
-import { postGuess, postTips, postDrug } from '@/utils/api'
+import {
+  postGuess,
+  postTips,
+  postDrug,
+} from '@/utils/api'
 
 export default class GuessPage extends wepy.page {
   config = {
@@ -62,6 +66,7 @@ export default class GuessPage extends wepy.page {
     aEnterCharacter: [],                              // 显示选中字符组合的药品名
     aWaitingCharacter: [],                            // 待选字符
     drugJudgedState: 'default',                       // 药品名判断状态, default(默认未提交判断)、true(正确)、false(错误)
+    startTime: 0,                                     // 时间标志符
   }
 
   watch = {
@@ -70,8 +75,8 @@ export default class GuessPage extends wepy.page {
      * @param newValue {Array} 变动后的选中字符数组
      */
     async aChooseCharacter(newValue) {
-      let len = newValue.length
-      if (len !== this.drugLen) return
+      this.drugJudgedState = 'default'
+      if (newValue.length !== this.drugLen) return
       let answer = ''
       this.aEnterCharacter.forEach(item => {
         answer += item
@@ -88,7 +93,7 @@ export default class GuessPage extends wepy.page {
         this.drugJudgedState = true
         this.$apply()
         await wepy.showToast({
-          title: '答对啦！',
+          title: '答对啦！金币 +20',
           icon: 'none'
         })
         this.initData()
@@ -143,13 +148,24 @@ export default class GuessPage extends wepy.page {
      * @param tipIndex {Number} 提示线索对应的索引
      */
     async useTips(tip, tipIndex) {
-      if (tip.isActive) return
-      let { data: { error_code } } = await postTips({ method: 'POST', data: { index: this.index } })
-      if (error_code) return
-      let len = this.tips.length
-      if (tipIndex + 1 <= len - 1) this.tips[tipIndex + 1].isShow = true
-      this.tips[tipIndex].isActive = true
-      this.$apply()
+      const fn = async () => {
+        if (tip.isActive) return
+
+        let len = this.tips.length
+        let { data: { error_code } } = await postTips({ method: 'POST', data: { index: this.index } })
+
+        if (error_code) return
+
+        if (tipIndex + 1 <= len - 1) this.tips[tipIndex + 1].isShow = true
+        this.tips[tipIndex].isActive = true
+        this.gold -= 5
+        this.$apply()
+        wepy.showToast({
+          title: '金币 -5',
+          icon: 'none'
+        })
+      }
+      this.throttling(fn, 300)
     },
   }
 
@@ -160,6 +176,7 @@ export default class GuessPage extends wepy.page {
     let { data: { guess: { _id: guessId, pic_url: tipImage, tips }, log: { index, gold }, option: { len, option } } } = await postGuess({ method: 'POST' })
     this.userInfo = wepy.getStorageSync('userInfo')
     this.drugJudgedState = 'default'
+    this.aChooseCharacter = []
     this.guessId = guessId
     this.tipImage = tipImage
     this.index = index
@@ -178,6 +195,28 @@ export default class GuessPage extends wepy.page {
       return { content: item, isActive: false }
     })
     this.$apply()
+  }
+
+  /**
+   * 函数节流
+   * @param fn {Function} 要进行节流的函数
+   * @param ms {Number} 在 ms 秒内最多执行一次
+   */
+  throttling (fn, ms = 1000) {
+    let curTime = +new Date()
+    if (!this.startTime) {
+      this.startTime = curTime
+      fn()
+    }
+    if (curTime - this.startTime > ms) {
+      this.startTime = curTime
+      fn()
+    } else if (this.startTime !== curTime) {
+      wepy.showToast({
+        title: '你点击的太快了',
+        icon: 'none'
+      })
+    }
   }
 }
 </script>
