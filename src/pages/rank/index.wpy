@@ -7,7 +7,7 @@
       @animationfinish="animationfinish")
       swiper-item.swiper_item
         view.card_wrapper(
-          class="{{isScale ? 'not_scale' : 'scale'}}")
+          class="{{current === 0 ? 'not_scale' : 'scale'}}")
           view.rank_person_top3
             block(
               wx:for="{{personalListTopThree}}"
@@ -48,7 +48,7 @@
                   text.unit 分
       swiper-item.swiper_item
         view.card_wrapper(
-          class="{{isScale ? 'scale' : 'not_scale'}}")
+          class="{{current === 1 ? 'not_scale' : 'scale'}}")
           scroll-view.rank_list.rank_list_hp(
             scroll-y)
             repeat(
@@ -62,11 +62,29 @@
                 view.rank_item-right
                   text.score {{item.score}}
                   text.unit 分
-  </template>
+      swiper-item.swiper_item
+        view.card_wrapper(
+          class="{{current === 2 ? 'not_scale' : 'scale'}}")
+          scroll-view.rank_list.rank_list_hp(
+            scroll-y)
+            repeat(
+              for="{{goldList}}"
+              key="index")
+              view.rank_item
+                view.rank_item-left
+                  view.number
+                    view.medal_placeholder {{index > 2 ? index + 1 + '.' : index + 1}}
+                  image.avatar(
+                    src="{{item.user.avatarUrl ? item.user.avatarUrl : '../../images/avatar-default.svg'}}")
+                  view.hp_name {{item.user.nickName}}
+                view.rank_item-right.gold_item-right
+                  text.score {{item.gold}}
+                  text.unit 金币
+</template>
 
 <script>
   import wepy from 'wepy'
-  import { postPersonalRank, postHospitalRank } from '@/utils/api'
+  import { postPersonalRank, postHospitalRank, postGuessRank } from '@/utils/api'
 
   export default class RankPage extends wepy.page {
     config = {
@@ -75,7 +93,6 @@
 
     data = {
       pid: '',
-      isScale: true,
       current: 0,
       personalListTopThree: [],
       personalSort: 0,                 // 当前个人排名
@@ -83,18 +100,13 @@
       avatarUrl: '',                   // 当前用户头像
       hpList: [],                      // 医院排名列表
       hpSort: 0,                       // 个人所在机构排名
+      goldList: [],                    // 金币排行列表
     }
 
     methods = {
       change (e) {
         let { current } = e.detail
-        if (current > this.current) {
-          this.current = current
-          this.isScale = false
-        } else {
-          this.current = current
-          this.isScale = true
-        }
+        this.current = current
       },
       animationfinish () {}
     }
@@ -106,6 +118,7 @@
           method: 'POST',
           data: { pid }
         }
+
         let { data: { sort, list: { data: list } } } = await postPersonalRank(params)
         this.personalListTopThree = list.slice(0, 3).map((item, index) => {
           item.crownSrc = `../../images/crown${index + 1}.svg`
@@ -113,9 +126,14 @@
         })
         this.personalList = list
         this.personalSort = sort
+
         let { data: { my_hp, hp: { data: hpList } } } = await postHospitalRank(params)
         this.hpList = hpList
         this.hpSort = my_hp
+
+        let { data: { list: goldList } } = await postGuessRank({ method: 'POST' })
+        this.goldList = goldList
+
         this.$apply()
       } catch (error) {
         wepy.showToast({
@@ -425,6 +443,13 @@ page,
     padding: 0 20rpx 0 40rpx;
     border-bottom: 2rpx solid #f0f0f0;
 
+    .avatar {
+      width:60rpx;
+      height:60rpx;
+      border-radius:50%;
+      margin-right:20rpx;
+    }
+
     .number,
     .score {
       font-family: DINAlternate-Bold;
@@ -505,5 +530,12 @@ page,
     border-radius: 50%;
     margin-right: 20rpx;
   }
+}
+
+.gold_item-right {
+  position: absolute;
+  top: 50%;
+  right: 20rpx;
+  transform: translate(0, -50%);
 }
 </style>
