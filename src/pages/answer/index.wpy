@@ -46,7 +46,6 @@
 
   import { getQuestions, postAnswer, getProps, postProp, postUserAnswer } from '@/utils/api'
   import md5 from 'blueimp-md5'
-  import { transformObject } from '@/utils/utils'
   export default class AnswerPage extends wepy.page {
     data = {
       lastOutIndex: 0,                // 最后一个淘汰题的索引
@@ -572,7 +571,7 @@
           for (let j of questions[i].choice.keys()) {
             choice.push(questions[i].choice[j])
           }
-          choice = this.shuffle(choice.map(item => transformObject(item)))
+          choice = this.shuffle(choice.map(item => this.formatChoiceItem(item)))
 
           for (let [k, item] of choice.entries()) {
             item.showOption = showOptions[k]
@@ -589,6 +588,16 @@
       } catch (error) {
 
       }
+    }
+
+    formatChoiceItem (choice) {
+      let newChoice = {}
+      let aKeys = Object.keys(choice)
+      for (let i = 0; i < aKeys.length; i++) {
+        newChoice.option = aKeys[i]
+        newChoice.content = choice[aKeys[i]]
+      }
+      return newChoice
     }
 
     // 处理答题响应
