@@ -27,7 +27,6 @@
 import wepy from 'wepy'
 
 import { postAnswerAnalysis } from '@/utils/api'
-import { transformObject } from '@/utils/utils'
 export default class AnswerAnalysisPage extends wepy.page {
   data = {
     questions: []
@@ -46,7 +45,7 @@ export default class AnswerAnalysisPage extends wepy.page {
   formatQuestions (questions) {
     for (let [i, question] of questions.entries()) {
       for (let [j, choice] of question.choice.entries()) {
-        choice = transformObject(choice)
+        choice = this.formatChoiceItem(choice)
         choice.isAnswer = false
         question.answer.toUpperCase().split('').forEach(item => {
           if (item === choice.option) choice.isAnswer = true
@@ -55,6 +54,16 @@ export default class AnswerAnalysisPage extends wepy.page {
       }
     }
     return questions
+  }
+
+  formatChoiceItem (choice) {
+    let newChoice = {}
+    let aKeys = Object.keys(choice)
+    for (let i = 0; i < aKeys.length; i++) {
+      newChoice.option = aKeys[i]
+      newChoice.content = choice[aKeys[i]]
+    }
+    return newChoice
   }
 }
 </script>
