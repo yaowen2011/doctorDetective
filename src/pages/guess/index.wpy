@@ -174,7 +174,8 @@ export default class GuessPage extends wepy.page {
   */
   async initData () {
     let { data: { error_code, guess: { _id: guessId, pic_url: tipImage, tips }, log: { index, gold }, option: { len, option }, tips: usedTipCount } } = await postGuess({ method: 'POST' })
-    if (this.guessFinished(error_code)) return
+    let isFinished = await this.guessFinished(error_code)
+    if (isFinished) return
     this.userInfo = wepy.getStorageSync('userInfo')
     this.drugJudgedState = 'default'
     this.aChooseCharacter = []
