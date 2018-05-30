@@ -173,7 +173,8 @@ export default class GuessPage extends wepy.page {
   * 初始化页面数据
   */
   async initData () {
-    let { data: { guess: { _id: guessId, pic_url: tipImage, tips }, log: { index, gold }, option: { len, option } } } = await postGuess({ method: 'POST' })
+    let { data: { error_code, guess: { _id: guessId, pic_url: tipImage, tips }, log: { index, gold }, option: { len, option }, tips: usedTipCount } } = await postGuess({ method: 'POST' })
+    if (this.guessFinished(error_code)) return
     this.userInfo = wepy.getStorageSync('userInfo')
     this.drugJudgedState = 'default'
     this.aChooseCharacter = []
@@ -183,7 +184,44 @@ export default class GuessPage extends wepy.page {
     this.gold = gold
     this.drugLen = len
     this.aEnterCharacter = [...Array(len).fill('')]
-    this.tips = tips.map((item, index) => {
+    this.tips = this.formatTips(tips, usedTipCount)
+    this.aWaitingCharacter = option.map(item => {
+      return { content: item, isActive: false }
+    })
+    this.$apply()
+  }
+
+  /**
+  * 猜完所有的药名
+  * @param error_code {Number}
+  * @return true/false 是否通关
+  */
+  async guessFinished(error_code) {
+    if (error_code === 4004) {
+      let { confirm } = await wepy.showModal({
+        title: '恭喜！',
+        content: '你已经通关啦，快去排行榜查看排名吧',
+        showCancel: false
+      })
+      if (confirm) {
+        wepy.redirectTo({
+          url: `/pages/home/home`
+        })
+      }
+      return true
+    } else {
+      return false
+    }
+  }
+
+  /**
+  * 处理提示线索数据
+  * @param tips {Array} 当前题提示线索原始数据
+  * @param usedTipCount {Number} 当前题已使用提示线索的数量
+  * @return tipsMap {Array} 返回处理后的提示线索
+  */
+  formatTips (tips, usedTipCount) {
+    let tipsMap = tips.map((item, index) => {
       return {
         clue: item,
         isActive: false,
@@ -191,10 +229,21 @@ export default class GuessPage extends wepy.page {
         tip: `线索${index + 1}`
       }
     })
-    this.aWaitingCharacter = option.map(item => {
-      return { content: item, isActive: false }
+    tipsMap.forEach((item, index) => {
+      if (index < usedTipCount) {
+        item.isShow = true
+      } else {
+        tips.isShow = false
+      }
+
+      if (usedTipCount && index < usedTipCount) {
+        item.isActive = true
+        if (index + 1 < tips.length) {
+          tipsMap[index + 1].isShow = true
+        }
+      }
     })
-    this.$apply()
+    return tipsMap
   }
 
   /**
@@ -387,7 +436,8 @@ page {
     .tip {
       @include verticalHorizontalCenter();
       width: 630rpx;
-      height: 50rpx;
+      min-height: 50rpx;
+      padding: 8rpx 12rpx;
       border-radius: 6rpx;
       background: #9b9b9b;
       font-family: PingFangSC-Regular;
