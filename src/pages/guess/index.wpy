@@ -24,6 +24,8 @@
           view.character(
             class="{{drugJudgedState === 'default' ? '' : drugJudgedState ? 'character_right' : 'character_wrong'}}"
             @tap="cancelCharacter({{item}}, {{index}})") {{item ? item : ''}}
+      view.rank_btn(
+        @tap="goRankPage") 排行榜
     view.waitingcharacter_block
       block(
         wx:for="{{aWaitingCharacter}}"
@@ -112,7 +114,33 @@ export default class GuessPage extends wepy.page {
     this.initData()
   }
 
+  onShareAppMessage (options) {
+    return {
+      title: '这个看图猜药名太有趣了，赶快来试试吧~',
+      path: `/pages/home/home`,
+      success: () => {
+        wepy.showToast({
+          title: '分享成功',
+          icon: 'none'
+        })
+      },
+      fail: () => {
+        wepy.showToast({
+          title: '分享失败',
+          icon: 'none'
+        })
+      }
+    }
+  }
+
   methods = {
+    // 跳转到排行榜页面
+    goRankPage() {
+      let pid = wepy.getStorageSync('pid')
+      wepy.navigateTo({
+        url: `/pages/rank/index?pid=${pid}`
+      })
+    },
     /**
     * 更改药品名
     * @param character {String} 药品名中的某个字
@@ -396,6 +424,25 @@ page {
         border-color: #25be4e;
         box-shadow: inset 0 0 10rpx 0 rgba(37, 190, 78, 0.8);
       }
+    }
+
+    .rank_btn {
+      position: absolute;
+      top: 100rpx;
+      left: -40rpx;
+      @include verticalHorizontalCenter();
+      width: 112rpx;
+      height: 64rpx;
+      background-image: linear-gradient(138deg,
+        #af0df8 0%,
+        #e42ccb 100%,
+        #ee32c3 100%);
+      border-radius: 0 60rpx 60rpx 0;
+      border: solid 2rpx #ffffff;
+      border-left: 0;
+      font-family: PingFangSC-Regular;
+      font-size: 24rpx;
+      color: #fff;
     }
   }
 
