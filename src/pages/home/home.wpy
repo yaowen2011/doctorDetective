@@ -440,6 +440,7 @@
       this.honor = honor
       this.t_label = t_label
       this.$apply()
+      wepy.setStorageSync('pid', pid)
       wepy.setStorageSync('uid', uid)
       wepy.setStorageSync('userInfo', userInfo)
     }
