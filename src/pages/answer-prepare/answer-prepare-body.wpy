@@ -1,0 +1,334 @@
+<template lang="pug">
+  view.answer-prepare
+    view.answer-prepare-main
+      view.answer-prepare-main__start-time
+        text {{t_label}}
+        text.time {{expired_at}}
+      navigator.answer-prepare-main__rule(
+        hover-class="none"
+        url="/pages/rule/index"
+      )
+        text.rule-icon ?
+        text 活动规则
+      navigator.answer-prepare-main__avatar(
+        url="/pages/my/index"
+        hover-class="none"
+      )
+        image.avatar(
+          src="{{userInfo.avatarUrl ? userInfo.avatarUrl : '/images/avatar-default.svg'}}"
+        )
+        text.nickname {{userInfo.nickName}}
+      form.answer-prepare-main__form(
+        report-submit=true
+        @submit="startAnswer")
+        view.form-shadow
+        button.answer-prepare-main-form__btn(
+          form-type="submit")
+          text {{(is_answer || expired) ? '预约下次答题' : '开始答题'}}
+    view.answer-prepare__operate
+      button.comment-btn(
+        @tap="toggleComment"
+      )
+        text.text 参与热评
+        image.comment-icon(
+          src="/images/prepare-comment.svg"
+        )
+      navigator.rank-btn(
+        url="/pages/rank/index"
+      )
+        text.text 查看排行
+        image.rank-icon(
+          src="/images/prepare-rank.svg"
+        )
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import {
+    postFormId,
+  } from '@/utils/api'
+
+  import { connect } from 'wepy-redux'
+  import { fetchUserData } from '@/store/actions/user-data'
+
+  @connect({
+    pid (state) {
+      return state.userData.pid
+    },
+    t_label (state) {
+      return state.userData.t_label
+    },
+    expired_at (state) {
+      return state.userData.expired_at
+    },
+    total_bonus (state) {
+      return state.userData.bonus
+    },
+    total_score (state) {
+      return state.userData.score
+    },
+    is_answer (state) {
+      return state.userData.is_answer
+    },
+    expired (state) {
+      return state.userData.expired
+    },
+    userInfo (state) {
+      return state.userData.userInfo
+    }
+  }, {
+    fetchUserData
+  })
+
+  export default class PrepareAnswerBodyComponent extends wepy.component {
+    methods = {
+      async startAnswer (event) {
+        await this.collectFormId(event)
+
+        if (this.expired) {
+          wepy.showModal({
+            title: '本期答题已结束',
+            content: '成功预约下期答题',
+            showCancel: false
+          })
+          return
+        }
+
+        if (!this.expired && this.is_answer) {
+          wepy.showModal({
+            title: '已参与过本期答题',
+            content: '成功预约下期答题',
+            showCancel: false
+          })
+          return
+        }
+
+        let modal = await wepy.showModal({
+          title: '提示',
+          content: '开始答题后，一旦中途退出，则成绩无效(详情请查看活动规则)。'
+        })
+        if (!modal.confirm) return
+        wepy.navigateTo({
+          url: `/pages/answer/index`
+        })
+      },
+      toggleComment () {
+        this.$emit('toggleComment', true)
+      }
+    }
+
+    // 收集 FormId
+    collectFormId (event) {
+      let { detail: { formId } } = event
+      let params = {
+        method: 'POST',
+        data: {
+          formId,
+        }
+      }
+      if (this.is_answer || this.expired) params.data.reserve = 1
+      postFormId(params)
+    }
+  }
+</script>
+
+<style lang="scss">
+@import '../../scss/_base.scss';
+
+.answer-prepare {
+  position: absolute;
+  top: to(210);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  width: inherit;
+
+  color: #1480ff;
+
+  &__operate {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    box-sizing: border-box;
+
+    width: to(355);
+  }
+}
+
+.answer-prepare-main {
+  position: relative;
+  box-sizing: border-box;
+
+  width: to(355);
+	height: to(248);
+	border-radius: to(3);
+  padding: to(15);
+  margin: to(15) 0 to(9) 0;
+
+	background-image: linear-gradient(135deg,
+  #ffffff 0%,
+  #ffffff 57%,
+  #effcff 100%);
+
+  &__start-time {
+    position: absolute;
+    top: to(13);
+    left: to(15);
+    display: flex;
+    flex-direction: column;
+
+    font: to(12) PingFangSC-Semibold;
+
+    .time {
+      display: inline-flex;
+      font: PingFangSC-Regular;
+    }
+  }
+
+  &__rule {
+    position: absolute;
+    top: to(13);
+    right: to(15);
+    display: flex;
+    align-items: center;
+
+    font: to(12) PingFangSC-Regular;
+
+    .rule-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+
+      width: to(18);
+      height: to(18);
+      border-radius: 50%;
+      margin-right: to(5);
+
+      font: to(13) PingFangSC-Semibold;
+      color: #fff;
+
+      background: #1480ff;
+    }
+  }
+
+  &__avatar {
+    position: absolute;
+    top: to(40);
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    font: to(18) PingFangSC-Medium;
+    color: #4a4a4a;
+
+    .avatar {
+      width: to(80);
+      height: to(80);
+      border-radius: 50%;
+    }
+
+    .nickname {
+      text-align: center;
+    }
+  }
+
+  &__form {
+    position: absolute;
+    left: 50%;
+    bottom: to(19);
+    transform: translateX(-50%);
+
+    .form-shadow {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+
+      width: to(230);
+      height: to(30);
+      border-radius: to(100);
+
+      box-shadow: 0 to(15) to(15) 0 rgba(19, 128, 255, 0.6);
+    }
+
+    .answer-prepare-main-form__btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      margin: 0;
+      padding: 0;
+      width: to(255);
+      height: to(50);
+      border-radius: to(100);
+      border: solid 1px rgba(255, 255, 255, 0.2);
+
+      font: to(20) PingFangSC-Semibold;
+      color: #fff;
+
+      background: linear-gradient(135deg,
+      #02cefd 0%,
+      #1380ff 100%);
+    }
+  }
+}
+
+.comment-btn,
+.rank-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+
+  width: to(173);
+  height: to(65);
+  padding: 0 to(15);
+  border-radius: to(3);
+  margin: 0;
+
+  background: linear-gradient(135deg,
+  #ffffff 0%,
+  #ffffff 51%,
+  #effcff 100%);
+
+  .text {
+    display: inline-block;
+    width: to(28);
+
+    font: to(14) PingFangSC-Medium;
+    color: #1480ff;
+  }
+
+  .comment-icon {
+    position: absolute;
+    top: to(6);
+    right: to(20);
+
+    width: to(67);
+    height: to(53);
+  }
+
+  .rank-icon {
+    position: absolute;
+    top: to(10);
+    right: to(20);
+
+    width: to(64);
+    height: to(55);
+  }
+}
+
+.answer-form__btn {
+  justify-content: center;
+
+  width: to(325);
+  height: to(90);
+  margin-bottom: to(15);
+}
+</style>

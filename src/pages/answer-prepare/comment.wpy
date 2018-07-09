@@ -1,0 +1,293 @@
+<template lang="pug">
+  view.comment
+    view.comment__model(
+      @tap="toggleComment")
+    view.comment__main(
+      @tap="toggleCommentEdit(false)")
+      view.comment_close_wrapper(
+        @tap="toggleComment")
+        view.comment_close x
+      scroll-view.scroll_view(
+        scroll-y)
+        block(
+          wx:for="{{ comments }}"
+          wx:key="{{ key }}")
+          view.comment_item
+            view.comment_user
+              image(
+                class="avatar"
+                src="{{item.user.avatar_url}}")
+              view.nickName  {{item.user.nickname}}
+            view.comment_content
+              view {{item.text}}
+            view.comment_time
+              view {{item.created_at}}
+    view.comment__edit(
+      wx:if="{{ isEditComment }}")
+      view
+        input(
+          class="comment_input"
+          placeholder="优质的评论将会被优先显示"
+          placeholder-class="comment_placeholder"
+          cursor-spacing="20"
+          maxlength=140
+          focus="{{ isInputFocus }}"
+          @input="getInputValue"
+          value="{{ inputValue }}")
+      view(
+        @tap="submitComment") 发布
+    view.comment__edit(
+      wx:else
+      @tap="toggleCommentEdit(true)")
+      view.comment-tip
+        image(
+          class="edit_icon"
+          src="../../images/edit.svg")
+        text 写评论
+      view.comment-count
+        image(
+          class="comment_icon"
+          src="../../images/comment.svg")
+        text {{comments.length}}
+</template>
+
+<script>
+  import wepy from 'wepy'
+
+  export default class CommentComponent extends wepy.component {
+    props = {
+      comments: {
+        type: Array,
+        default: []
+      }
+    }
+
+    data = {
+      isEditComment: false,                // 显示编写评论
+      isInputFocus: false,                 // 评论框是否获取焦点
+      inputValue: ''                       // 评论内容
+    }
+
+    methods = {
+      // 显示/隐藏编辑评论模块
+      toggleCommentEdit (params) {
+        switch (params) {
+          case 'true':
+            this.isEditComment = true
+            this.isInputFocus = true
+            break
+          case 'false':
+            this.isEditComment = false
+            this.isInputFocus = false
+        }
+      },
+      // 获取输入框输入的内容
+      getInputValue (e) {
+        this.inputValue = e.detail.value.trim()
+      },
+      // 提交评论内容
+      submitComment () {
+        this.isInputFocus = false
+        if (this.inputValue) {
+          this.$emit('submitComment', this.inputValue)
+          this.inputValue = ''
+        } else {
+          wepy.showToast({
+            title: '发布内容不能为空',
+            icon: 'none'
+          })
+        }
+      },
+      // 隐藏评论模块
+      toggleComment () {
+        this.$emit('toggleComment', false)
+      }
+    }
+  }
+</script>
+
+<style lang="scss">
+@import '../../scss/_base.scss';
+
+$videoHeight: to(210);
+
+.comment {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  z-index: 99999;
+
+  width: 100%;
+  height: 100%;
+
+  &__model {
+    width: inherit;
+    height: $videoHeight;
+  }
+
+  &__main {
+    position: absolute;
+    top: $videoHeight;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    box-sizing: border-box;
+
+    width: inherit;
+    border-top: 1px solid #1480ff;
+
+    background: #fff;
+
+    .comment_close_wrapper {
+      position: absolute;
+      top: 0;
+      right: 0;
+      z-index: 9999;
+
+      padding: to(15);
+
+      .comment_close {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+
+        width: to(25);
+        height: to(25);
+        border-radius: 50%;
+        border: 1px solid #9b9b9b;
+
+        background: #fff;
+
+        font-family: PingFangSC-Regular;
+        font-size: to(14);
+        color: #9b9b9b;
+      }
+    }
+
+    .scroll_view {
+      box-sizing: border-box;
+
+      width: 100%;
+      height: 100%;
+      padding: to(20) to(20) to(50) to(20);
+
+      .comment_item {
+        width: inherit;
+        margin-bottom: to(10);
+
+        font-family: PingFangSC-Regular;
+        font-size: to(14);
+
+        .comment_user {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          box-sizing: border-box;
+
+          width: inherit;
+          color: #9b9b9b;
+
+          .avatar{
+            width: to(30);
+            height: to(30);
+            border-radius: 50%;
+          }
+
+          .nickName {
+            margin-left: to(5);
+          }
+        }
+
+        .comment_content,
+        .comment_time {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          box-sizing: border-box;
+
+          width: inherit;
+
+          padding-left: to(35);
+        }
+
+        .comment_content {
+          margin-bottom: to(5);
+          color: #4a4a4a;
+        }
+
+        .comment_time {
+          font-family: PingFangSC-Light;
+          font-size: to(12);
+          color: #b2b2b2;
+        }
+      }
+    }
+  }
+
+  &__edit {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    box-sizing: border-box;
+    justify-content: space-between;
+
+    width: 100%;
+    height: to(50);
+    padding: 0 to(20);
+
+    font: to(14) PingFangSC-Medium;
+    color: #b2b2b2;
+
+    background: #fff;
+    box-shadow: 0 -1px to(5) 0 rgba(19, 128, 255, 0.4);
+
+    .edit_icon,
+    .comment_icon {
+      width: to(14);
+      height: to(14);
+      margin: 0 to(5) 0 to(10);
+    }
+
+    .edit_icon {
+      color: #b2b2b2;
+    }
+
+    .comment-tip {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      box-sizing: border-box;
+
+      width: to(266);
+      height: to(25);
+      border-bottom: 1px solid #d7d7d7;
+
+      .comment_placeholder {
+        color: #b2b2b2;
+      }
+      .comment_input {
+        width: inherit;
+      }
+    }
+
+    .comment-count {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+      box-sizing: border-box;
+
+      width: to(50);
+      height: inherit;
+      color: #1480ff;
+    }
+  }
+}
+</style>

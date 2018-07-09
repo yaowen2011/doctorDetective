@@ -1,12 +1,11 @@
 <template lang="pug">
-  view.container
-    view.title 活动规则
-    scroll-view.rule-list(
+  view.rule
+    scroll-view.rule__list(
       scroll-y)
-      repeat(
-        for="{{rules}}"
-        key="index")
-        view.rule-item {{index+1}}. {{item}}
+      view.rule-list__item(
+        wx:for="{{rules}}"
+        wx:key="index"
+      ) {{index+1}}. {{item}}
 </template>
 
 <script>
@@ -15,14 +14,22 @@
 
   export default class RulePage extends wepy.page {
     config = {
-      navigationBarTitleText: '规则',
-      backgroundColor: '#fff'
+      navigationBarTitleText: '活动规则',
     }
 
     data = {
       rules: []               // 活动规则列表
     }
-    async onLoad () {
+
+    onLoad () {
+      this.initData()
+    }
+
+    /**
+     * initData
+     * 初始化页面数据
+     */
+    async initData () {
       let { data } = await getRules()
       this.rules = data
       this.$apply()
@@ -30,32 +37,26 @@
   }
 </script>
 
-<style lang="scss" scoped>
-@import '../../scss/_layout.scss';
+<style lang="scss">
+@import '../../scss/_base.scss';
 
-.container {
-  @include verticalHorizontalCenter();
-  padding: 60rpx 44rpx;
+page,
+.rule {
+  width: 100vw;
+  height: 100vh;
 }
 
-.title {
-  width: 660rpx;
-  text-align: center;
-  box-sizing: border-box;
-  border-bottom: 2rpx  #d7d7d7 solid;
-  font-family: PingFangSC-Medium;
-	font-size: 40rpx;
-  color: #54049b;
-  padding-bottom: 50rpx;
+.rule__list {
+  height: inherit;
+  padding: to(25) 0;
 }
 
-.rule-list {
-  width: 540rpx;
-  max-height: 800rpx;
-  margin: 50rpx 0;
+.rule-list__item {
+  padding: 0 to(20);
+
   font-family: PingFangSC-Regular;
-	font-size: 28rpx;
-	line-height: 60rpx;
+	font-size: to(14);
+	line-height: to(30);
 	color: #4a4a4a;
 }
 </style>

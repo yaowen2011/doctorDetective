@@ -1,0 +1,641 @@
+<template lang="pug">
+  view.share
+    canvas#canvas(
+      canvas-id="canvas"
+      disable-scroll
+      bindlongtap="saveCanvasPhoto"
+    )
+    button.opensetting-btn(
+      wx:if="{{isShowSettingBtn}}"
+      open-type="openSetting"
+      bindopensetting="opensetting"
+    ) 设置
+    button.save-btn(
+      wx:if="{{isShowSaveBtn}}"
+      @tap="saveCanvasPhoto"
+    ) 保存卡片
+</template>
+
+<script>
+import wepy from 'wepy'
+
+import {
+  postCurrentInfo,
+  postShareCode,
+  postShareInfo,
+} from '@/utils/api'
+
+import { connect } from 'wepy-redux'
+@connect({
+  userInfo (state) {
+    return state.userData.userInfo
+  }
+})
+
+export default class ShareCardPage extends wepy.page {
+  config = {
+    navigationBarTitleText: '分享卡片',
+  }
+
+  data = {
+    scence: '',                             // 场景值(答题结果页-answer、个人中心-my、猜图-guess)
+    type: '',                               // 猜图类型
+    ctx: null,                              // canvas context 对象
+    canvasSettingW: 305,                    // 设计稿上 canvas 的宽
+    canvasSettingH: 525,                    // 设计稿上 canvas 的高
+    canvasSystemW: 0,                       // 设备上 canvas 的宽
+    canvasSystemH: 0,                       // 设备上 canvas 的高
+    isShowSettingBtn: false,                // 是否显示打开设置按钮
+    isShowSaveBtn: false,                   // 是否显示保存按钮
+    mpcode: '',                             // 小程序码
+    mpcodeSrc: '',                          // 小程序码的本地地址
+    avatarSrc: '',                          // 个人头像的本地地址
+    sort_num: 0,                            // 个人暂时排名
+    all_bouns: 0,                           // 累计获得奖金
+    all_score: 0,                           // 累计答题分数
+    total_question: 0,                      // 累计答题数
+    allGold: 0,                             // 猜图累计获得金币数
+    answeredAmount: 1,                      // 猜图已经答过的题目数量
+    schedule: 0,                            // 猜图进度
+    questionAmount: 0,                      // 猜图总题量
+    slogan: '',                             // 随机生成的鸡汤文案
+    answerSrc: '',                          // 答题分享卡片背景图的本地地址
+    mySrc: '',                              // 个人中心分享卡片背景图的本地地址
+    guessSrc: '',                           // 猜药名、解刨大作战分享卡片背景图的本地地址
+  }
+
+  watch = {
+    /**
+     * 监听 小程序码 的临时地址，确保在成功获取到后，再开始绘制
+     */
+    async mpcodeSrc (newValue) {
+      if (!newValue) return
+
+      let scence = this.scence
+      if (scence === 'my') await this.drawInMy()
+      if (scence === 'guess') await this.drawInGuess()
+      if (scence === 'answer') await this.drawInAnswer()
+
+      this.isShowSaveBtn = true
+      this.$apply()
+      wepy.hideLoading()
+    }
+  }
+
+  async onLoad (option) {
+    await this.initData(option)
+  }
+
+  methods = {
+    /**
+     * opensetting
+     * 在用户拒绝授权后，显示设置按钮，引导用户开启权限
+     */
+    async opensetting () {
+      let { authSetting } = await wepy.getSetting()
+      let authWritePhotosAlbum = authSetting['scope.writePhotosAlbum']
+
+      if (authWritePhotosAlbum) {
+        this.isShowSettingBtn = false
+        this.$apply()
+        this.savePhoto()
+      } else {
+        wepy.showToast({
+          title: '保存失败',
+          icon: 'none'
+        })
+      }
+    },
+    /**
+     * saveCanvasPhoto
+     * 将生成的 canvas 保存进相册
+     */
+    saveCanvasPhoto () {
+      this.savePhoto()
+    }
+  }
+
+  /**
+   * initData
+   * 初始化页面数据
+   */
+  async initData (option) {
+    wepy.showLoading({
+      title: '生成中',
+      mask: true
+    })
+    // 所有场景公用的一些数据
+    let ctx = wepy.createCanvasContext('canvas')
+    let { scence, type, isFinished, allGold, questionAmount, index } = option
+    let { width, height } = await this.getBoundingClientRect('#canvas')
+    let { data: { url = '' } } = await postShareCode({ method: 'POST' })
+
+    this.ctx = ctx
+    this.scence = scence
+    this.canvasSystemW = width
+    this.canvasSystemH = height
+    this.avatarSrc = await this.getAvatarSrc(this.userInfo.avatarUrl)
+    this.mpcode = url
+    this.$apply()
+
+    // 根据不同的场景，来获取所需的相关数据
+    if (scence === 'my') await this.initMyData()
+    if (scence === 'guess') {
+      await this.initGuessData(type, isFinished, allGold, questionAmount, index)
+    }
+    if (scence === 'answer') await this.initAnswerData()
+
+    // 获取小程序码本地地址要放在最后执行，因为有比较大的几率获取失败
+    this.getMpcodeSrc()
+  }
+
+  async initGuessData (type = 'drugs', isFinished = 'true', allGold = 0, questionAmount = 0, index = 1) {
+    let imageInfo
+    let schedule
+    let answeredAmount
+    let boneUndone = 'https://oi7gusker.qnssl.com/QA/share/guess-bone-undone.png'
+    let drugUnone = 'https://oi7gusker.qnssl.com/QA/share/guess-drug-undone.png'
+    let boneDone = 'https://oi7gusker.qnssl.com/QA/share/guess-bone-done.png'
+    let drugDone = 'https://oi7gusker.qnssl.com/QA/share/guess-drug-done.png'
+    let worldcap = 'https://oi7gusker.qnssl.com/QA/share/word_cup.png'
+
+    isFinished === 'true'
+      ? answeredAmount = Number(questionAmount)
+      : answeredAmount = (Number(index) - 1)
+
+    if (type === 'bone' && isFinished === 'false') {
+      imageInfo = await wepy.getImageInfo({ src: boneUndone })
+    }
+
+    if (type === 'drugs' && isFinished === 'false') {
+      imageInfo = await wepy.getImageInfo({ src: drugUnone })
+    }
+
+    if (type === 'drugs' && isFinished === 'true') {
+      imageInfo = await wepy.getImageInfo({ src: drugDone })
+    }
+
+    if (type === 'bone' && isFinished === 'true') {
+      imageInfo = await wepy.getImageInfo({ src: boneDone })
+    }
+
+    if (type === 'muscle') {
+      imageInfo = await wepy.getImageInfo({ src: worldcap })
+    }
+
+    answeredAmount < questionAmount
+      ? schedule = (answeredAmount / questionAmount).toFixed(2) * 100
+      : schedule = 100
+    this.answeredAmount = answeredAmount
+    this.schedule = `${schedule}%`
+    this.type = type
+    this.allGold = allGold
+    this.questionAmount = questionAmount
+    this.index = index
+    this.guessSrc = imageInfo.path
+    this.$apply()
+  }
+
+  async initMyData () {
+    let { data: { slogan = '', all_bouns = 0, total_question = 0 } } = await postShareInfo({ method: 'POST' })
+    let my = 'https://oi7gusker.qnssl.com/QA/share/share-my.png'
+    let { path: mySrc } = await wepy.getImageInfo({ src: my })
+
+    this.slogan = slogan
+    this.all_bouns = all_bouns
+    this.total_question = total_question
+    this.mySrc = mySrc
+    this.$apply()
+  }
+
+  async initAnswerData () {
+    // 答题结束的分享数据
+    let { data: { sort_num = 0, all_bouns = 0, all_score = 0 } } = await postCurrentInfo({ method: 'POST' })
+    let top10 = 'https://oi7gusker.qnssl.com/QA/share/top10.png'
+    let top100 = 'https://oi7gusker.qnssl.com/QA/share/top100.png'
+    let top1000 = 'https://oi7gusker.qnssl.com/QA/share/top1000.png'
+    let res
+    let fontColor
+
+    if (sort_num <= 10) {
+      res = await wepy.getImageInfo({ src: top10 })
+      fontColor = '#8b572a'
+    } else if (sort_num <= 100) {
+      res = await wepy.getImageInfo({ src: top100 })
+      fontColor = '#1480ff'
+    } else {
+      res = await wepy.getImageInfo({ src: top1000 })
+      fontColor = '#417505'
+    }
+
+    this.fontColor = fontColor
+    this.answerSrc = res.path
+    this.sort_num = sort_num.toString()
+    this.all_bouns = all_bouns.toString()
+    this.all_score = all_score.toString()
+    this.$apply()
+  }
+
+  /**
+   * drawInGuess
+   * 由猜药名/解剖大作战进入该页面进行生成分享卡片
+   */
+  drawInGuess () {
+    let ctx = this.ctx
+
+    // 画背景
+    this.drawBackgroundImage(ctx, this.guessSrc)
+
+    if (this.type === 'muscle') {
+      // 画用户头像
+      this.drawCircleAvatar(ctx, 56.5, 290.5, 42.5, 14, 244.3)
+
+      // 画个人信息
+      ctx.setTextBaseline('middle')
+      ctx.setTextAlign('left')
+      ctx.setFillStyle('#fff')
+      ctx.setFontSize(this.formatCoordinate(18))
+      ctx.fillText('我猜对了', this.formatCoordinate(109), this.formatCoordinate(252, 0))
+
+      ctx.setFillStyle('#ffdf7b')
+      ctx.setFontSize(this.formatCoordinate(34))
+      ctx.fillText(this.answeredAmount, this.formatCoordinate(109), this.formatCoordinate(295, 0))
+
+      ctx.setFillStyle('#fff')
+      ctx.setFontSize(this.formatCoordinate(18))
+      ctx.fillText('块球星的小肌肉！', this.formatCoordinate(154), this.formatCoordinate(295, 0))
+    } else {
+      // 画分割线
+      ctx.setFillStyle('#d7d7d7')
+      ctx.fillRect(0, this.formatCoordinate(409, 0), this.canvasSystemW, this.formatCoordinate(1, 0))
+
+      // 画用户头像
+      this.drawCircleAvatar(ctx, 73, 288, 48, 25, 236)
+
+      // 画个人信息
+      ctx.setTextBaseline('normal')
+      ctx.setTextAlign('left')
+      ctx.setFillStyle('#4a4a4a')
+      ctx.setFontSize(this.formatCoordinate(14))
+      ctx.fillText('通关进度', this.formatCoordinate(144), this.formatCoordinate(275, 0))
+      ctx.fillText('累计金币', this.formatCoordinate(144), this.formatCoordinate(316, 0))
+      ctx.setFillStyle('#1480ff')
+      ctx.setFontSize(this.formatCoordinate(30))
+      ctx.fillText(this.schedule, this.formatCoordinate(205), this.formatCoordinate(278, 0))
+      ctx.fillText(this.allGold, this.formatCoordinate(205), this.formatCoordinate(319, 0))
+    }
+
+    // 画小程序码
+    ctx.drawImage(this.mpcodeSrc, this.formatCoordinate(25), this.formatCoordinate(425, 0), this.formatCoordinate(75), this.formatCoordinate(75))
+
+    // 画小程序码说明文字
+    let captionStr = '保存图片识别二维码，加入医者神探竞答，展现你的学霸本色！'
+    if (this.type === 'muscle') captionStr = '保存图片识别二维码，看看你能猜对多少块球星的小肌肉？'
+    let captionArr = this.formatStrToArr(captionStr, 11)
+
+    ctx.setTextBaseline('top')
+    ctx.setTextAlign('right')
+    ctx.setFillStyle('#4a4a4a')
+    if (this.type === 'muscle') ctx.setFillStyle('#fff')
+    this.drawMultiLineText(ctx, captionArr, 125, 425, 14, 25)
+
+    ctx.draw()
+  }
+
+  /**
+   * drawInMy
+   * 由个人中心进入该页面进行生成分享卡片
+   */
+  drawInMy () {
+    let ctx = this.ctx
+
+    // 画背景
+    this.drawBackgroundImage(ctx, this.mySrc)
+
+    // 画鸡汤文案(多行)
+    ctx.setTextBaseline('top')
+    ctx.setTextAlign('center')
+    ctx.setFillStyle('#fff')
+    let strArr = this.formatStrToArr(this.slogan, 13)
+    this.drawMultiLineText(ctx, strArr, 35, 35, 20, 30)
+
+    // 画分割线
+    ctx.setFillStyle('#d7d7d7')
+    ctx.fillRect(0, this.formatCoordinate(409, 0), this.canvasSystemW, this.formatCoordinate(1, 0))
+
+    // 画用户头像
+    this.drawCircleAvatar(ctx, 73, 288, 48, 25, 235.3)
+
+    // 画个人信息
+    let all_bouns = '累计答题'
+    let total_question = '赢取奖金'
+    ctx.setTextBaseline('normal')
+    ctx.setTextAlign('left')
+    ctx.setFillStyle('#4a4a4a')
+    ctx.setFontSize(this.formatCoordinate(14))
+    ctx.fillText(all_bouns, this.formatCoordinate(144), this.formatCoordinate(275, 0))
+    ctx.fillText(total_question, this.formatCoordinate(144), this.formatCoordinate(316, 0))
+    ctx.setFillStyle('#1480ff')
+    ctx.setFontSize(this.formatCoordinate(30))
+    ctx.fillText(this.total_question, this.formatCoordinate(205), this.formatCoordinate(278, 0))
+    ctx.fillText(this.all_bouns, this.formatCoordinate(205), this.formatCoordinate(319, 0))
+
+    // 画小程序码
+    ctx.drawImage(this.mpcodeSrc, this.formatCoordinate(20), this.formatCoordinate(425, 0), this.formatCoordinate(75), this.formatCoordinate(75))
+
+    // 画小程序码说明文字
+    let captionStr = '保存图片识别二维码，加入医者神探竞答，展现你的学霸本色！'
+    let captionArr = this.formatStrToArr(captionStr, 11)
+    ctx.setTextBaseline('top')
+    ctx.setTextAlign('left')
+    ctx.setFillStyle('#4a4a4a')
+    this.drawMultiLineText(ctx, captionArr, 125, 425, 14, 25)
+
+    ctx.draw()
+  }
+
+  /**
+   * drawInAnswer
+   * 由答题结束进入该页面进行生成分享卡片
+   */
+  drawInAnswer () {
+    let ctx = this.ctx
+    ctx.setTextBaseline('top')
+    ctx.setTextAlign('center')
+
+    // 画背景
+    this.drawBackgroundImage(ctx, this.answerSrc)
+
+    // 画用户头像
+    this.drawCircleAvatar(ctx, 156, 68, 48, 108, 15.3)
+
+    // 画文案
+    ctx.setFillStyle(this.fontColor)
+    ctx.setFontSize(this.formatCoordinate(14))
+    ctx.fillText('送你一个超酷学霸答题锦囊', this.canvasSystemW / 2, this.formatCoordinate(145, 0))
+    ctx.fillText('扫描二维码领取', this.canvasSystemW / 2, this.formatCoordinate(165, 0))
+
+    // 画小程序码
+    ctx.setFillStyle('#fff')
+    ctx.fillRect(this.formatCoordinate(110), this.formatCoordinate(190, 0), this.formatCoordinate(85), this.formatCoordinate(85))
+    ctx.drawImage(this.mpcodeSrc, this.formatCoordinate(115), this.formatCoordinate(195, 0), this.formatCoordinate(75), this.formatCoordinate(75))
+
+    // 画累计获得奖金
+    this.drawAnswerInfo(ctx, '累计获奖金额', this.all_bouns, 152.5)
+
+    // 画当前答题排名
+    this.drawAnswerInfo(ctx, '当前答题排名', this.sort_num, 52)
+
+    // 画累计答题得分
+    this.drawAnswerInfo(ctx, '累计答题得分', this.all_score, 255)
+
+    ctx.draw()
+  }
+
+  /**
+   * drawAnswerInfo
+   * 画底部的用户答题信息(当前排名、累计获奖金额、累计答题分数)
+   * @param ctx {Object} canvas context 上下文对象
+   * @param key {String} 当前排名、累计获奖金额、累计答题分数其中一个
+   * @param value {String} 当前排名、累计获奖金额、累计答题分数对应的值
+   */
+  drawAnswerInfo (ctx, key, value, x) {
+    ctx.setFillStyle('#fff')
+    ctx.setFontSize(this.formatCoordinate(36))
+    ctx.fillText(value, this.formatCoordinate(x), this.formatCoordinate(435, 0))
+
+    ctx.setFontSize(this.formatCoordinate(10))
+    ctx.setFillStyle('#4a4a4a')
+    ctx.fillText(key, this.formatCoordinate(x), this.formatCoordinate(491, 0))
+  }
+
+  /**
+   * drawBackgroundImage
+   * 画填充满 canvas 的背景图
+   * @param ctx {Object} canvas context 对象
+   * @param bgImg {String} 要绘制的背景图的本地路径
+   */
+  drawBackgroundImage (ctx, bgImg = '') {
+    ctx.drawImage(
+      bgImg,
+      0,
+      0,
+      this.canvasSystemW,
+      this.canvasSystemH
+    )
+    ctx.save()
+  }
+
+  /**
+   * drawMultiLineText
+   * @param ctx {Object} canvas context 对象
+   * @param strArr {Array} 存放多行文字的数组
+   * @param left {Number} 每行文本到 x 轴距离
+   * @param top {Number} 第一行第一个文本到 y 轴距离
+   * @param fontSize {Number} 字体大小
+   * @param lineH {Number} 行高
+   */
+  drawMultiLineText (ctx, strArr, left, top, fontSize = 14, lineH = 25) {
+    fontSize = this.formatCoordinate(fontSize)
+    lineH = this.formatCoordinate(lineH, 0)
+    ctx.setFontSize(fontSize)
+    // 画每一行中的每一个字符
+    strArr.forEach((item, i) => {
+      Array.from(item).forEach((str, j) => {
+        ctx.fillText(item[j], this.formatCoordinate(left) + fontSize * j, this.formatCoordinate(top, 0) + lineH * i)
+      })
+    })
+  }
+
+  /**
+   * drawCircleAvatar
+   * 绘制圆形头像 - 原理：先裁剪一个圆形，在此基础上绘制头像
+   * @param ctx {Object} canvas context 对象
+   * @param x {Number} 圆心的 x 坐标
+   * @param y {Number} 圆心的 y 坐标
+   * @param r {Number} 圆的半径
+   * @param left {Number} 头像的距离 y 轴的距离
+   * @param top {Number} 头像的距离 x 轴的距离
+   */
+  drawCircleAvatar (ctx, x, y, r, left, top) {
+    ctx.save()
+    ctx.arc(this.formatCoordinate(x), this.formatCoordinate(y, 0), this.formatCoordinate(r), 0, 2 * Math.PI)
+    ctx.clip()
+    ctx.drawImage(this.avatarSrc, this.formatCoordinate(left), this.formatCoordinate(top, 0), this.formatCoordinate(2 * r), this.formatCoordinate(2 * r))
+    ctx.restore()
+    ctx.closePath()
+  }
+
+  /**
+   * getAvatarSrc
+   * 获取用户头像的本地地址
+   * @param avatar {String} 用户头像资源
+   * @return avatarSrc {String} 用户头像的本地地址
+   */
+  async getAvatarSrc (avatar) {
+    let { path } = await wepy.getImageInfo({ src: avatar })
+
+    return path
+  }
+
+  /**
+   * getMpcodeSrc
+   * 在通过 wx.getImageInfo、wx.downloadFile 获取 带参数的二维码本地或临时地址的时候，有比较大的几率失败，在此做单独处理
+   */
+  async getMpcodeSrc () {
+    try {
+      let { path } = await wepy.getImageInfo({ src: this.mpcode })
+      this.mpcodeSrc = path
+      this.$apply()
+    } catch (error) {
+      this.getMpcodeSrc()
+    }
+  }
+
+  /**
+   * savePhoto
+   * 将生成的 canvas 导出为图片保存禁相册
+   */
+  async savePhoto () {
+    let { authSetting } = await wepy.getSetting()
+    let authWritePhotosAlbum = authSetting['scope.writePhotosAlbum']
+
+    try {
+      if (authWritePhotosAlbum) {
+        wepy.showLoading({
+          title: '保存中'
+        })
+      }
+
+      let { tempFilePath } = await wepy.canvasToTempFilePath({
+        canvasId: 'canvas',
+        quality: 1
+      })
+      await wepy.saveImageToPhotosAlbum({ filePath: tempFilePath })
+      wepy.showToast({
+        title: '保存成功',
+        icon: 'success'
+      })
+    } catch (error) {
+      if (authWritePhotosAlbum) {
+        wepy.showToast({
+          title: '保存失败',
+          icon: 'none'
+        })
+        return
+      }
+      wepy.hideLoading()
+      let { confirm } = await wepy.showModal({
+        title: '请求授权',
+        content: '点击下方"设置"按钮，开启“保存相册”权限即可正常使用',
+        showCancel: false
+      })
+      if (!confirm) return
+      this.isShowSettingBtn = true
+      this.$apply()
+    }
+  }
+
+  /**
+   * formatStrToArr
+   * 将字符串文本，根据限定的宽度，做换行处理
+   * @param str {String} 要进行转换的文本
+   * @param limitLineFontCount {Number} 每行限定展示的字符数量
+   * @return strArr {Array} 处理后的数据，数据长度代表行数，每一项代表每一行中的文本内容
+   */
+  formatStrToArr (str, limitLineFontCount) {
+    let strArr = []
+    let lineCount = Math.ceil(str.length / limitLineFontCount)
+    let index = 0
+
+    while (index < lineCount) {
+      let string = str.slice(index * limitLineFontCount, (index + 1) * limitLineFontCount)
+      strArr.push(string)
+      index++
+    }
+    return strArr
+  }
+
+  /**
+   * formatCoordinate
+   * 在 canvas 上绘制主要是以 px为单位，不能够适配不同分辨率的屏幕，需要进行一些转换
+   * @param coordinate {Number} 要进行转换的坐标值
+   * @param x {Number} 坐标轴方向，默认为 1(表示 x 轴)，0为 y 轴
+   * @return newCoordinate {Number} 转换后的坐标值
+   */
+  formatCoordinate(coordinate = 0, x = 1) {
+    let newCoordinate = 0
+    x ? newCoordinate = this.canvasSystemW * (coordinate / this.canvasSettingW)
+      : newCoordinate = this.canvasSystemH * (coordinate / this.canvasSettingH)
+    return newCoordinate
+  }
+
+  /**
+   * getBoundingClientRect
+   * @param id {String} 要查询节点信息的 id
+   * 查找并返回节点相关信息
+   */
+  getBoundingClientRect (id) {
+    return new Promise(resolve => {
+      setTimeout(() => {
+        let query = wepy.createSelectorQuery()
+        query.select(id).boundingClientRect(rect => {
+          resolve(rect)
+        }).exec()
+      }, 150)
+    })
+  }
+}
+</script>
+
+<style lang="scss">
+@import '../../scss/_base.scss';
+
+page,
+.share {
+  position: relative;
+
+  width: 100vw;
+  height: 100vh;
+}
+
+.share {
+  background: rgba(52, 52, 52, 0.7);
+  overflow-y: scroll;
+
+  &__scroll-view {
+    overflow-y: scroll;
+
+    height: 100vh;
+  }
+}
+
+#canvas {
+  width: to(335);
+  height: to(525);
+  margin: to(15) auto 0 auto;
+}
+
+.opensetting-btn,
+.save-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: to(335);
+	height: to(35);
+  margin: to(5) auto;
+	border-radius: to(3);
+
+  font: to(14) PingFangSC-Regular;
+  color: #fff;
+
+	background: linear-gradient(135deg,
+  #02cefd 0%,
+  #1380ff 100%);
+}
+
+.opensetting-btn {
+  margin-bottom: to(5);
+}
+</style>

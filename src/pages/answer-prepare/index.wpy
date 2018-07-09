@@ -1,0 +1,189 @@
+<template lang="pug">
+  view.container
+    video.case-video(
+      wx:if="{{video.src}}"
+      id="case-video"
+      src="{{video.src}}"
+      poster="{{video.cover}}"
+      danmu-list="{{comments}}"
+      danmu-btn=true
+      enable-danmu=true
+    )
+    Barrage(
+      wx:else
+      :video.sync="video"
+      :comments.sync="comments"
+    )
+    AnswerPrepareBody
+    Comment(
+      wx:if="{{isShowComment}}"
+      :comments.sync="comments"
+    )
+
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import {
+    getVideo,
+    getComments,
+  } from '@/utils/api'
+
+  import AnswerPrepareBody from './answer-prepare-body'
+  import Comment from './comment'
+  import Barrage from './barrage'
+
+  import { connect } from 'wepy-redux'
+
+  @connect({
+    pid (state) {
+      return state.userData.pid
+    },
+    userInfo (state) {
+      return state.userData.userInfo
+    }
+  }, {
+  })
+
+  export default class PrepareAnswer extends wepy.page {
+    data = {
+      video: {},                    // 视频数据
+      videoContext: null,           // 视频组件控制对象
+      comments: [],                 // 评论
+      isShowComment: false,         // 是否打开评论
+      timer: null
+    }
+
+    components = {
+      AnswerPrepareBody,
+      Comment,
+      Barrage
+    }
+
+    events = {
+      toggleComment (param) {
+        this.isShowComment = param
+      },
+      async submitComment (content) {
+        const fn = async () => {
+          let comment = {}
+          let params = {
+            method: 'POST',
+            data: {
+              pid: this.pid,
+              content
+            }
+          }
+
+          comment.text = content
+          this.formatComment(comment)
+          await postComment(params)
+
+          if (this.video.src) return
+          this.$broadcast('beginBarrage', this.comments)
+        }
+        this.debounce(fn)
+      }
+    }
+
+    async onLoad () {
+      await this.getVideoData()
+      await this.getAndFormatComments()
+
+      if (!this.video.src && this.comments.length) {
+        this.$broadcast('beginBarrage', this.comments)
+      }
+    }
+
+    onUnload () {
+      clearTimeout(this.timer)
+    }
+
+    // 获取视频数据
+    async getVideoData () {
+      let { data: { data: { video: { data: video } } } } = await getVideo()
+      if (video.src) this.videoContext = wepy.createVideoContext('case-video')
+      this.video = video
+      this.$apply()
+    }
+
+    // 获取并格式化评论列表
+    async getAndFormatComments () {
+      let params = {
+        data: {
+          pid: this.pid
+        }
+      }
+      let { data: { data: comments } } = await getComments(params)
+
+      this.comments = comments.map((item, index) => {
+        return {
+          text: item.content,
+          color: '#fff',
+          time: index + 1,
+          created_at: item.created_at,
+          user: item.user.data
+        }
+      })
+      this.$apply()
+    }
+
+    // 对刚发布的评论的数据结构进行格式化
+    formatComment (comment) {
+      let len = this.comments.length
+      let user = {
+        nickname: this.userInfo.nickName,
+        avatar_url: this.userInfo.avatarUrl
+      }
+
+      comment.time = len + 1
+      comment.created_at = '1秒前'
+      comment.user = user
+      comment.color = '#fff'
+      this.comments.push(comment)
+      this.$apply()
+    }
+
+    // 函数防抖
+    debounce (fn, ms = 1000) {
+      if (this.timer) {
+        clearTimeout(this.timer)
+        this.timer = null
+      } else {
+        this.timer = setTimeout(fn, ms)
+      }
+    }
+  }
+</script>
+
+<style lang="scss">
+@import '../../scss/_base.scss';
+
+page {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  width: 100vw;
+  height: 100vh;
+
+  background: linear-gradient(135deg,
+  #02cefd 0%,
+  #1380ff 100%);
+}
+
+.container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.case-video {
+  width: 100%;
+  height: to(210);
+}
+</style>

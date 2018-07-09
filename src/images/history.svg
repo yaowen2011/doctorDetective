@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="38px" height="38px" viewBox="0 0 38 38" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 49 (51002) - http://www.bohemiancoding.com/sketch -->
+    <title>Combined Shape</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <linearGradient x1="16.2695312%" y1="13.4960937%" x2="85.5566406%" y2="86.1132812%" id="linearGradient-1">
+            <stop stop-color="#FFFFFF" offset="0%"></stop>
+            <stop stop-color="#A9E5FF" offset="100%"></stop>
+        </linearGradient>
+    </defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="银行" transform="translate(-224.000000, -284.000000)" fill="url(#linearGradient-1)" fill-rule="nonzero">
+            <g id="Group-3" transform="translate(10.000000, 258.000000)">
+                <g id="Group-4" transform="translate(214.000000, 26.000000)">
+                    <path d="M19.95,19.8600797 L19.95,6.175 C19.95,5.38799423 19.3120058,4.75 18.525,4.75 C17.7379942,4.75 17.1,5.38799423 17.1,6.175 L17.1,20.425 C17.1,20.970347 17.4063421,21.4441439 17.8563298,21.6836942 C17.9211316,21.8056392 18.0048974,21.9201517 18.1076272,22.0228815 L26.1686445,30.0838988 C26.7251416,30.6403959 27.6274017,30.6403959 28.1838988,30.0838988 C28.7403959,29.5274017 28.7403959,28.6251416 28.1838988,28.0686445 L20.1228815,20.0076272 C20.0683568,19.9531024 20.0105128,19.90392 19.95,19.8600797 Z M18.9998698,4.22944434e-16 C29.4933376,0 38,8.50662515 38,19.0001302 C38,29.4933376 29.4933749,38 18.9998698,38 C8.50666236,38 0,29.4933749 0,19.0001302 C0,8.50666236 8.50662515,4.22944434e-16 18.9998698,4.22944434e-16 Z" id="Combined-Shape"></path>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

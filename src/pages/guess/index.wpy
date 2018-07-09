@@ -1,84 +1,309 @@
 <template lang="pug">
   scroll-view.container(
-    scroll-y)
-    view.profile_block
-      view
+    wx:if="{{!isFinished}}"
+    scroll-y
+  )
+    view.profile
+      view.schedule
         text 第
         text.unit {{index}}
         text 题
       image.avatar(
         lazy-load
-        src="{{userInfo.avatarUrl ? userInfo.avatarUrl : '/images/avatar-default.svg'}}")
+        src="{{userInfo.avatarUrl ? userInfo.avatarUrl : '/images/avatar-default.svg'}}"
+      )
       view
         text.gold 金币：
-        text.unit.gold_unit {{gold}}
+        text.unit.gold_unit {{gold_all}}
     view.image_block
       image.tip_image(
         lazy-load
         mode="scaleToFill"
-        src="{{tipImage}}")
+        src="{{tipImage}}"
+      )
       view.drug_block
         block(
           wx:for="{{aEnterCharacter}}"
-          wx:key="{{index}}")
+          wx:key="{{index}}"
+        )
           view.character(
             class="{{drugJudgedState === 'default' ? '' : drugJudgedState ? 'character_right' : 'character_wrong'}}"
-            @tap="cancelCharacter({{item}}, {{index}})") {{item ? item : ''}}
-      view.rank_btn(
-        @tap="goRankPage") 排行榜
+            @tap="cancelCharacter({{item}}, {{index}})"
+          ) {{item ? item : ''}}
+      navigator.rank_btn(
+        url="/pages/rank/index?isGuess=1&type={{type}}"
+      ) 排行榜
+      navigator.share_btn(
+        url="/pages/share/index?scence=guess&type={{type}}&isFinished=false&allGold={{allGold}}&questionAmount={{questionAmount}}&index={{index}}"
+      ) 分享战绩
     view.waitingcharacter_block
-      block(
+      view.waitingcharacter(
         wx:for="{{aWaitingCharacter}}"
-        wx:key="{{index}}")
-        view.waitingcharacter(
-          class="{{item.isActive ? 'waitingcharacter_active' : ''}}"
-          @tap="chooseCharacter({{item}}, {{index}})") {{item.content}}
+        wx:key="{{index}}"
+        class="{{item.isActive ? 'waitingcharacter_active' : ''}}"
+        @tap="chooseCharacter({{item}}, {{index}})"
+      ) {{item.content}}
     view.tips_block
-      block(
+      view.tip(
         wx:for="{{tips}}"
-        wx:key="{{index}}")
-        view.tip(
-          wx:if="{{item.isShow}}"
-          class="{{item.isActive ? 'tip_active' : ''}}"
-          @tap="useTips({{item}}, {{index}})") {{item.isActive ? item.clue : item.tip}}
+        wx:key="{{index}}"
+        wx:if="{{item.isShow}}"
+        class="{{item.isActive ? 'tip_active' : ''}}"
+        @tap="useTips({{item}}, {{index}})"
+      ) {{item.isActive ? item.clue : item.tip}}
+      view.tip-answer(
+        wx:if="{{isShowTellAnswerBtn}}"
+        @tap="tellUserAnswer"
+      ) 获取答案
+    view.bone-right(
+      wx:if="{{type==='bone' && answerUrl}}"
+      @tap="closeBoneRightImg"
+    )
+      image.bone-right__content(
+        src="{{answerUrl}}"
+      )
+      view.bone-right__btn(
+        @tap="closeBoneRightImg"
+      ) 恭喜您！回答正确
+  Finished(
+    wx:else
+    :type.sync="type"
+    :allGold.sync="allGold"
+    :questionAmount.sync="questionAmount"
+    :index.sync="index"
+  )
 </template>
 
 <script>
-import wepy from 'wepy'
-import {
-  postGuess,
-  postTips,
-  postDrug,
-} from '@/utils/api'
+  import wepy from 'wepy'
+  import Finished from './finished'
+  import {
+    postGuess,
+    postGuessTips,
+    postGuessJudge,
+    postGuessSchedule
+  } from '@/utils/api'
 
-export default class GuessPage extends wepy.page {
-  config = {
-    navigationBarTitleText: '我药猜猜看'
-  }
+  import { connect } from 'wepy-redux'
+  import {
+    INCREMENT_GOLD_ALL,
+    DECREMENT_GOLD_ALL
+  } from '@/store/types/user-data'
+  import { fetchUserData } from '@/store/actions'
 
-  data = {
-    userInfo: {},                                     // 用户信息
-    guessId: '',                                      // 要猜药品名的 ID
-    index: 1,                                         // 题的索引
-    tips: [],                                         // 提示线索
-    gold: 0,                                          // 用户所拥有的金币
-    tipImage: '',                                     // 药品提示图片
-    drugLen: 0,                                       // 药品名长度
-    aChooseCharacter: [],                             // 存储在待选字符区域选中的字符
-    aEnterCharacter: [],                              // 显示选中字符组合的药品名
-    aWaitingCharacter: [],                            // 待选字符
-    drugJudgedState: 'default',                       // 药品名判断状态, default(默认未提交判断)、true(正确)、false(错误)
-    startTime: 0,                                     // 时间标志符
-  }
+  @connect({
+    uid (state) {
+      return state.userData.uid
+    },
+    gold_all (state) {
+      return state.userData.gold_all
+    },
+    userInfo (state) {
+      return state.userData.userInfo
+    }
+  }, {
+    incrementGoldAll: INCREMENT_GOLD_ALL,
+    decrementGoldAll: DECREMENT_GOLD_ALL,
+    fetchUserData
+  })
 
-  watch = {
+  export default class GuessPage extends wepy.page {
+    data = {
+      type: 'drugs',                                    // 猜药名/猜解剖图
+      allGold: 0,                                       // 猜药名/猜解剖图累计获得金币
+      biz: '',                                          // 猜图关键字，凭此可在公众号获取答案
+      guessId: '',                                      // 要猜药名/猜解剖图的 ID
+      index: 1,                                         // 题的索引
+      questionAmount: 0,                                // 总题量
+      tips: [],                                         // 提示线索
+      isFinished: false,                                // 本期是否通关
+      isShowTellAnswerBtn: false,                       // 是否显示获取答案按钮
+      tipImage: '',                                     // 猜药名/猜解剖图提示图片
+      answerUrl: '',                                    // 猜对解剖图时的正确图片
+      drugLen: 0,                                       // 猜药名/猜解剖图长度
+      aChooseCharacter: [],                             // 存储在待选字符区域选中的字符
+      aEnterCharacter: [],                              // 显示选中字符组合的猜药名/猜解剖图
+      aWaitingCharacter: [],                            // 待选字符
+      drugJudgedState: 'default',                       // 猜药名/猜解剖图判断状态, default(默认未提交判断)、true(正确)、false(错误)
+      startTime: 0,                                     // 时间标志符
+    }
+
+    components = {
+      Finished
+    }
+
+    watch = {
+      /**
+       * 监测选中字符数组变化
+       * @param newValue {Array} 变动后的选中字符数组
+       */
+      async aChooseCharacter(newValue) {
+        this.drugJudgedState = 'default'
+        if (newValue.length !== this.drugLen) return
+        this.handleChooseCharacter()
+      },
+    }
+
+    onLoad (options) {
+      let { type } = options
+      this.type = type
+      this.methods.fetchUserData()
+      this.initData()
+    }
+
+    onReady (params) {
+      if (this.type === 'muscle') {
+        wepy.setNavigationBarTitle({
+          title: '解剖大作战-世界杯特辑'
+        })
+      }
+
+      if (this.type === 'bone') {
+        wepy.setNavigationBarTitle({
+          title: '解剖大作战'
+        })
+      }
+
+      if (this.type === 'drugs') {
+        wepy.setNavigationBarTitle({
+          title: '我药猜猜看'
+        })
+      }
+    }
+
+    onShareAppMessage () {
+      return {
+        title: '这个看图猜药名太有趣了，赶快来试试吧~',
+        path: `/pages/home/home?share_uid=${this.uid}`
+      }
+    }
+
+    methods = {
+      /**
+       * cancelCharacter
+       * 更改药品名
+       * @param character {String} 药品名中的某个字
+       * @param cancleIndex {Number} 要更改某个字对应的索引
+      */
+      cancelCharacter(character, cancleIndex) {
+        if (!character) return
+        this.aEnterCharacter[cancleIndex] = ''
+        this.aChooseCharacter.pop()
+        this.aWaitingCharacter.forEach((item, index) => {
+          if (item.content === character) this.aWaitingCharacter[index].isActive = false
+        })
+      },
+
+      /**
+       * chooseCharacter
+       * 从待选字列表中选出一个字，组合成药品名
+       * @param chooseItem {Object} 待选字列表中选中的字对象
+       * @param chooseIndex {Number} 待选字列表中选中字的索引
+      */
+      chooseCharacter(chooseItem, chooseIndex = 0) {
+        let { content, isActive } = chooseItem
+        let len = this.aChooseCharacter.length
+        let index = this.aEnterCharacter.indexOf('')
+        if (isActive || len >= this.drugLen) return
+        this.aChooseCharacter.push(content)
+        this.aEnterCharacter[index] = content
+        this.aWaitingCharacter[chooseIndex].isActive = true
+      },
+
+      /**
+       * useTips
+       * 使用提示线索
+       * @param tip {Object} 提示线索对象
+       * @param tipIndex {Number} 提示线索对应的索引
+       */
+      async useTips(tip, tipIndex) {
+        const fn = async () => {
+          if (tip.isActive) return
+
+          tipIndex === this.tips.length - 1
+            ? this.isShowTellAnswerBtn = true
+            : this.isShowTellAnswerBtn = false
+
+          let { data: { error_code } } = await postGuessTips({
+            method: 'POST',
+            data: {
+              index: this.index,
+              type: this.type
+            }
+          })
+
+          if (error_code) return
+
+          let len = this.tips.length
+          if (tipIndex <= len - 2) this.tips[tipIndex + 1].isShow = true
+          this.tips[tipIndex].isActive = true
+          if (this.gold_all <= 5) {
+            wepy.showModal({
+              title: '金币不足',
+              content: '快去获取金币吧！',
+              showCancel: false
+            })
+            return
+          }
+          this.methods.decrementGoldAll(5)
+          wepy.showToast({
+            title: '金币 -5',
+            icon: 'none'
+          })
+
+          if (!tip.isActive && !tip.isShow) this.getGuessData()
+        }
+        this.throttling(fn, 300)
+      },
+      /**
+       * tellUserAnswer
+       * 告诉用户答案
+       */
+      async tellUserAnswer () {
+        let { confirm } = await wepy.showModal({
+          title: '获取答案',
+          content: `关注“DrWhy”公众号后，回复关键字“${this.biz}”，即可获得正确答案`,
+          showCancel: false
+        })
+
+        if (!confirm) return
+        await wepy.setClipboardData({
+          data: this.biz + ''
+        })
+        wepy.showToast({
+          title: `${this.biz} 已复制到您的粘贴板`,
+          icon: 'none'
+        })
+      },
+      /**
+       * closeBoneRightImg
+       * 关闭解剖大作战猜对时的图片
+       */
+      closeBoneRightImg () {
+        this.answerUrl = ''
+        this.initData()
+      }
+    }
+
     /**
-     * 监测选中字符数组变化
-     * @param newValue {Array} 变动后的选中字符数组
+    * 初始化页面数据
+    */
+    async initData () {
+      let params = {
+        method: 'POST',
+        data: {
+          type: this.type
+        }
+      }
+      await this.getGuessData(params)
+      await this.getGuessSchedule(params)
+    }
+
+    /**
+     * handleChooseCharacter
+     * 处理用户填入的答案
      */
-    async aChooseCharacter(newValue) {
-      this.drugJudgedState = 'default'
-      if (newValue.length !== this.drugLen) return
+    async handleChooseCharacter () {
       let answer = ''
       this.aEnterCharacter.forEach(item => {
         answer += item
@@ -87,18 +312,32 @@ export default class GuessPage extends wepy.page {
         method: 'POST',
         data: {
           index: this.index,
-          answer: answer
+          type: this.type,
+          answer
         }
       }
-      let { data: { data: { result } } } = await postDrug(params)
+
+      let { data: { data: { result, answer_url = '' } } } = await postGuessJudge(params)
+
       if (result) {
         this.drugJudgedState = true
         this.$apply()
+        this.methods.incrementGoldAll(20)
         await wepy.showToast({
           title: '答对啦！金币 +20',
           icon: 'none'
         })
-        this.initData()
+
+        if (this.type === 'drug' || this.type === 'muscle') {
+          this.initData()
+          return
+        }
+
+        if (this.type === 'bone') {
+          this.answerUrl = answer_url
+          this.$apply()
+          return
+        }
       } else {
         this.drugJudgedState = false
         this.$apply()
@@ -107,216 +346,123 @@ export default class GuessPage extends wepy.page {
           icon: 'none'
         })
       }
-    },
-  }
-
-  onLoad () {
-    this.initData()
-  }
-
-  onShareAppMessage (options) {
-    return {
-      title: '这个看图猜药名太有趣了，赶快来试试吧~',
-      path: `/pages/home/home`,
-      success: () => {
-        wepy.showToast({
-          title: '分享成功',
-          icon: 'none'
-        })
-      },
-      fail: () => {
-        wepy.showToast({
-          title: '分享失败',
-          icon: 'none'
-        })
-      }
     }
-  }
-
-  methods = {
-    // 跳转到排行榜页面
-    goRankPage() {
-      let pid = wepy.getStorageSync('pid')
-      wepy.navigateTo({
-        url: `/pages/rank/index?pid=${pid}`
-      })
-    },
-    /**
-    * 更改药品名
-    * @param character {String} 药品名中的某个字
-    * @param cancleIndex {Number} 要更改某个字对应的索引
-    */
-    cancelCharacter(character, cancleIndex) {
-      if (!character) return
-      this.aEnterCharacter[cancleIndex] = ''
-      this.aChooseCharacter.pop()
-      this.aWaitingCharacter.forEach((item, index) => {
-        if (item.content === character) this.aWaitingCharacter[index].isActive = false
-      })
-    },
 
     /**
-    * 从待选字列表中选出一个字，组合成药品名
-    * @param chooseItem {Object} 待选字列表中选中的字对象
-    * @param chooseIndex {Number} 待选字列表中选中字的索引
-    */
-    chooseCharacter(chooseItem, chooseIndex = 0) {
-      let { content, isActive } = chooseItem
-      let len = this.aChooseCharacter.length
-      let index = this.aEnterCharacter.indexOf('')
-      if (isActive || len >= this.drugLen) return
-      this.aChooseCharacter.push(content)
-      this.aEnterCharacter[index] = content
-      this.aWaitingCharacter[chooseIndex].isActive = true
-    },
-
-    /**
-     * 使用提示线索
-     * @param tip {Object} 提示线索对象
-     * @param tipIndex {Number} 提示线索对应的索引
+     * getGuessSchedule
+     * @param params {Object} 请求数据的配置选项
      */
-    async useTips(tip, tipIndex) {
-      const fn = async () => {
-        if (tip.isActive) return
+    async getGuessSchedule (params) {
+      let { data: { total } } = await postGuessSchedule(params)
+      this.questionAmount = total
+      this.$apply()
+    }
 
-        let len = this.tips.length
-        let { data: { error_code } } = await postTips({ method: 'POST', data: { index: this.index } })
+    /**
+     * getGuessData
+     * 获取用户猜药名、解剖基本数据
+     * @param params {Object} 请求数据的配置选项
+     */
+    async getGuessData (params) {
+      let { data: { error_code, guess: { _id: guessId, pic_url: tipImage, tips }, log: { index, gold }, option: { len, option }, tips: usedTipCount, biz } } = await postGuess(params)
 
-        if (error_code) return
+      this.drugJudgedState = 'default'
+      this.aChooseCharacter = []
+      this.allGold = gold
+      if (error_code !== 4004) {
+        this.isFinished = false
+        this.biz = biz
+        this.guessId = guessId
+        this.tipImage = tipImage
+        this.index = index
+        this.tips = this.formatTips(tips, usedTipCount)
+        this.drugLen = len
+        this.aEnterCharacter = [...Array(len).fill('')]
+        this.aWaitingCharacter = option.map(item => {
+          return { content: item, isActive: false }
+        })
+        usedTipCount === tips.length
+          ? this.isShowTellAnswerBtn = true
+          : this.isShowTellAnswerBtn = false
+      } else {
+        this.isFinished = true
+      }
 
-        if (tipIndex + 1 <= len - 1) this.tips[tipIndex + 1].isShow = true
-        this.tips[tipIndex].isActive = true
-        this.gold -= 5
-        this.$apply()
+      this.$apply()
+    }
+
+    /**
+    * 处理提示线索数据
+    * @param tips {Array} 当前题提示线索原始数据
+    * @param usedTipCount {Number} 当前题已使用提示线索的数量
+    * @return tipsMap {Array} 返回处理后的提示线索
+    */
+    formatTips (tips, usedTipCount) {
+      let tipsMap = tips.map((item, index) => {
+        return {
+          clue: item,
+          isActive: false,
+          isShow: index === 0 ? true : false,
+          tip: `线索${index + 1}`
+        }
+      })
+      tipsMap.forEach((item, index) => {
+        index < usedTipCount ? item.isShow = true : tips.isShow = false
+
+        if (usedTipCount && index < usedTipCount) {
+          item.isActive = true
+          if (index + 1 < tips.length) tipsMap[index + 1].isShow = true
+        }
+      })
+      return tipsMap
+    }
+
+    /**
+     * 函数节流
+     * @param fn {Function} 要进行节流的函数
+     * @param ms {Number} 在 ms 秒内最多执行一次
+     */
+    throttling (fn, ms = 1000) {
+      let curTime = +new Date()
+      if (!this.startTime) {
+        this.startTime = curTime
+        fn()
+      }
+      if (curTime - this.startTime > ms) {
+        this.startTime = curTime
+        fn()
+      } else if (this.startTime !== curTime) {
         wepy.showToast({
-          title: '金币 -5',
+          title: '你点击的太快了',
           icon: 'none'
         })
       }
-      this.throttling(fn, 300)
-    },
-  }
-
-  /**
-  * 初始化页面数据
-  */
-  async initData () {
-    let { data: { error_code, guess: { _id: guessId, pic_url: tipImage, tips }, log: { index, gold }, option: { len, option }, tips: usedTipCount } } = await postGuess({ method: 'POST' })
-    let isFinished = await this.guessFinished(error_code)
-    if (isFinished) return
-    this.userInfo = wepy.getStorageSync('userInfo')
-    this.drugJudgedState = 'default'
-    this.aChooseCharacter = []
-    this.guessId = guessId
-    this.tipImage = tipImage
-    this.index = index
-    this.gold = gold
-    this.drugLen = len
-    this.aEnterCharacter = [...Array(len).fill('')]
-    this.tips = this.formatTips(tips, usedTipCount)
-    this.aWaitingCharacter = option.map(item => {
-      return { content: item, isActive: false }
-    })
-    this.$apply()
-  }
-
-  /**
-  * 猜完所有的药名
-  * @param error_code {Number}
-  * @return true/false 是否通关
-  */
-  async guessFinished(error_code) {
-    if (error_code === 4004) {
-      let { confirm } = await wepy.showModal({
-        title: '恭喜！',
-        content: '你已经通关啦，快去排行榜查看排名吧',
-        showCancel: false
-      })
-      if (confirm) {
-        wepy.redirectTo({
-          url: `/pages/home/home`
-        })
-      }
-      return true
-    } else {
-      return false
     }
   }
-
-  /**
-  * 处理提示线索数据
-  * @param tips {Array} 当前题提示线索原始数据
-  * @param usedTipCount {Number} 当前题已使用提示线索的数量
-  * @return tipsMap {Array} 返回处理后的提示线索
-  */
-  formatTips (tips, usedTipCount) {
-    let tipsMap = tips.map((item, index) => {
-      return {
-        clue: item,
-        isActive: false,
-        isShow: index === 0 ? true : false,
-        tip: `线索${index + 1}`
-      }
-    })
-    tipsMap.forEach((item, index) => {
-      if (index < usedTipCount) {
-        item.isShow = true
-      } else {
-        tips.isShow = false
-      }
-
-      if (usedTipCount && index < usedTipCount) {
-        item.isActive = true
-        if (index + 1 < tips.length) {
-          tipsMap[index + 1].isShow = true
-        }
-      }
-    })
-    return tipsMap
-  }
-
-  /**
-   * 函数节流
-   * @param fn {Function} 要进行节流的函数
-   * @param ms {Number} 在 ms 秒内最多执行一次
-   */
-  throttling (fn, ms = 1000) {
-    let curTime = +new Date()
-    if (!this.startTime) {
-      this.startTime = curTime
-      fn()
-    }
-    if (curTime - this.startTime > ms) {
-      this.startTime = curTime
-      fn()
-    } else if (this.startTime !== curTime) {
-      wepy.showToast({
-        title: '你点击的太快了',
-        icon: 'none'
-      })
-    }
-  }
-}
 </script>
 
 <style lang="scss">
-@import '../../scss/_element.scss';
-@import '../../scss/_layout.scss';
+@import '../../scss/_base.scss';
 
 page {
+  position: relative;
+
   width: 100vw;
   height: 100vh;
-  position: relative;
-  background: linear-gradient(to bottom right, #3023AE, #C86DD7 );
+
+  background: linear-gradient(135deg,
+  #02cefd 0%,
+  #1380ff 100%);
 
   &::after {
     content: '';
     position: absolute;
-    top: 290rpx;
+    top: to(145);
     right: 0;
     left: 0;
     bottom: 0;
     z-index: 9;
+
     background: #ededed;
   }
 }
@@ -328,176 +474,255 @@ page {
   right: 0;
   bottom: 0;
   z-index: 99;
+}
 
+.profile {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
 
-  .profile_block {
-    margin: 30rpx auto 0 auto;
+  width: to(335);
+  height: to(65);
+  margin: to(15) auto 0 auto;
+  padding: 0 to(15);
+  background: #fff;
+  border-radius: to(6);
 
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    box-sizing: border-box;
-    width: 670rpx;
-    height: 130rpx;
-    padding: 0 30rpx;
-    background: #fff;
-    border-radius: 12rpx;
-    position: relative;
+  font: to(18) PingFangSC-Medium;
+  color: #4a4a4a;
 
-    font-family: PingFangSC-Medium;
-    font-size: 36rpx;
-    color: #4a4a4a;
+  .avatar {
+    position: absolute;
+    top: 50%;
+    left: 50%;
 
-    .avatar {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      margin-left: -50rpx;
-      margin-top: -50rpx;
-      width: 100rpx;
-      height: 100rpx;
-      border-radius: 50%;
-    }
-
-    .unit {
-      color: #f5a623;
-    }
-
-    .gold {
-      font-family: PingFangSC-Regular;
-      font-size: 24rpx;
-      color: #464f51;
-    }
-
-    .gold_unit {
-      font-size: 40rpx;
-    }
+    width: to(50);
+    height: to(50);
+    margin: to(-25) 0 0 to(-25);
+    border-radius: 50%;
   }
 
-  .image_block {
-    margin: 10rpx auto 60rpx auto;
+  .unit {
+    color: #1480ff;
+  }
 
-    @include verticalHorizontalCenter();
-    box-sizing: border-box;
-    width: 670rpx;
-    height: 520rpx;
+  .gold {
+    font: to(12) PingFangSC-Regular;
+    color: #464f51;
+  }
 
-    position: relative;
-    border-radius: 10rpx;
-    background-image: linear-gradient(136deg,#ffd643 0%,#f7c136 54%,#ffaf00 100%);
+  .gold_unit {
+    font: to(20);
+  }
+}
 
-    .tip_image {
-      width: 100%;
-      height: 100%;
-      border-radius: 10rpx;
-    }
+.image_block {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
 
-    .drug_block {
+  width: to(335);
+  height: to(260);
+  margin: to(5) auto to(30) auto;
+  border-radius: to(5);
+
+  background: linear-gradient(136deg,#ffd643 0%,#f7c136 54%,#ffaf00 100%);
+
+  .tip_image {
+    width: 100%;
+    height: 100%;
+    border-radius: to(5);
+  }
+
+  .drug_block {
+    position: absolute;
+    left: 0;
+    bottom: to(-23);
+    display: flex;
+    justify-content: center;
+
+    width: 100%;
+    height: to(45);
+
+    font: to(24) PingFangSC-Medium;
+    color: #74746b;
+
+    .character {
       display: flex;
+      flex-direction: column;
+      align-items: center;
       justify-content: center;
-      width: 100%;
-      height: 90rpx;
-      position: absolute;
-      bottom: -45rpx;
-      left: 0;
-      font-family: PingFangSC-Medium;
-      font-size: 48rpx;
-      color: #74746b;
+      box-sizing: border-box;
 
-      .character {
-        @include verticalHorizontalCenter();
-        width: 90rpx;
-        height: 90rpx;
-        border-radius: 6rpx;
-        background: #fff;
-        border: 2rpx solid #e2e2e2;
-        margin-right: 10rpx;
-        box-shadow: inset 0 0 10rpx 0 rgba(155, 155, 155, 0.8);
-      }
+      width: to(45);
+      height: to(45);
+      border-radius: to(3);
+      border: 1px solid #e2e2e2;
+      margin-right: to(5);
+      box-shadow: inset 0 0 to(3) 0 rgba(155, 155, 155, 0.8);
 
-      .character_wrong {
-        border-color: #ff0a0a;
-        box-shadow: inset 0 0 10rpx 0 rgba(255, 10, 10, 0.8);
-      }
-
-      .character_right {
-        border-color: #25be4e;
-        box-shadow: inset 0 0 10rpx 0 rgba(37, 190, 78, 0.8);
-      }
+      background: #fff;
     }
 
-    .rank_btn {
-      position: absolute;
-      top: 100rpx;
-      left: -40rpx;
-      @include verticalHorizontalCenter();
-      width: 112rpx;
-      height: 64rpx;
-      background-image: linear-gradient(138deg,
-        #af0df8 0%,
-        #e42ccb 100%,
-        #ee32c3 100%);
-      border-radius: 0 60rpx 60rpx 0;
-      border: solid 2rpx #ffffff;
-      border-left: 0;
-      font-family: PingFangSC-Regular;
-      font-size: 24rpx;
-      color: #fff;
+    .character_wrong {
+      border-color: #ff0a0a;
+      box-shadow: inset 0 0 to(5) 0 rgba(255, 10, 10, 0.8);
+    }
+
+    .character_right {
+      border-color: #25be4e;
+      box-shadow: inset 0 0 to(5) 0 rgba(37, 190, 78, 0.8);
     }
   }
 
-  .waitingcharacter_block {
-    margin: 0 auto;
-
-    width: 630rpx;
+  .rank_btn,
+  .share_btn {
+    position: absolute;
+    left: to(-20);
     display: flex;
-    flex-wrap: wrap;
-    font-family: PingFangSC-Medium;
-    font-size: 36rpx;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+
+    width: to(56);
+    height: to(32);
+    border-radius: 0 to(30) to(30) 0;
+    border: solid 1px #ffffff;
+    border-left: 0;
+
+    font: to(12) PingFangSC-Regular;
     color: #fff;
 
-    .waitingcharacter {
-      @include verticalHorizontalCenter();
-      box-sizing: border-box;
-      width: 70rpx;
-      height: 70rpx;
-      background-color: #ffd347;
-      border-radius: 6rpx;
-      border: 2rpx solid #f5a523;
-      margin: 0 10rpx 10rpx 0;
-    }
+    background: linear-gradient(129deg,
+    #02cefd 0%,
+    #1380ff 100%);
+  }
 
-    .waitingcharacter:nth-child(8n) {
+  .rank_btn {
+    top: to(50);
+  }
+
+  .share_btn {
+    top: to(87);
+  }
+}
+
+.waitingcharacter_block {
+  display: flex;
+  flex-wrap: wrap;
+
+  width: to(315);
+  margin: 0 auto;
+
+  font: to(18) PingFangSC-Medium;
+  color: #fff;
+
+  .waitingcharacter {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+
+    width: to(35);
+    height: to(35);
+    border-radius: to(3);
+    border: 1px solid #fff;
+    margin: 0 to(5) to(5) 0;
+
+    background: linear-gradient(135deg,
+    #02cefd 0%,
+    #1380ff 100%);
+
+    &:nth-child(8n) {
       margin-right: 0;
-    }
-
-    .waitingcharacter_active {
-      background: #fff;
-      color: #f5a623;
     }
   }
 
-  .tips_block {
-    margin: 0 auto;
-    width: 630rpx;
+  .waitingcharacter_active {
+    color: #f5a623;
 
-    .tip {
-      @include verticalHorizontalCenter();
-      width: 630rpx;
-      min-height: 50rpx;
-      padding: 8rpx 12rpx;
-      border-radius: 6rpx;
-      background: #9b9b9b;
-      font-family: PingFangSC-Regular;
-      font-size: 24rpx;
-      color: fff;
-      margin-bottom: 10rpx;
-    }
+    background: #fff;
+  }
+}
 
-    .tip_active {
-      color: #4a4a4a;
-      background: #fff;
-    }
+.tips_block {
+  width: to(315);
+  margin: 0 auto;
+
+  .tip,
+  .tip-answer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+
+    width: to(315);
+    min-height: to(25);
+    padding: to(4) to(6);
+    border-radius: to(3);
+    margin-bottom: to(5);
+
+    font: to(12) PingFangSC-Regular;
+    color: #fff;
+
+    background: #bfbfbf;
+  }
+
+  .tip_active {
+    color: #4a4a4a;
+
+    background: #fff;
+  }
+
+  .tip-answer {
+    background:linear-gradient(132deg, #02cefd 0%, #1380ff 100%);
+  }
+}
+
+.bone-right {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(74, 74, 74, .7);
+
+  &__content {
+    width: to(333);
+    height: to(260);
+    border-radius: to(5);
+  }
+
+  &__btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: to(206);
+    height: to(48);
+    border-radius: to(3);
+    margin-top: to(33);
+
+    font: to(14) PingFangSC-Regular;
+	  color: #fff;
+
+    background: linear-gradient(126deg,
+    #02cefd 0%,
+    #1380ff 100%);
   }
 }
 </style>

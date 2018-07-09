@@ -1,18 +1,21 @@
 <template lang="pug">
-  view
-    view.tip_container(
-      wx:if="{{isShowTip}}")
-      view(
-        class="shadow {{isCorrect ? '' : 'shadow_error'}}")
-        view(
-          class="talkbubble {{isCorrect ? '' : 'talkbubble_error'}} {{tipcontent.length > 9 ? 'talkbubble_lang' : ''}}") {{tipcontent}}
-        view(
-          class="angle {{isCorrect ? '' : 'angle_error'}}")
+  view.response-tip(
+    wx:if="{{isShowTip}}"
+  )
+    view.response-tip__content(
+      class="{{isCorrect ? '' : '.response-tip__content--error'}}"
+    ) {{tipcontent}}
+    view.response-tip__shadow(
+      class="{{isCorrect ? '' : '.response-tip__shadow--error'}}"
+    )
+    view.response-tip__triangle(
+      class="{{isCorrect ? '' : '.response-tip__triangle--error'}}"
+    )
 </template>
 
 <script>
   import wepy from 'wepy'
-  export default class Tip extends wepy.component {
+  export default class TipComponent extends wepy.component {
     data = {
       isShowTip: false,
       isCorrect: true,
@@ -35,69 +38,101 @@
 </script>
 
 <style lang="scss">
-@import '../../scss/_layout.scss';
+@import '../../scss/_base.scss';
 
-.tip_container {
+/* S 答题结果提示组件 */
+.response-tip {
   position: absolute;
-  bottom: 150%;
-  right: 10%;
-  z-index: 1100;
-}
-
-.shadow{
-  width: 100rpx;
-  height: 100rpx;
-  position: relative;
-  left: 50%;
-  top: 50%;
-  margin-left: -50rpx;
-  margin-top: -50rpx;
-  box-shadow: 0 40rpx 40rpx 0 rgba(130, 248, 0, 0.8);
-}
-
-.angle {
-  position: absolute;
-  left: -18rpx;
-  bottom: -18rpx;
-  width: 0;
-  height: 0;
-  transform: rotate(80deg);
-  border-color: transparent #55d615;
-  border-style: solid;
-  border-width: 0 36rpx 36rpx 0;
-}
-
-.talkbubble {
-  @include verticalHorizontalCenter();
-  position: absolute;
-  top: -20rpx;
-  left: -20rpx;
+  right: to(10);
+  bottom: to(70);
   z-index: 99;
-  width: 140rpx;
-  height: 140rpx;
-  border-radius: 50%;
-  padding: 20rpx;
-  background-color: #fff;
-  font-family: PingFangSC-Medium;
-  font-size: 24rpx;
-  color: #fff;
-  text-align: center;
-  background: linear-gradient(142deg,#9ee922 0%,#2aca0d 100%);
-}
 
-.shadow_error {
-  box-shadow: 0 40rpx 40rpx 0 rgba(253, 56, 81, 0.65);
-}
+  width: to(70);
+  height: to(70);
 
-.angle_error {
-  border-color: transparent #f9427d;
-}
+  /* S 提示内容样式--正确 */
+  &__content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 19;
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
 
-.talkbubble_error {
-  background: linear-gradient(136deg,#ff8080 0%,#f4147a 100%);
-}
+    padding: to(5);
+    border-radius: 50%;
 
-.talkbubble_lang {
-  font-size: 20rpx;
+    font-family: PingFangSC-Semibold;
+    font-size: to(10);
+    color: #fff;
+    text-align: center;
+
+    background: linear-gradient(142deg,
+		#9ee922 0%,
+		#2aca0d 100%);
+  }
+  /* E 提示内容样式--正确 */
+
+  /* S 提示内容样式--错误 */
+  &__content--error {
+    background: linear-gradient(136deg,
+		#ff8080 0%,
+		#f4147a 100%);
+  }
+  /* E 提示内容样式--错误 */
+
+  /* S 底部阴影样式--正确 */
+  &__shadow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 1;
+    transform: translate(-50%, -50%);
+
+    width: to(50);
+    height: to(50);
+    border-radius: 50%;
+
+    background: linear-gradient(142deg,
+		#9ee922 0%,
+		#31d714 100%);
+	  box-shadow: 0 to(20) to(20) 0 rgba(130, 248, 0, 0.8);
+  }
+  /* S 底部阴影样式--正确 */
+
+  /* S 底部阴影样式--错误 */
+  &__shadow--error {
+    background: linear-gradient(136deg,
+		#ff6868 0%,
+		#dc0064 100%);
+	  box-shadow: 0px 20px 20px 0px rgba(253, 56, 81, 0.6);
+  }
+  /* S 底部阴影样式--错误 */
+
+  /* S 三角形样式--正确 */
+  &__triangle {
+    position: absolute;
+    left: 0;
+    bottom: to(3);
+    z-index: 9;
+    transform: rotate(80deg);
+
+    width: 0;
+    height: 0;
+    border-color: transparent #55d615;
+    border-style: solid;
+    border-width: 0 to(18) to(18) 0;
+  }
+  /* E 三角形样式--正确 */
+
+  /* S 三角形样式--错误 */
+  &__triangle--error {
+    border-color: transparent #f9417d;
+  }
+  /* E 三角形样式--错误 */
 }
+/* E 答题结果提示组件 */
 </style>

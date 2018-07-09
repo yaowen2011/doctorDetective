@@ -1,55 +1,114 @@
 <template lang="pug">
-  view.container
-    FinalScore(
+  view.result
+    image.result__avatar(
+      src="{{userInfo.avatarUrl ? userInfo.avatarUrl : '/images/avatar-default.svg'}}"
+    )
+    view.result__score(
       wx:if="{{isShowFinalScore}}"
-      :pid.sync="pid"
-      :score.sync="score"
-      :total_score.sync="total_score"
-      :isShowRewardBtn.sync="isShowRewardBtn"
-      :avatarUrl.sync="avatarUrl")
-    Award(
+    )
+      view.score-count
+        text {{nowScore}}
+        text.score-unit 分
+      view.score-tip 本轮答题得分
+    view.result__bonus(
       wx:else
-      :pid.sync="pid"
-      :bonus.sync="bonus"
-      :total_bonus.sync="total_bonus"
-      :avatarUrl.sync="avatarUrl")
+    )
+      view.score-bonus
+        text {{nowBonus}}
+        text.score-unit 元
+      view.score-tip 本轮答题奖金
+    view.result__finally(
+      wx:if="{{isShowFinalScore}}"
+    )
+      view.finally-score
+        text 答题累计得分：
+        text.finally-score__count {{totalScore}}
+        text 分
+      view.finally-honor
+        text 目前所在级别：
+        text {{honor}}
+    view.result__finally(
+      wx:else
+    )
+      view.finally-bonus
+        text 当前奖金余额：
+        text.finally-bonus__count {{totalBonus}}
+        text 元
+    view.result__receive-bonus(
+      wx:if="{{!isOut}}"
+      @tap="getPaperBonus"
+    ) 领取奖金
+    navigator.result__receive-rank(
+      wx:if="{{isShowFinalScore}}"
+      url="/pages/rank/index"
+    ) 查看实时榜单
+    view.result__operate(
+      wx:else
+    )
+      navigator.operate-rank(
+        url="/pages/rank/index"
+      ) 查看实时排行榜
+      navigator.operate-home(
+        url="/pages/home/home"
+      ) 返回首页
+    view.result__operate-btn
+      form(
+        report-submit=true
+        @submit="reverseAnswer")
+        button.reserve-btn(
+          form-type="submit")
+          text 预约下次答题
+      navigator.share-btn(
+        url="/pages/share/index?scence=answer"
+      ) 分享战绩
 </template>
 
 <script>
   import wepy from 'wepy'
-  import FinalScore from './finalScore'
-  import Award from './award'
 
-  import { getBonus } from '@/utils/api'
-  export default class ResultPage extends wepy.page {
-    onLoad ({ isShowRewardBtn = '', pid = '', score = 0, total_score = 0, bonus = 0, total_bonus = 0 }) {
-      this.pid = pid
-      this.score = Number(score)
-      this.bonus = Number(bonus)
-      this.total_bonus = Number(total_bonus) + Number(bonus)
-      this.total_score = Number(total_score) + Number(score)
-      this.isShowRewardBtn = Boolean(isShowRewardBtn)
-      this.avatarUrl = wepy.getStorageSync('userInfo').avatarUrl
+  import {
+    getBonus,
+    postFormId
+  } from '@/utils/api'
+  import SharePage from '@/extends/share'
+  import { connect } from 'wepy-redux'
+
+  @connect({
+    pid (state) {
+      return state.userData.pid
+    },
+    uid (state) {
+      return state.userData.uid
+    },
+    userInfo (state) {
+      return state.userData.userInfo
+    },
+    bonus (state) {
+      return state.userData.bonus
+    },
+    score (state) {
+      return state.userData.score
+    },
+    honor (state) {
+      return state.userData.honor
     }
-
+  })
+  export default class ResultPage extends SharePage {
     data = {
-      avatarUrl: '',              // 用户头像
-      isShowFinalScore: true,    // 是否展示最终得分区域
-      isShowRewardBtn: false,     // 是否显示领取奖励按钮
-      pid: '',                    // 本期试卷的 id
-      score: 0,                   // 当前得分
-      total_score: 0,             // 累计得分
-      bonus: 0,                   // 当前奖金
-      total_bonus: 0              // 累计奖金
+      isOut: false,               // 是否被淘汰了
+      isShowFinalScore: true,     // 是否展示最终得分区域
+      nowScore: 0,                // 本次得分
+      nowBonus: 0,                // 本次奖金
+      totalScore: 0,              // 累计得分
+      totalBonus: 0               // 累计奖金
     }
 
-    components = {
-      FinalScore,
-      Award
+    onLoad (params) {
+      this.initData(params)
     }
 
-    events = {
-      'goReward': async () => {
+    methods = {
+      async getPaperBonus () {
         try {
           let params = {
             method: 'POST',
@@ -60,14 +119,16 @@
           let { data: { error_code, bonus } } = await getBonus(params)
           switch (error_code) {
             case 0:
-              this.bonus = Number(bonus).toFixed(2)
-              this.total_bonus = Number(this.total_bonus + bonus).toFixed(2)
+              let totalBonus = Number(this.bonus + bonus).toFixed(2)
+              this.nowBonus = bonus
+              this.totalBonus = isNaN(totalBonus) ? this.bonus : totalBonus
+              this.isOut = true
               this.isShowFinalScore = false
               this.$apply()
               break
             case 5005:
               wepy.navigateTo({
-                url: `/pages/information/index?pid=${this.pid}`
+                url: `/pages/information/index`
               })
               break
             case 5007:
@@ -84,43 +145,287 @@
             icon: 'none'
           })
         }
-      }
-    }
-
-    onShareAppMessage () {
-      let { share_uid = '' } = { share_uid: wepy.getStorageSync('uid') }
-      return {
-        title: '参与医学知识竞答，赢现金大奖！',
-        path: `/pages/home/home?share_uid=${share_uid}`,
-        success: (res) => {
-          this.$apply()
+      },
+      async reverseAnswer (event) {
+        let { detail: { formId } } = event
+        let params = {
+          method: 'POST',
+          data: {
+            formId,
+            reserve: 1
+          }
+        }
+        let { data: { error_code } } = await postFormId(params)
+        if (error_code) {
           wepy.showToast({
-            title: '分享成功'
+            title: '预约失败',
+            icon: 'none'
           })
-        },
-        fail: () => {
-          this.$apply()
+        } else {
           wepy.showToast({
-            title: '分享失败',
+            title: '预约成功',
             icon: 'none'
           })
         }
       }
     }
+
+    initData (params) {
+      let { isOut = false, score = 0 } = params
+      if (isOut) this.isOut = isOut
+      this.nowScore = score
+      this.totalScore = this.score + Number(score)
+      this.$apply()
+    }
   }
 </script>
 
 <style lang="scss">
-@import '../../scss/_layout.scss';
+@import '../../scss/_base.scss';
 
-page,
-.container{
-  height: 100%;
+page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100vw;
+  height: 100vh;
+
+  background: linear-gradient(135deg,
+  #02cefd 0%,
+  #1380ff 100%);
 }
 
-.container {
-  @include verticalCenter();
-  background: linear-gradient(to bottom right, #3023AE, #C86DD7 );
-  padding: 128rpx 50rpx;
+.result {
+  position: relative;
+
+  width: to(355);
+	height: to(490);
+  border-radius: to(3);
+
+  background: #fff;
+
+  /* S 底部阴影 */
+  &::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    z-index: -1;
+    transform: translateX(-50%);
+
+    width: to(305);
+    height: to(358);
+    border-radius: to(20);
+
+    background: #fff;
+    box-shadow: 0 to(20) to(30) 0 rgba(19, 61, 110, 0.5);
+  }
+  /* E 底部阴影 */
+
+  /* S 个人头像 */
+  &__avatar {
+    position: absolute;
+    top: to(10);
+    right: to(10);
+
+    width: to(40);
+    height: to(40);
+    border-radius: 50%;
+  }
+  /* E 个人头像 */
+
+  /* S 本次答题得分、奖金 */
+  &__score,
+  &__bonus {
+    position: absolute;
+    top: to(100);
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+
+    font-family: PingFangSC-Regular;
+    font-size: to(10);
+    color: #9b9b9b;
+  }
+  /* E 本次答题得分、奖金 */
+
+  /* S 累计得分、段位 */
+  &__finally {
+    position: absolute;
+    bottom: to(105);
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  /* S 累计得分、段位 */
+
+  &__receive-bonus,
+  &__receive-rank {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: to(335);
+    height: to(35);
+    border-radius: to(3);
+
+    font-family: PingFangSC-Regular;
+    font-size: to(14);
+    color: #fff;
+  }
+
+  /* S 领取奖励 */
+  &__receive-bonus {
+    bottom: to(58);
+
+    background: linear-gradient(90deg,
+		#ffd643 0%,
+		#f7c136 54%,
+		#ffaf00 100%);
+  }
+  /* E 领取奖励 */
+
+  /* S 查看榜单 */
+  &__receive-rank {
+    bottom: to(15);
+
+    background: linear-gradient(135deg,
+		#02cefd 0%,
+		#1380ff 100%);
+  }
+  /* E 查看榜单 */
+
+  &__operate-btn {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+
+    .reserve-btn,
+    .share-btn {
+      padding: to(5) to(10);
+      border-radius: 0 to(30) to(30) 0;
+      border: solid 1px #ffffff;
+      border-left: 0;
+      margin-bottom: to(8);
+
+      font: to(12) PingFangSC-Regular;
+      color: #fff;
+
+      background: linear-gradient(129deg,
+      #02cefd 0%,
+      #1380ff 100%);
+    }
+  }
+}
+
+.score-count {
+  font-family: DINCondensed-Bold;
+  font-size: to(80);
+  color: #1480ff;
+}
+
+.score-bonus {
+  font-family: DINCondensed-Bold;
+	font-size: to(80);
+	color: #ffce1a;
+}
+
+.score-unit {
+  font-family: PingFangSC-Semibold;
+  font-size: to(18);
+  color: #4a4a4a;
+}
+
+.score-tip {
+  margin-top: to(-20);
+}
+
+.finally-score {
+  font-family: PingFangSC-Semibold;
+	font-size: to(14);
+  color: #4a4a4a;
+
+  &__count {
+    display: inline-flex;
+
+    margin-right: to(5);
+
+    font-family: DINCondensed-Bold;
+    font-size: to(20);
+    color: #1480ff;
+  }
+}
+
+.finally-honor {
+  font-family: PingFangSC-Regular;
+	font-size: to(10);
+	color: #9b9b9b;
+}
+
+.finally-bonus {
+  font-family: PingFangSC-Semibold;
+	font-size: to(14);
+  color: #4a4a4a;
+
+  &__count {
+    display: inline-flex;
+
+    margin-right: to(5);
+
+    font-family: DINCondensed-Bold;
+    font-size: to(20);
+    color: #1480ff;
+  }
+}
+
+.result__operate {
+  position: absolute;
+  left: 50%;
+  bottom: to(38);
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+}
+
+.operate-rank {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: to(335);
+  height: to(35);
+  border-radius: to(3);
+
+  font-family: PingFangSC-Regular;
+  font-size: to(14);
+  color: #fff;
+
+  background: linear-gradient(135deg,
+  #02cefd 0%,
+  #1380ff 100%);
+}
+
+.operate-home {
+  margin-top: to(10);
+
+  font-family: PingFangSC-Regular;
+	font-size: to(12);
+	color: #9b9b9b;
 }
 </style>

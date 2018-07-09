@@ -1,0 +1,544 @@
+<template lang="pug">
+  scroll-view.exchange__list(
+    scroll-y
+  )
+    view.exchange-list__item(
+      wx:for="{{aGoods}}"
+      wx:key="{{item._id}}"
+      style="background: {{item.bg}};"
+    )
+      view.exchange-list-item__icon
+        image.icon(
+          src="{{item.iconSrc}}"
+        )
+      view.exchange-list-item__name
+        text {{item.full_name}}
+        text {{item.price}}金币
+      view.exchange-list-item__operate
+        view.increase(
+          @tap="increaseGoods({{item}}, {{index}})"
+        )
+        view.count {{item.number}}
+        view.decrease(
+          @tap="decreaseGoods({{item}}, {{index}})"
+        )
+  view.exchange__result
+      view.exchange-result__gold
+        text 剩余金币:
+        text.number {{gold}}/
+        text.total {{totalGold}}
+      button.exchange-result__btn(
+        class="{{isActiveBtn ? 'exchange-result__btn--active' : ''}}"
+        @tap="confirmGoods"
+      ) 兑换道具
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import {
+    getGoldMall,
+    postExchanedGoods
+  } from '@/utils/api'
+  import { connect } from 'wepy-redux'
+  import { fetchUserData } from '@/store/actions/user-data'
+
+  @connect({
+    gold (state) {
+      return state.userData.gold_all
+    }
+  }, {
+    fetchUserData
+  })
+
+  export default class ExchangePage extends wepy.page {
+    config = {
+      navigationBarTitleText: '金币兑换',
+    }
+
+    data = {
+      aGoods: [],                    // 金币可兑换的商品
+      totalGold: 0,                  // 一共花费的金币
+      isActiveBtn: false,            // 兑换按钮是否处于激活状态
+    }
+
+    watch = {
+      /**
+       * totalGold
+       * 监听商品总金币数，进而切换兑换按钮的状态
+       * @param newTotalGold {Number}
+       */
+      totalGold (newTotalGold) {
+        let aGoods = this.aGoods
+        let len = this.aGoods.length
+
+        if (!len) return
+        for (let i of aGoods.keys()) {
+          if (aGoods[i].number > 0) {
+            this.isActiveBtn = true
+            return
+          } else {
+            this.isActiveBtn = false
+          }
+        }
+      },
+    }
+
+    methods = {
+      /**
+       * increaseGoods
+       * 增加要兑换商品的数量
+       * @param aGoods {Object} 要兑换的商品
+       * @param index {Number} 要兑换的商品在商品列表中对应的索引
+       */
+      increaseGoods (aGoods, index) {
+        let canToggle = this.toggleGoodsNumber(1, index)
+
+        if (!canToggle) return
+        aGoods.number++
+        if (aGoods.number > 99) return
+        this.aGoods[index] = aGoods
+        this.totalGold = this.calculateTotalGold(this.aGoods, this.gold)
+      },
+      /**
+       * increaseGoods
+       * 减少要兑换商品的数量
+       * @param aGoods {Object} 要兑换的商品
+       * @param index {Number} 要兑换的商品在商品列表中对应的索引
+       */
+      decreaseGoods (aGoods, index) {
+        let canToggle = this.toggleGoodsNumber(0, index)
+
+        if (!canToggle) return
+        aGoods.number--
+        this.aGoods[index] = aGoods
+        this.totalGold = this.calculateTotalGold(this.aGoods, this.gold)
+      },
+      /**
+       * confirmGoods
+       * 确认兑换商品
+       */
+      async confirmGoods () {
+        let aExchangedGoods = this.chooseExchangedGoods()
+        let len = aExchangedGoods.length
+
+        if (!len) return
+        let { data: { error_code } } = await postExchanedGoods({
+          method: 'POST',
+          data: {
+            aExchangedGoods
+          }
+        })
+
+        if (error_code) return
+        await wepy.showToast({
+          title: '兑换成功',
+          icon: 'none'
+        })
+        await this.methods.fetchUserData()
+        await this.initData()
+      }
+    }
+
+    async onLoad () {
+      this.initData()
+    }
+
+    /**
+     * initData
+     * 初始化页面所需的数据
+     */
+    async initData () {
+      let aGoods = await this.getGoldMall()
+      this.aGoods = this.formatGoods(aGoods)
+      this.$apply()
+    }
+
+    /**
+     * getGoldMall
+     * 获取金币可兑换的商品列表
+     * @param data {Array} 可兑换商品列表
+     */
+    async getGoldMall () {
+      let { data: { data } } = await getGoldMall()
+      return data
+    }
+
+    /**
+     * formatGoods
+     * 格式化可兑换的商品信息
+     * @param aGoods {Array} 可兑换的商品列表
+     * @return aNewGoods {Array} 格式化后的可兑换的商品列表
+     */
+    formatGoods (aGoods) {
+      let deepCopyGoods = JSON.parse(JSON.stringify(aGoods))
+      let aNewGoods = deepCopyGoods.map(item => {
+        let name = item.name
+        item.number = 0
+
+        switch (name) {
+          case 'HSZWRNS':
+            item.use = '去掉单选题中的一个错误答案'
+            item.bg = 'linear-gradient(97deg,#fc7b7b 0%,#ff71a0 100%)'
+            item.iconSrc = '/images/props1.svg'
+
+            break
+          case 'ZRSYTX':
+            item.use = '去掉单选题中的两个错误答案'
+            item.bg = 'linear-gradient(90deg,#97faa9 0%,#72dd71 100%)'
+            item.iconSrc = '/images/props2.svg'
+
+            break
+          case 'DrWhyXC':
+            item.use = '查看当前已答题用户的每个选项比例'
+            item.bg = 'linear-gradient(90deg,#ffdf12 0%,#ffe693 100%)'
+            item.iconSrc = '/images/props3.svg'
+
+            break
+          case 'XBDDA':
+            item.use = '查看随机三个当前排名前20用户的答案'
+            item.bg = 'linear-gradient(90deg,#72cced 0%,#71ddca 100%)'
+            item.iconSrc = '/images/props4.svg'
+
+            break
+          case 'double':
+            item.use = '下次答题奖金*1.2'
+            item.bg = 'linear-gradient(90deg,#50e3c2 0%,#8ef7c7 100%)'
+            item.iconSrc = '/images/props6.svg'
+
+            break
+        }
+
+        return item
+      })
+
+      return aNewGoods
+    }
+
+    /**
+     * calculateTotalGold
+     * 实时计算兑换商品所花费的总金币数
+     * @param aGoods {Array} 可兑换的商品列表
+     * @param gold {Number} 未成功兑换商品之前所拥有的金币数
+     * @return totalGold {Number} 所兑换商品的总金币数
+     */
+    calculateTotalGold (aGoods, gold) {
+      let totalGold = 0
+      aGoods.forEach((item, i) => {
+        if (gold < totalGold) return
+        totalGold += item.price * item.number
+      })
+
+      return totalGold
+    }
+
+    /**
+     * toggleGoodsNumber
+     * 判断是否可对想要的兑换商品进行增加、减少操作
+     * @param state {Number} 1代表 increaseGoods、0代表 decreaseGoods
+     * @param index {Number} 要的兑换商品对应的索引
+     */
+    toggleGoodsNumber (state, index) {
+      let canToggle
+      let aGoods = JSON.parse(JSON.stringify(this.aGoods))
+
+      if (state) {
+        aGoods[index].number++
+        let totalGold = this.calculateTotalGold(aGoods, this.gold)
+        totalGold > this.gold ? canToggle = false : canToggle = true
+      } else {
+        aGoods[index].number--
+        aGoods[index].number < 0 ? canToggle = false : canToggle = true
+      }
+
+      return canToggle
+    }
+
+    /**
+     * chooseExchangedGoods
+     * 筛选出已选中商品的集合
+     * @param aExchangedGoods {Array}
+     */
+    chooseExchangedGoods () {
+      let aExchangedGoods = []
+      this.aGoods.forEach(item => {
+        if (!item.number) return
+        let exchangedGoods = {
+          name: item.name,
+          number: item.number
+        }
+        aExchangedGoods.push(exchangedGoods)
+      })
+
+      return aExchangedGoods
+    }
+  }
+</script>
+
+<style lang="scss">
+@import '../../scss/_base.scss';
+
+page {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  width: 100vw;
+  height: 100vh;
+}
+
+/* S 金币兑换商品列表 */
+.exchange__list {
+  box-sizing: border-box;
+
+  height: inherit;
+  padding: to(12) 0 to(70) 0;
+}
+/* E 金币兑换商品列表 */
+
+/* S 结算区域 */
+.exchange__result {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+
+  width: inherit;
+  height: to(70);
+  padding: 0 to(20);
+  border-top: 1px solid #f5f5f5;
+}
+/* E 结算区域 */
+
+/* S 单个商品 */
+.exchange-list__item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+  overflow: hidden;
+
+  width: to(335);
+  height: to(45);
+  margin: to(8) auto;
+  border-radius: to(3);
+
+  /* S 护士长的问头凝视 */
+  &:nth-child(1) {
+    .icon {
+      top: to(5);
+      left: to(7);
+
+      width: to(40);
+      height: to(70);
+    }
+  }
+  /* E 护士长的问头凝视 */
+
+  /* S 主任的善意提醒 */
+  &:nth-child(2) {
+    .icon {
+      top: to(5);
+      left: to(10);
+
+      width: to(45);
+      height: to(70);
+    }
+  }
+  /* E 主任的善意提醒 */
+
+  /* S 学霸的答案 */
+  &:nth-child(3) {
+    .icon {
+      top: to(5);
+      left: to(5);
+
+      width: to(50);
+      height: to(76);
+    }
+  }
+  /* E  学霸的答案 */
+
+  /* S Dr.Why 的小抄 */
+  &:nth-child(4) {
+    .icon {
+      top: to(9);
+      left: to(8);
+
+      width: to(40);
+      height: to(47);
+    }
+  }
+  /* E Dr.Why 的小抄 */
+
+  /* S 1.2倍奖金卡 */
+  &:nth-child(5) {
+    .icon {
+      top: to(2);
+      left: to(7);
+
+      width: to(40);
+      height: to(54);
+    }
+  }
+  /* E 1.2倍奖金卡 */
+
+  /* S 复活卡 */
+  &:nth-child(6) {
+    background: linear-gradient(90deg,#ec5858 0%,#ff8a61 100%);
+
+    .icon {
+      top: to(2);
+      left: to(5);
+
+      width: to(40);
+      height: to(50);
+    }
+  }
+  /* E 复活卡 */
+}
+/* E 单个商品 */
+
+/* S 商品 icon */
+.exchange-list-item__icon {
+  position: relative;
+
+  width: to(60);
+  height: 100%;
+
+  .icon {
+    position: absolute;
+  }
+}
+/* E 商品 icon */
+
+/* S 商品名 */
+.exchange-list-item__name {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  width: to(195);
+
+  font-family: PingFangSC-Regular;
+  font-size: to(12);
+  color: #fff;
+}
+/* E 商品名 */
+
+/* S 增加、减少商品操作按钮 */
+.exchange-list-item__operate {
+  display: flex;
+  align-items: center;
+  margin-right: to(8);
+
+  width: to(75);
+  height: to(30);
+  border-radius: to(2);
+  background: #fff;
+
+  font-family: PingFangSC-Regular;
+  font-size: to(12);
+  color: #9b9b9b;
+
+  .increase,
+  .decrease {
+    flex: 1;
+    display: flex;
+    align-items: center;
+
+    height: inherit;
+  }
+
+  .increase {
+    justify-content: flex-end;
+
+    &::before {
+      content: '';
+
+      width: 1px;
+      height: to(13);
+      margin-right: to(-7);
+
+      background: #9b9b9b;
+    }
+
+    &::after {
+      content: '';
+
+      width: to(13);
+      height: 1px;
+
+      background: #9b9b9b;
+    }
+  }
+
+  .decrease {
+    &::after {
+      content: '';
+
+      width: to(13);
+      height: 1px;
+
+      background: #9b9b9b;
+    }
+  }
+
+  .count {
+    flex: 2;
+    display: flex;
+    justify-content: center;
+  }
+}
+/* E 增加、减少商品操作按钮 */
+
+.exchange-result__gold {
+  font-family: PingFangSC-Regular;
+  font-size: to(12);
+  color: #74746b;
+
+  .number,
+  .total {
+    font-family: DINAlternate-Bold;
+    font-size: to(24);
+  }
+
+  .number {
+    margin-left: to(10);
+  }
+
+  .total {
+    color: #50e3c2;
+  }
+}
+
+/* S 兑换道具按钮 */
+.exchange-result__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: to(125);
+  height: to(30);
+  border-radius: to(3);
+  margin: 0;
+
+  font-family: PingFangSC-Medium;
+  font-size: to(12);
+  color: #fff;
+
+  background: #d7d7d7;
+}
+/* E 兑换道具按钮 */
+
+/* S 兑换道具按钮 - 激活状态 */
+.exchange-result__btn--active {
+  background: linear-gradient(90deg,
+  #02cefd 0%,
+  #1380ff 100%);
+}
+/* E 兑换道具按钮 - 激活状态 */
+</style>

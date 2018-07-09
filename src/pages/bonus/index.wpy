@@ -1,119 +1,153 @@
 <template lang="pug">
   view.container
-    view.card_wrapper
-      view.balance_block
-        view.balance_up
-          view.tip 累计共获得
-          view.balance
-            text {{total_bonus}}
-            text.unit 元
-        view.balance_bottom
-          view(
-            @tap="goWithdrawPage")
-            Btn.handle_button 提现
-          view.directions 说明：账户总金额超过10元才可提现哦
+    view.bonus-show
+      view.bonus-show__title
+        text 累计总收入
+      view.bonus-show__number
+        text {{total_bonus}}
+        text.unit 元
+    view.bonus-operate
+      navigator.bonus-operate__withdraw(
+        url="/pages/withdraw/index?total_bonus={{total_bonus}}&pid={{pid}}"
+      )
+        text 提现
+      navigator.bonus-operate__history(
+        url="/pages/history/index?isCash=1"
+      )
+        text 查看历史提现记录
+      view.bonus-operate__explanation
+        text 说明：账户总金额超过10元才可提现哦
 </template>
 
 <script>
   import wepy from 'wepy'
-  import Btn from '@/components/btn'
+  import { connect } from 'wepy-redux'
+
+  @connect({
+    pid (state) {
+      return state.userData.pid
+    },
+    total_bonus (state) {
+      return state.userData.bonus
+    }
+  })
 
   export default class BonusPage extends wepy.page {
     config = {
       navigationBarTitleText: '账户余额'
     }
-    data = {
-      pid: '',                      // 用户 pid
-      total_bonus: 0                // 累计奖金
-    }
-
-    components = {
-      Btn
-    }
-
-    methods = {
-      goWithdrawPage () {
-        wepy.navigateTo({
-          url: `/pages/withdraw/index?total_bonus=${this.total_bonus}&pid=${this.pid}`
-        })
-      }
-    }
-
-    onLoad ({ total_bonus = 0, pid = '' }) {
-      this.pid = pid
-      this.total_bonus = Number(total_bonus)
-    }
   }
 </script>
 
 <style lang="scss">
-@import '../../scss/_layout.scss';
-@import '../../scss/_element.scss';
+@import '../../scss/_base.scss';
 
-page,
-.container{
-  height: 100%;
-}
+page{
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 
-// 按钮样式
-.handle_button {
-  @include btn($width:350rpx, $height:100rpx, $radius: 60rpx, $size: 36rpx);
-  // margin-bottom: 20rpx;
+  width: 100vw;
+  height: 100vh;
+
+  background: linear-gradient(135deg,
+		#02cefd 0%,
+		#1380ff 100%);
 }
 
 .container {
-  @include verticalHorizontalCenter();
-  background: linear-gradient(to bottom right, #3023AE, #C86DD7 );
-  padding: 128rpx 50rpx;
-}
-
-.card_wrapper {
-  @include horizontalCenter();
-
-  width: 650rpx;
-  height: 1080rpx;
-  border-radius: 40rpx;
-  background: #fff;
-  padding: 20rpx;
-}
-
-.balance_block {
-  @include horizontalCenter();
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
   justify-content: space-between;
-  height: 100%;
+  align-items: center;
+
+  width: to(355);
+  height: to(490);
+  padding: to(50) 0 to(30) 0;
+  border-radius: to(3);
+
+  background: #fff;
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    z-index: -1;
+    transform: translateX(-50%);
+
+    width: to(305);
+    height: to(358);
+    border-radius: to(20);
+
+    box-shadow: 0 to(20) to(30) 0 rgba(19, 61, 110, 0.5);
+  }
 }
 
-.balance_up {
-  @include horizontalCenter();
-  margin-top: 160rpx;
+.bonus-show {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 
-  .tip {
-    font-family: PingFangSC-Medium;
-    font-size: 24rpx;
+  &__title {
+    font-family: PingFangSC-Regular;
+    font-size: to(12);
     color: #9b9b9b;
   }
 
-  .balance {
+  &__number {
     font-family: DINCondensed-Bold;
-    font-size: 160rpx;
-    color: #bf00e3;
+    font-size: to(80);
+    color: #ffce1a;
 
     .unit {
       font-family: PingFangSC-Semibold;
-      font-size: 36rpx;
-      color: #393939
+      font-size: to(18);
+      color: #4a4a4a;
     }
   }
 }
-.balance_bottom {
-  @include horizontalCenter();
-  margin-bottom: 100rpx;
 
-  .directions {
+.bonus-operate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  &__withdraw {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: to(200);
+    height: to(35);
+    border-radius: to(3);
+
     font-family: PingFangSC-Medium;
-    font-size: 24rpx;
+	  font-size: to(18);
+    color: #fff;
+
+    background: linear-gradient(90deg,
+		#ffd643 0%,
+		#f7c136 54%,
+		#ffaf00 100%)
+  }
+
+  &__history {
+    margin: to(10) 0 to(56) 0;
+
+    font-family: PingFangSC-Regular;
+	  font-size: to(12);
+    color: #1480ff;
+  }
+
+  &__explanation {
+    font-family: PingFangSC-Regular;
+    font-size: to(10);
     color: #9b9b9b;
-    margin-top: 40rpx;
   }
 }
 </style>

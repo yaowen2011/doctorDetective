@@ -1,0 +1,122 @@
+<template lang="pug">
+  view.award-card(
+    style="background: {{bigAwardMsg ? '#ffce1a' : signState[willSign].bgColor}};"
+  )
+    view.award-card__icon(
+      style="background: {{bigAwardMsg ? '#ffce1a' : signState[willSign].bgColor}};"
+    )
+      image.icon--active(
+        src="{{bigAwardMsg ? '/images/boxsp.svg' : signState[willSign].src}}"
+      )
+    view.award-card__title(
+      style="background: {{bigAwardMsg ? '#ffce1a' : signState[willSign].bgColor}};"
+    ) 恭喜
+    view.award-card__content {{bigAwardMsg ? bigAwardMsg : awardMsg}}
+</template>
+
+<script>
+  import wepy from 'wepy'
+  export default class SignAwardComponent extends wepy.component {
+    props = {
+      willSign: {
+        type: Number,
+        default: 0
+      },
+      signState: {
+        type: Array,
+        default: {}
+      },
+      continuousCount: {
+        type: Number,
+        default: 0
+      },
+      awardMsg: {
+        type: String,
+        default: ''
+      },
+      bigAwardMsg: {
+        type: String,
+        default: ''
+      }
+    }
+  }
+</script>
+
+<style lang="scss">
+@import '../../scss/_base.scss';
+
+.award-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+
+  width: to(306);
+  height: to(225);
+  border-radius: to(20);
+
+  &__icon {
+    position: absolute;
+    top: to(-35);
+    left: 50%;
+    z-index: 9;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    width: to(70);
+    height: to(70);
+    border-radius: 50%;
+
+    .icon--active {
+      width: to(45);
+      height: to(45);
+    }
+  }
+
+  &__title {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+    box-sizing: border-box;
+
+    width: inherit;
+    height: to(87);
+    padding-top: to(45);
+    border-radius: to(30) to(30) 0 0;
+
+    font-family: PingFangSC-Semibold;
+    font-size: to(24);
+    color: #fff;
+  }
+
+  &__content {
+    position: absolute;
+    bottom: to(3);
+    left: to(3);
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+
+    width: to(300);
+    height: to(135);
+    padding: 0 to(35);
+    border-radius: 0 0 to(18) to(18);
+
+    font-family: PingFangSC-Regular;
+    font-size: to(14);
+    color: #4a4a4a;
+    text-align: center;
+
+    background: #fff;
+  }
+}
+</style>

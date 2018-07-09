@@ -1,0 +1,508 @@
+<template lang="pug">
+  view.sign.zoomIn
+    view.sign__header
+      view.header-left
+      view.header-middle
+      view.header-middle--trapezoidal
+      view.header-middle--title 每周签到奖励
+      view.header-right
+    view.sign__list
+      block(
+        wx:for="{{signState}}"
+        wx:key="{{index}}"
+      )
+        view.award_item
+          view.icon_block(
+            class="{{willSign === index ? 'bounce' : ''}}"
+            style="background: {{item.bgColor}}"
+          )
+            image.icon(
+              src="{{item.src}}"
+            )
+            image.icon_sign(
+              wx:if="{{item.log === 0 || item.log === 1}}"
+              src="{{item.log === 0 ? '/images/sign_forget.svg' : item.log === 1 ? '/images/sign_finished.svg' : ''}}"
+            )
+            view(
+              wx:if="{{item.log === 0 || item.log === 1}}"
+              class="{{item.log === 0 ? 'mask_forget' : item.log === 1 ? 'mask_finished' : ''}}"
+            )
+          view.week(
+            class="{{forgetSign + 3 === index ? 'week_continuous' : forgetSign + 7 === index ? 'week_continuous': ''}}"
+          ) {{item.day}}
+    form(
+      report-submit=true
+      @submit="collectFormId"
+    )
+      button(
+        class="sign__btn"
+        open-type="getUserInfo"
+        bindgetuserinfo="collectUserInfo"
+        form-type="submit") 点击签到
+    view.sign__award(
+      wx:if="{{isSignAward}}"
+      @tap="closeSignAward"
+    )
+      SignAward(
+        wx:if="{{awardMsg}}"
+        class="zoomIn {{isSignAward ? '' : 'zoomOut'}}"
+        :willSign.sync="willSign"
+        :awardMsg.sync="awardMsg"
+        :bigAwardMsg.sync=""
+        :signState.sync="signState"
+        :continuousCount.sync="continuousCount"
+      )
+      BigSignAward(
+        wx:if="{{bigAwardMsg}}"
+        class="zoomIn {{isSignAward ? '' : 'zoomOut'}}"
+        :willSign.sync="willSign"
+        :awardMsg.sync=""
+        :bigAwardMsg.sync="bigAwardMsg"
+        :signState.sync="signState"
+        :continuousCount.sync="continuousCount"
+      )
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import SignAward from './sign-award'
+
+  import {
+    // getToken,
+    getSign,
+    postFormId,
+    getUserInfo
+  } from '@/utils/api'
+
+  export default class SignComponent extends wepy.component {
+    props = {
+      share_uid: String
+    }
+
+    data = {
+      willSign: 0,                      // 今天签到索引
+      forgetSign: 0,                    // 漏签的索引
+      signState: [],                    // 一周签到情况
+      awardMsg: '',                     // 获奖信息
+      bigAwardMsg: '',                  // 获得大奖信息
+      continuousCount: 0,               // 连续签到的天数
+      isSignAward: false,               // 是否获奖
+      timer: null,                      // 定时器
+    }
+
+    components = {
+      SignAward,
+      BigSignAward: SignAward,
+    }
+
+    methods = {
+      // 收集 formId
+      collectFormId (event) {
+        let { detail: { formId } } = event
+        let params = {
+          method: 'POST',
+          data: {
+            formId,
+          }
+        }
+        postFormId(params)
+      },
+      // 收集用户签到信息
+      async collectUserInfo (event) {
+        let { authSetting } = await wepy.getSetting()
+        let { detail: { iv, encryptedData } } = event
+
+        if (!authSetting['scope.userInfo']) {
+          wepy.showModal({
+            title: '提示',
+            content: '您已拒绝授权，请重新点击并授权',
+            showCancel: false
+          })
+          return
+        }
+
+        await getUserInfo({ data: { iv, encryptedData } })
+        let { data: { LX: continuousCount, bmsg: bigAwardMsg, msg: awardMsg, error, sign_log } } = await getSign({method: 'POST'})
+        if (error !== 0) return
+        this.isSignAward = true
+
+        this.signState = this.initSignState(sign_log)
+        this.continuousCount = continuousCount
+        this.awardMsg = awardMsg
+        this.$apply()
+
+        await this.timeout(1000)
+        this.bigAwardMsg = bigAwardMsg
+        this.$apply()
+      },
+      // 关闭奖励信息
+      closeSignAward () {
+        this.isSignAward = false
+        this.$emit('updateSignState', true, true)
+        clearTimeout(this.timer)
+      },
+    }
+
+    onUnload () {
+      clearTimeout(this.timer)
+    }
+
+    // 签到
+    async sign () {
+      let { data: { is_sign: isSign, sign_log, LX } } = await getSign()
+      let forgetSign = sign_log.lastIndexOf(0)
+      let willSign = sign_log.indexOf(-1)
+
+      this.isSign = Boolean(isSign)
+      this.continuousCount = LX
+      this.signState = this.initSignState(sign_log)
+      this.forgetSign = forgetSign
+      this.willSign = willSign === 0 ? 0 : isSign ? willSign - 1 : willSign
+      this.$apply()
+
+      this.$emit('updateSignState', this.isSign, false)
+    }
+
+    // 初始化签到状态
+    initSignState (signState = []) {
+      let initSignState = [
+        {
+          day: '星期一',
+          bgColor: '#fa6577',
+          src: '/images/box01.svg',
+        },
+        {
+          day: '星期二',
+          bgColor: '#f5a523',
+          src: '/images/box02.svg',
+        },
+        {
+          day: '星期三',
+          bgColor: '#f5a523',
+          src: '/images/box03.svg',
+        },
+        {
+          day: '星期四',
+          bgColor: '#ffec00',
+          src: '/images/box04.svg',
+        },
+        {
+          day: '星期五',
+          bgColor: '#31d2ae',
+          src: '/images/box05.svg',
+        },
+        {
+          day: '星期六',
+          bgColor: '#bf76ff',
+          src: '/images/box06.svg',
+        },
+        {
+          day: '星期日',
+          bgColor: '#61a5f5',
+          src: '/images/box07.svg',
+        },
+      ]
+      if (signState.length !== initSignState.length) return initSignState
+      return initSignState.map((item, index) => {
+        item.log = signState[index]
+        return item
+      })
+    }
+
+    // 定时器
+    async timeout (ms) {
+      return new Promise((resolve, reject) => {
+        this.timer = setTimeout(resolve, ms)
+      })
+    }
+  }
+</script>
+
+<style lang="scss">
+@import '../../scss/_animate.scss';
+@import '../../scss/_base.scss';
+
+@include bounce();
+@include zoomIn();
+@include zoomOut();
+
+.bounce {
+  animation: bounce 1s ease .6s infinite;
+}
+.zoomIn {
+  animation: zoomIn .6s;
+}
+.zoomOut {
+  animation: zoomOut .6s;
+}
+
+.sign {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+
+  width: to(335);
+  height: to(490);
+  border-radius: to(3);
+  padding: 0 to(12.5);
+
+  box-shadow: 0 to(1) to(15) 0 rgba(0, 0, 0, 0.5);
+  background: #fff;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    z-index: -1;
+    transform: translateX(-50%);
+
+    width: 100%;
+    height: to(358);
+
+    background: #fff;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    z-index: -9;
+    transform: translateX(-50%);
+
+    width: to(306);
+    height: to(358);
+    border-radius: to(20);
+
+    box-shadow: 0 to(12.5) to(10) 0 rgba(0, 0, 0, 0.2);
+    background: transparent;
+  }
+
+  &__header {
+    position: absolute;
+    top: to(-34);
+    left: 50%;
+    z-index: 1;
+    transform: translateX(-50%);
+
+    width: to(282);
+    height: to(67);
+  }
+
+  &__list {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+
+    margin-top: to(69);
+
+    font-family: PingFangSC-Semibold;
+    font-size: to(12);
+    color: #1480ff;
+  }
+
+  &__btn {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: to(200);
+    height: to(35);
+    margin-bottom: to(30);
+    border-radius: to(3);
+
+    font-family: PingFangSC-Regular;
+    font-size: to(14);
+    color: #fff;
+
+    background: linear-gradient(135deg,
+    #02cefd 0%,
+    #1380ff 100%);
+  }
+
+  &__award {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 99;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    background: rgba(74, 73, 74, 0.6);
+  }
+}
+
+
+.header-middle {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  z-index: 9;
+  transform: translateX(-50%);
+
+  width: to(230);
+  height: to(60);
+  border: to(2) solid #fff;
+  border-bottom: 0;
+
+  background: #09b2fe;
+}
+
+.header-middle--trapezoidal {
+  position: absolute;
+  left: 50%;
+  top: to(2);
+  z-index: 29;
+  transform: translateX(-50%);
+
+  width: to(216);
+  height: 0;
+  border-top: to(60) solid #09b2fe;
+  border-left: to(8) solid transparent;
+  border-right: to(8) solid transparent;
+}
+
+.header-middle--title {
+  position: absolute;
+  top: to(2);
+  left: 50%;
+  z-index: 39;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+
+  width: to(215);
+  height: to(60);
+
+  font-family: PingFangSC-Semibold;
+  font-size: to(30);
+  color: #fff;
+
+  background: #09b2fe;
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: to(-8);
+
+    width: 0;
+    height: 0;
+    border-color: transparent #2068bc;
+    border-style: solid;
+  }
+
+  &::before {
+    left: 0;
+
+    border-width: 0 to(26) to(8) 0;
+  }
+
+  &::after {
+    right: 0;
+
+    border-width: 0 0 to(8) to(26);
+  }
+}
+
+.header-left,
+.header-right {
+  content: '';
+  position: absolute;
+  bottom: to(-3);
+  z-index: 19;
+
+
+  width: to(50);
+  height: to(58);
+  border: to(2) solid #fff;
+  border-bottom: 0;
+
+  background: linear-gradient(45deg,
+  #02cefd 0%,
+  #03cbfe 0%,
+  #1380ff 100%);
+}
+
+.header-left {
+  left: 0;
+  transform: skewX(10deg);
+}
+
+.header-right {
+  right: 0;
+  transform: skewX(-10deg);
+}
+
+.award_item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  width: to(100);
+
+  .icon_block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+
+    width: to(70);
+    height: to(70);
+    border-radius: 50%;
+
+    .icon {
+      width: to(50);
+      height: to(50);
+    }
+
+    .icon_sign {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      z-index: 9;
+
+      width: to(18);
+      height: to(18);
+    }
+
+    .mask_forget,
+    .mask_finished {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+
+      border-radius: 50%;
+    }
+    .mask_finished {
+      background: rgba($color: #fff, $alpha: 0.7)
+    }
+    .mask_forget{
+      background: rgba($color: #000, $alpha: 0.4)
+    }
+  }
+
+  .week {
+    margin: to(5) 0 to(20) 0;
+  }
+
+  .week_continuous {
+    color: #50e3c2;
+  }
+}
+</style>

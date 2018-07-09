@@ -1,379 +1,273 @@
 <template lang="pug">
-  view.container
-    view.card_wrapper
-      scroll-view(
-        class="scroll_view"
-        scroll-y)
-        view.content_block
-          block(
-            wx:for="{{props}}"
-            wx:key="{{item.name}}")
-            view.porps_wrapper
-              view.icon_wrapper(
-                style="background: {{item.wrapperBg}}")
-                image(
-                  wx:if="{{item.aliasSrc}}"
-                  src="{{item.aliasSrc[0].src}}"
-                  style="position: absolute; width: {{2*item.aliasSrc[0].w}}rpx; height: {{2*item.aliasSrc[0].h}}rpx; top: {{2*item.aliasSrc[0].t}}rpx; left: {{2*item.aliasSrc[0].l}}rpx")
-                image(
-                  wx:if="{{item.aliasSrc}}"
-                  src="{{item.aliasSrc[1].src}}"
-                  style="position: absolute; width: {{2*item.aliasSrc[1].w}}rpx; height: {{2*item.aliasSrc[1].h}}rpx; top: {{2*item.aliasSrc[1].t}}rpx; left: {{2*item.aliasSrc[1].l}}rpx")
-                image.icon_props(
-                  style="width: {{2*item.style.w}}rpx; height: {{2*item.style.h}}rpx; margin-top: {{2*item.style.marginT}}rpx"
-                  src="{{item.src}}")
-                view.icon_name_wrapper(
-                  style="background: {{item.num ? item.nameBg : '#bfbfbf'}}")
-                  text {{item.cnName}}
-                  image(
-                    class="icon_mark"
-                    src="/images/x.svg")
-                  text {{item.num}}
-              view.props_features {{item.features}}
-      view.button_block
-        button.button_share(
-          open-type="share") 获取道具
-        view.button_tips 点击按钮，分享到微信群，即可随机获得道具一个。
+  scroll-view(
+    class="props-list"
+    scroll-y)
+    view.props-list__item(
+      wx:for="{{aProps}}"
+      wx:key="{{item._id}}"
+    )
+      view.item-card(
+        style="background: {{item.bg}};"
+      )
+        image.item-card__icon(
+          src="{{item.iconSrc}}"
+        )
+        view.item-card__info
+          text {{item.full_name}}
+          text.mark x
+          text.number {{item.num}}
+      view.item-use
+        text {{item.use}}
+  view.props-share
+    view.props-share__tips 分享到微信群，每个小伙伴点击进入后，双方可各得一个随机道具。
+    button.props-share__btn(
+      open-type="share"
+    ) 获取道具
 </template>
 
 <script>
-import wepy from 'wepy'
+  import wepy from 'wepy'
+  import SharePage from '@/extends/share'
 
-import { getProps, postGid } from '@/utils/api'
+  import {
+    getProps,
+  } from '@/utils/api'
 
-export default class HomePage extends wepy.page {
-  config = {
-    navigationBarTitleText: '道具箱',
-  }
+  import { connect } from 'wepy-redux'
 
-  data = {
-    props: [],
-  }
+  @connect({
+    uid (state) {
+      return state.userData.uid
+    }
+  })
 
-  onLoad () {
-    wepy.showShareMenu({withShareTicket: true})
-    this.initData()
-  }
+  export default class PropsPage extends SharePage {
+    config = {
+      navigationBarTitleText: '道具箱',
+    }
 
-  onShareAppMessage (options) {
-    let { share_uid = '' } = { share_uid: wepy.getStorageSync('uid') }
-    return {
-      title: '参与医学知识竞答，赢现金大奖！',
-      path: `/pages/home/home?share_uid=${share_uid}`,
-      imageUrl: '../../images/poster.png',
-      success: ({ shareTickets }) => {
-        wx.getShareInfo({
-          shareTicket: shareTickets[0],
-          success: async ({ encryptedData, iv }) => {
-            try {
-              let params = {
-                method: 'POST',
-                data: {
-                  st: shareTickets[0],
-                  gid: [
-                    { encryptedData, iv },
-                  ]
-                }
-              }
-              let { data: { error_code } } = await postGid(params)
-              if (error_code === 0) {
-                await this.initData()
-                wepy.showModal({
-                  title: '分享成功',
-                  content: '快去道具箱里查看新道具吧！',
-                  showCancel: false
-                })
-              } else {
-                wepy.showToast({
-                  title: '同一个群每天只能分享一次',
-                  icon: 'none'
-                })
-              }
-            } catch (error) {
-              console.log('err', error)
-            }
-          }
-        })
-      },
-      fail: () => {
-        this.isShowShare = false
-        this.$apply()
-        wepy.showToast({
-          title: '分享失败',
-          icon: 'none'
-        })
-      }
+    data = {
+      aProps: [],                  // 道具列表
+    }
+
+    onLoad () {
+      this.initData()
+    }
+
+    async initData () {
+      wepy.showShareMenu({withShareTicket: true})
+      let { data: { props } } = await getProps()
+      this.aProps = this.formatProps(props)
+      this.$apply()
+    }
+
+    formatProps (aProps) {
+      let deepCopyProps = JSON.parse(JSON.stringify(aProps))
+      let aNewProps = deepCopyProps.map(item => {
+        let name = item.name
+        item.aSubIcon = []
+
+        switch (name) {
+          case 'HSZWRNS':
+            item.full_name = '护士长的温柔凝视'
+            item.use = '去掉单选题中一个错误答案'
+            item.bg = '#ff71a0'
+            item.iconSrc = '/images/props1.svg'
+            item.aSubIcon = [
+              '/images/-1.svg',
+              '/images/-1.svg'
+            ]
+
+            break
+          case 'ZRSYTX':
+            item.full_name = '主任的善意提醒'
+            item.use = '去掉单选题中的两个错误答案'
+            item.bg = '#73dd71'
+            item.iconSrc = '/images/props2.svg'
+            item.aSubIcon = [
+              '/images/-2.svg',
+              '/images/-2.svg'
+            ]
+
+            break
+          case 'DrWhyXC':
+            item.full_name = 'Dr.Why的小抄'
+            item.use = '查看当前已答题用户的每个选项比例'
+            item.bg = '#72cced'
+            item.iconSrc = '/images/props3.svg'
+            item.aSubIcon = [
+              '/images/A.svg',
+              '/images/B.svg'
+            ]
+
+            break
+          case 'XBDDA':
+            item.full_name = '学霸的答案'
+            item.use = '查看随机三个当前排名前20用户的答案'
+            item.bg = '#ffdf13'
+            item.iconSrc = '/images/props4.svg'
+
+            break
+          case 'r_card':
+            item.full_name = '复活卡'
+            item.use = '一次复活的机会'
+            item.bg = '#ec5858'
+            item.iconSrc = '/images/props5.svg'
+
+            break
+          case 'double':
+            item.full_name = '1.2倍奖金卡'
+            item.use = '下次答题奖金*1.2'
+            item.bg = '#50e3c2'
+            item.iconSrc = '/images/props6.svg'
+
+            break
+        }
+
+        return item
+      })
+
+      return aNewProps
     }
   }
-
-  async initData () {
-    let { data: { props } } = await getProps()
-    this.props = this.formatProps(props)
-    this.$apply()
-  }
-
-  formatProps (props) {
-    for (let [i, item] of props.entries()) {
-      switch (item.name) {
-        case 'HSZWRNS':
-          props[i] = {
-            ...item,
-            cnName: '护士长的温柔凝视',
-            src: `/images/props1.svg`,
-            features: '去掉单选题的一个错误答案',
-            wrapperBg: '#ff71a0',
-            nameBg: '#753349',
-            style: {
-              w: 76,
-              h: 135,
-              marginT: 11,
-            },
-            aliasSrc: [
-              {
-                src: '/images/-1.svg',
-                w: 25,
-                h: 26,
-                t: 33,
-                l: 7,
-              },
-              {
-                src: '/images/-1.svg',
-                w: 17,
-                h: 18,
-                t: 59,
-                l: 103,
-              },
-            ],
-          }
-          break
-        case 'ZRSYTX':
-          props[i] = {
-            ...item,
-            cnName: '主任的善意提醒',
-            features: '去掉单选题的两个错误答案',
-            src: `/images/props2.svg`,
-            wrapperBg: '#73dd71',
-            nameBg: '#325f32',
-            style: {
-              w: 81,
-              h: 124,
-              marginT: 16,
-            },
-            aliasSrc: [
-              {
-                src: '/images/-2.svg',
-                w: 28,
-                h: 26,
-                t: 39,
-                l: 7,
-              },
-              {
-                src: '/images/-2.svg',
-                w: 17,
-                h: 15,
-                t: 24,
-                l: 103,
-              },
-            ],
-          }
-          break
-        case 'DrWhyXC':
-          props[i] = {
-            ...item,
-            cnName: 'DrWhy的小抄',
-            features: '查看当前已答题用户的每个选项比例',
-            src: `/images/props3.svg`,
-            wrapperBg: '#72cced',
-            nameBg: '#135f7a',
-            style: {
-              w: 87,
-              h: 134,
-              marginT: 10,
-            },
-            aliasSrc: [
-              {
-                src: '/images/A.svg',
-                w: 26,
-                h: 20,
-                t: 54,
-                l: 7,
-              },
-              {
-                src: '/images/B.svg',
-                w: 27,
-                h: 25,
-                t: 46,
-                l: 93,
-              },
-            ],
-          }
-          break
-        case 'XBDDA':
-          props[i] = {
-            ...item,
-            cnName: '学霸的选择题答案',
-            features: '查看随机三个当前排名前20用户的答案',
-            src: `/images/props4.svg`,
-            wrapperBg: '#ffdf13',
-            nameBg: '#98840a',
-            style: {
-              w: 90,
-              h: 107,
-              marginT: 20,
-            }
-          }
-          break
-        case 'r_card':
-          props[i] = {
-            ...item,
-            cnName: '复活卡',
-            features: '一次复活的机会',
-            src: `/images/props5.svg`,
-            wrapperBg: '#ec5858',
-            nameBg: '#863535',
-            style: {
-              w: 125,
-              h: 123,
-              marginT: 17,
-            }
-          }
-          break
-        case 'double':
-          props[i] = {
-            ...item,
-            cnName: '奖金翻倍卡',
-            features: '奖金系数翻倍',
-            src: `/images/props6.svg`,
-            wrapperBg: '#50e3c2',
-            nameBg: '#359680',
-            style: {
-              w: 92,
-              h: 126,
-              marginT: 19,
-            }
-          }
-          break
-      }
-    }
-    return props
-  }
-}
 </script>
 
 <style lang="scss">
-@import '../../scss/_element.scss';
-@import '../../scss/_layout.scss';
+@import '../../scss/_base.scss';
 
 page {
-  @include verticalHorizontalCenter();
+  width: 100vw;
   height: 100vh;
-  background: linear-gradient(to bottom right, #3023AE, #C86DD7 );
 }
 
-.card_wrapper {
-  width: 650rpx;
-  height: 940rpx;
-  background: #fff;
-  border-radius: 40rpx;
+.props-list {
+  display: flex;
+  box-sizing: border-box;
   overflow: hidden;
+
+  height: inherit;
+  padding: to(20) 0 to(70) 0;
+
+  &__item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    float: left;
+
+    width: to(135);
+    height: to(206);
+    margin: 0 0 to(20) to(35);
+  }
+}
+
+/* S 分享操作区域 */
+.props-share {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   box-sizing: border-box;
 
-  .scroll_view {
-    height: 740rpx;
-    width: 100%;
-    box-sizing: border-box;
-    margin: 60rpx 0 40rpx 0;
+  width: inherit;
+  height: to(70);
+  border-top: 1px solid #f5f5f5;
+  padding: 0 to(20);
 
+  background: #fff;
+
+  /* S 分享提示信息 */
+  &__tips {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: row;
 
-    .content_block {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      flex-wrap: wrap;
-      box-sizing: border-box;
+    width: to(162);
 
-      &:nth-child(2n + 1) {
-        padding-left: 50rpx;
-      }
+    font-family: PingFangSC-Regular;
+	  font-size: to(10);
+    color: #9b9b9b;
+  }
+  /* E 分享提示信息 */
+
+  /* S 分享按钮 */
+  &__btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: to(125);
+    height: to(30);
+    border-radius: to(3);
+    margin: 0;
+
+    font-family: PingFangSC-Medium;
+    font-size: to(12);
+    color: #fff;
+
+    background: linear-gradient(90deg,
+    #02cefd 0%,
+    #1380ff 100%);
+  }
+  /* E 分享按钮 */
+}
+/* E 分享操作区域 */
+
+
+.item-card {
+  position: relative;
+  overflow: hidden;
+
+  width: to(135);
+  height: to(170);
+  border-radius: to(5);
+
+  &__info {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    z-index: 99;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: inherit;
+    height: to(30);
+
+    font-family: PingFangSC-Medium;
+    font-size: to(11);
+    color: #fff;
+
+    background: rgba(0, 0, 0, .3);
+
+    .mark {
+      display: inline-flex;
+
+      margin: 0 to(3);
     }
 
-    .porps_wrapper {
-      min-height: 386rpx;
-      width: 50%;
-      box-sizing: border-box;
-
-      .icon_wrapper {
-        display: flex;
-        justify-content: center;
-        width: 250rpx;
-        height: 340rpx;
-        border-radius: 20rpx;
-        position: relative;
-
-        .icon_props {
-          width: 100%;
-          height: 280rpx;
-        }
-
-        .icon_name_wrapper {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          position: absolute;
-          left: 0;
-          bottom: 0;
-          width: 100%;
-          height: 60rpx;
-          background: red;
-          font-family: PingFangSC-Medium;
-          font-size: 22rpx;
-          color: #fff;
-          border-radius: 0 0 20rpx 20rpx;
-
-          .icon_mark {
-            width: 16rpx;
-            height: 18rpx;
-            margin: 0 10rpx;
-            margin-bottom: -2rpx;
-          }
-
-          .props_num {
-            font-family: DINAlternate-Bold;
-            font-size: 28rpx;
-          }
-        }
-      }
-
-      .props_features {
-        @include verticalHorizontalCenter();
-        text-align: center;
-        margin-top: 20rpx;
-        margin-bottom: 40rpx;
-        width: 250rpx;
-        font-family: PingFangSC-Regular;
-        font-size: 18rpx;
-        color: #828282;
-      }
+    .number {
+      font-family: DINAlternate-Bold;
+      font-size: to(14);
     }
   }
 }
 
-.button_block {
-  display: flex;
-  flex-direction: row-reverse;
-  padding: 0 50rpx;
+.item-card__icon {
+  position: absolute;
+  top: to(10);
+  left: to(20);
 
-  .button_tips {
-    font-family: PingFangSC-Regular;
-	  font-size: 20rpx;
-    color: #9b9b9b;
-    margin-right: 30rpx;
-  }
+  width: to(95);
+  height: to(130);
+}
 
-  .button_share {
-    @include btn($radius: 60rpx);
-  }
+.item-use {
+  margin-top: to(10);
+
+  font-family: PingFangSC-Regular;
+	font-size: to(9);
+	color: #828282;
+  text-align: center;
 }
 </style>

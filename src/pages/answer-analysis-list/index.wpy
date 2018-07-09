@@ -1,0 +1,196 @@
+<template lang="pug">
+  view.answer-analysis-list--none(
+    wx:if="{{!aPastAnswerAnalysis.length}}"
+  )
+    view.answer-analysis-list--none__tip 您暂时还没有参与过答题哦
+    navigator.answer-analysis-list--none__home-btn(
+      url="/pages/home/home"
+      open-type="redirect"
+    ) 返回主页参与答题
+  scroll-view.answer-analysis-list(
+    scroll-y
+  )
+    block(
+      wx:for="{{aPastAnswerAnalysis}}"
+      wx:key="{{item._id}}"
+    )
+      navigator.answer-analysis-list__item(
+        url="/pages/answer-analysis/index?pid={{item.pid}}&subject={{item.paper.subject}}"
+      )
+        text.time {{item.created_at}}
+        text {{item.paper.subject}}
+    view.answer-analysis-list__item.answer-analysis-list__item--more(
+      wx:if="{{totalPage !== 1}}"
+      @tap="loadMore"
+    )
+      text {{canLoadMore ? '查看更多...' : '暂无更多数据~'}}
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import { postPastAnswerAnalysisByPage } from '@/utils/api'
+
+  export default class AnswerAnaysisListPage extends wepy.page {
+    config = {
+      navigationBarTitleText: '往期答案解析'
+    }
+
+    data = {
+      aPastAnswerAnalysis: [{}],            // 往期题目列表
+      canLoadMore: false,                   // 加载更多数据
+      currentPage: 1,                       // 当前页码
+      totalPage: 1,                         // 页码总数
+    }
+
+    methods = {
+      /**
+       * loadMore
+       * 加载更多数据(分页操作)
+       */
+      async loadMore () {
+        if (!this.canLoadMore) return
+
+        this.currentPage++
+        let aPastAnswerAnalysis = await this.updatePastAnswerAnalysis(this.currentPage)
+        this.aPastAnswerAnalysis = [...this.aPastAnswerAnalysis, ...aPastAnswerAnalysis]
+        this.$apply()
+      }
+    }
+
+    async onLoad () {
+      let aPastAnswerAnalysis = await this.updatePastAnswerAnalysis(this.currentPage)
+      this.aPastAnswerAnalysis = [...aPastAnswerAnalysis]
+      this.$apply()
+    }
+
+    /**
+     * updatePastAnswerAnalysis
+     * 更新往期题目列表数据
+     * @param page {Numbber} 页码, 默认值为1
+     * @return aCurrentHistory {Array} 当前往期题目列表数据
+     */
+    async updatePastAnswerAnalysis (page = 1) {
+      let { data: { data, meta: { pagination: { current_page, total_pages } } } } = await this.getPastAnswerAnalysiByPage(page)
+      let aPastAnswerAnalysis = this.formatPastAnswerAnalysisData(data)
+
+      current_page < total_pages ? this.canLoadMore = true : this.canLoadMore = false
+      this.currentPage = current_page
+      this.totalPage = total_pages
+      this.$apply()
+
+      return aPastAnswerAnalysis
+    }
+
+    /**
+     * getPastAnswerAnalysiByPage
+     * 根据页码去请求数据
+     * @param page {Number} 页码，默认值为1
+     * @return res {Object} 根据页码从后台请求到的的相关数据
+     */
+    async getPastAnswerAnalysiByPage (page = 1) {
+      let params = {
+        method: 'POST',
+        data: {
+          page
+        }
+      }
+      let res = await postPastAnswerAnalysisByPage(params)
+
+      return res
+    }
+
+    /**
+     * formatHitoryData
+     * 格式化往期题目列表数据
+     * @param aPastAnswerAnalysis {Array} 要被格式化的数据
+     * @return aNewPastAnswerAnalysis {Array} 格式化之后的数据
+     */
+    formatPastAnswerAnalysisData (aPastAnswerAnalysis) {
+      let aNewPastAnswerAnalysis = aPastAnswerAnalysis.map(item => {
+        item.paper = item.paper.data
+
+        return item
+      })
+
+      return aNewPastAnswerAnalysis
+    }
+  }
+</script>
+
+<style lang="scss">
+@import '../../scss/_base.scss';
+
+page {
+  width: 100vw;
+  height: 100vh;
+}
+
+.answer-analysis-list--none {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  height: inherit;
+
+  &__tip {
+    margin-bottom: to(10);
+
+    font-family: PingFangSC-Regular;
+    font-size: to(10);
+    color: #9b9b9b;
+  }
+
+  &__home-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: to(200);
+    height: to(25);
+    border-radius: to(3);
+
+    font-family: PingFangSC-Regular;
+    font-size: to(14);
+    color: #fff;
+
+    background: linear-gradient(135deg,
+      #02cefd 0%,
+      #1380ff 100%);
+  }
+}
+
+.answer-analysis-list {
+  height: inherit;
+
+  &__item {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+
+    padding: to(22) to(15);
+    border-bottom: 1px solid #d7d7d7;
+
+    font-family: PingFangSC-Regular;
+	  font-size: to(14);
+    color: #4a4a4a;
+
+    .time {
+      margin-right: to(10);
+
+      font-size: to(10);
+      color: #9b9b9b;
+    }
+  }
+
+  &__item--more {
+    justify-content: center;
+
+    border-bottom: 0;
+
+    font-family: PingFangSC-Regular;
+    font-size: to(10);
+    color: #9b9b9b;
+  }
+}
+</style>

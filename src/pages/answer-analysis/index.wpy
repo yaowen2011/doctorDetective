@@ -1,0 +1,245 @@
+<template lang="pug">
+  view.analysis
+    view.analysis__title {{subject}}
+    swiper.analysis__swiper(
+      indicator-dots
+      indicator-color="#d7d7d7"
+      indicator-active-color="#1380ff"
+    )
+      swiper-item(
+        wx:for="{{aQuestions}}"
+        wx:key="{{item._id}}"
+      )
+        scroll-view.swiper-item(
+          scroll-y
+        )
+          view.swiper-item__title {{index + 1}}. {{item.subject}} {{item.type === 2 ? '(多选)' : ''}}
+          view.swiper-item__choice
+            view.item-choice(
+              wx:for="{{item.choice}}"
+              wx:key="{{index}}"
+              class="{{item.isAnswer ? 'item-choice--active' : ''}}"
+            ) {{item.option}}. {{item.content}}
+          view.swiper-item__analysis
+            view.analysis-mark 解析:
+            viwe.analysis-content {{item.analysis ? item.analysis : '暂无解析'}}
+</template>
+
+<script>
+  import wepy from 'wepy'
+
+  import {
+    postAnswerAnalysisByPid
+  } from '@/utils/api'
+
+  export default class AnswerAnalysisPage extends wepy.page {
+    config = {
+      navigationBarTitleText: '答案解析'
+    }
+
+    data = {
+      subject: '',              // 答题专题名称
+      aQuestions: []            // 题目选项列表
+    }
+
+    async onLoad (params) {
+      let {
+        pid,
+        subject = ''
+      } = params
+      if (!pid) return
+
+      this.subject = subject
+      let aQuestions = await this.postAnswerAnalysisByPid(pid)
+      this.aQuestions = this.formatQuestions(aQuestions)
+      this.$apply()
+    }
+
+    /**
+     * postAnswerAnalysisByPid
+     * 根据 pid 获取指定某一期的答案解析
+     * @param pid {String}
+     * @return questions {Array}
+     */
+    async postAnswerAnalysisByPid (pid) {
+      let params = {
+        method: 'POST',
+        data: {
+          pid
+        }
+      }
+      let { data: { questions } } = await postAnswerAnalysisByPid(params)
+
+      return questions
+    }
+
+    /**
+     * formatQuestions
+     * 格式化题目选项数据
+     * @param aQuestions {Array} 题目选项数据
+     * @param aQuestions {Array} 格式化后的题目选项数据
+     */
+    formatQuestions (aQuestions) {
+      aQuestions.forEach((question, i) => {
+        question.choice.forEach((choice, j) => {
+          choice = this.formatChoiceItem(choice)
+          choice.isAnswer = false
+          question.answer.toUpperCase().split('').forEach(item => {
+            if (item === choice.option) choice.isAnswer = true
+          })
+          aQuestions[i].choice[j] = choice
+        })
+      })
+
+      return aQuestions
+    }
+
+    /**
+     * formatChoiceItem
+     * 格式化每个选项
+     * @param oChoice {Object} 选项对象
+     * @param oNewChoice {Object} 格式化后的选项对象
+     */
+    formatChoiceItem (oChoice) {
+      let oNewChoice = {}
+
+      Object.keys(oChoice).forEach(item => {
+        oNewChoice.option = item
+        oNewChoice.content = oChoice[item]
+      })
+
+      return oNewChoice
+    }
+  }
+</script>
+
+<style lang="scss">
+@import '../../scss/_base.scss';
+
+page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  width: 100vw;
+  height: 100vh;
+
+  background:#f5f5f5;
+}
+
+.analysis {
+  position: relative;
+
+  width: to(355);
+  height: to(490);
+  border-radius: to(3);
+
+  background: #fff;
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    z-index: -1;
+    transform: translateX(-50%);
+
+    width: to(305);
+    height: to(360);
+    border-radius: to(20);
+    box-shadow: 0 to(20) to(30) 0 rgba(19, 61, 110, 0.19);
+  }
+
+  &__title {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    height: to(65);
+    border-radius: to(3) to(3) 0 0;
+
+    font-family: PingFangSC-Medium;
+    font-size: to(18);
+    color: #fff;
+
+    background: linear-gradient(135deg,
+		#02cefd 0%,
+		#1380ff 100%);
+  }
+
+  &__swiper {
+    height: to(420);
+  }
+}
+
+.swiper-item {
+  box-sizing: border-box;
+
+  width: 100%;
+  height: 100%;
+  padding-bottom: to(25);
+
+  &__title {
+    padding: to(15) to(10);
+
+    font-family: PingFangSC-Medium;
+    font-size: to(14);
+    color: #4a4a4a;
+    text-indent: to(10);
+  }
+
+  &__choice {
+    padding: to(20) to(15);
+    margin: 0 to(10) to(10) to(10);
+    border-top: 1px solid #d7d7d7;
+    border-bottom: 1px solid #d7d7d7;
+  }
+
+  &__analysis {
+    margin: 0 to(10) to(25) to(10);
+    padding: 0 to(15);
+    color: #4a4a4a;
+  }
+}
+
+.item-choice {
+  box-sizing: border-box;
+
+  border-radius: to(3);
+  padding: to(8) to(10);
+  margin-bottom: to(8);
+
+  font-family: PingFangSC-Regular;
+  font-size: to(14);
+  color: #4a4a4a;
+  text-indent: to(15);
+
+  background: #f5f5f5;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.item-choice--active {
+  color: #fff;
+
+  background: linear-gradient(90deg,
+  #02cefd 0%,
+  #1380ff 100%);
+}
+
+.analysis-mark {
+  font-family: PingFangSC-Medium;
+  font-size: to(14);
+}
+
+.analysis-content {
+  font-family: PingFangSC-Regular;
+  font-size: to(12);
+  line-height: 0;
+  letter-spacing: 0;
+}
+</style>

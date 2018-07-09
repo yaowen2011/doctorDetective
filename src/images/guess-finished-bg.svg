@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="335px" height="490px" viewBox="0 0 335 490" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 49 (51002) - http://www.bohemiancoding.com/sketch -->
+    <title>Rectangle 10</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <rect id="path-1" x="0" y="0" width="335" height="490" rx="6"></rect>
+        <linearGradient x1="2.81483209%" y1="3.54910714%" x2="94.5417444%" y2="76.9252232%" id="linearGradient-3">
+            <stop stop-color="#03CEFE" offset="0%"></stop>
+            <stop stop-color="#1480FF" offset="100%"></stop>
+        </linearGradient>
+    </defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="猜药名" transform="translate(-20.000000, -113.000000)">
+            <g id="Group-2" transform="translate(20.000000, 113.000000)">
+                <g id="Rectangle-10">
+                    <mask id="mask-2" fill="white">
+                        <use xlink:href="#path-1"></use>
+                    </mask>
+                    <use id="Mask" fill="#FFFFFF" xlink:href="#path-1"></use>
+                    <path d="M0,0 L335,0 L335,174.8 C279.166667,210.266667 223.333333,228 167.5,228 C111.666667,228 55.8333333,210.266667 0,174.8 L0,0 Z" fill="url(#linearGradient-3)" mask="url(#mask-2)"></path>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

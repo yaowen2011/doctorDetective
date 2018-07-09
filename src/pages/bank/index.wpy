@@ -1,0 +1,333 @@
+<template lang="pug">
+  scroll-view.container(
+    scroll-y
+  )
+    view.profile
+      view.profile__userInfo
+        image.profile__avatar(
+          src="{{userInfo.avatarUrl ? userInfo.avatarUrl : '../../images/avatar-default.svg'}}")
+        text {{userInfo.nickName}}
+      view.profile__assets
+        view.profile__designation
+          text 奖金余额：
+          text.unit ￥{{total_bonus}}
+        view.profile__total-score
+          text 金币余额：
+          text.unit {{gold}}
+    view.entrance
+      view.entrance__withdraw-earnings
+        navigator.entrance__withdraw(
+          url="/pages/bonus/index?total_bonus={{total_bonus}}&pid={{pid}}"
+        )
+          image.icon-withdraw(
+            src="/images/withdraw.svg"
+          )
+          text.text 提现
+        navigator.entrance__earnings-history(
+          url="/pages/history/index"
+        )
+          image.icon-history(
+            src="/images/history.svg"
+          )
+          text.text 查看历史收入记录
+      navigator.entrance__glod-exchange(
+        url="/pages/exchange/index"
+        hover-class="none"
+      )
+        text.text 金币兑换
+        image.icon-exchange(
+          src="/images/exchange.svg"
+        )
+</template>
+
+<script>
+  import wepy from 'wepy'
+
+  import { connect } from 'wepy-redux'
+  import { fetchUserData } from '@/store/actions'
+
+  @connect({
+    pid (state) {
+      return state.userData.pid
+    },
+    userInfo (state) {
+      return state.userData.userInfo
+    },
+    total_bonus (state) {
+      return state.userData.bonus
+    },
+    gold (state) {
+      return state.userData.gold_all
+    }
+  }, {
+    fetchUserData
+  })
+
+  export default class BankPage extends wepy.page {
+    config = {
+      navigationBarTitleText: '银行',
+      backgroundColor: '#fff'
+    }
+
+    onLoad () {
+      this.methods.fetchUserData()
+    }
+  }
+</script>
+
+<style lang="scss">
+@import '../../scss/_base.scss';
+
+page {
+  position: relative;
+
+  width: 100vw;
+  height: 100vh;
+
+  background: linear-gradient(90deg,
+  #02cefd 0%,
+  #1380ff 100%);
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: to(145);
+    right: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 9;
+
+    background: #ededed;
+  }
+}
+
+.container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 99;
+  box-sizing: border-box;
+
+  padding-top: to(25);
+}
+
+/* =S 个人信息(头像、昵称、总收入、金币)样式*/
+.profile {
+  position: relative;
+  box-sizing: border-box;
+
+  width: to(355);
+  height: to(160);
+  margin: 0 auto to(15) auto;
+
+  font-family: PingFangSC-medium;
+  font-size: to(18);
+  color: #464f51;
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: to(10);
+    z-index: 1;
+    transform: translateX(-50%);
+
+    width: to(292);
+    height: to(80);
+    border-radius: to(6);
+
+    box-shadow: 0 to(20) to(20) 0 rgba(73, 73, 73, 0.2);
+  }
+
+  &__userInfo {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 99;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+
+    width: to(120);
+  }
+
+  &__avatar {
+    width: to(80);
+    height: to(80);
+    border-radius: 50%;
+    margin-bottom: to(10);
+  }
+
+  &__assets {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    z-index: 9;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    box-sizing: border-box;
+
+    width: inherit;
+    height: to(120);
+    padding-top: to(27);
+    border-radius: to(12);
+
+    font-family: PingFangSC-Regular;
+    font-size: to(12);
+    color: #464f51;
+
+    background: #fff;
+  }
+
+  &__designation,
+  &__total-score {
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+
+    padding-left: to(137);
+    margin-bottom: to(10);
+
+    .unit {
+      font-family: PingFangSC-Semibold;
+      font-size: to(24);
+      color: #1480ff;
+    }
+  }
+}
+/* =E 个人信息(头像、昵称、总收入、金币)样式*/
+
+/* =S 提现、查看历史收入记录、金币兑换入口样式 */
+.entrance {
+  display: flex;
+  flex-wrap: wrap;
+
+  width: to(355);
+  margin: 0 auto;
+
+  &__withdraw-earnings,
+  &__glod-exchange {
+    position: relative;
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+
+    width: inherit;
+    height: to(90);
+    border-radius: to(6);
+    margin-bottom: to(8);
+
+    font-family: PingFangSC-Medium;
+    font-size: to(24);
+    color: #fff;
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      z-index: -1;
+      transform: translate(-50%, -50%);
+
+      width: to(300);
+      height: to(70);
+      border-radius: to(6);
+    }
+  }
+
+  &__withdraw-earnings {
+    background: linear-gradient(90deg,
+		#02cefd 0%,
+		#1380ff 100%);
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      z-index: inherit;
+      transform: translate(-50%, -50%);
+
+      height: to(65);
+      border-right: 1px solid #fff;
+    }
+
+    &::after {
+      box-shadow: 0 to(20) to(20) 0 rgba(29, 166, 251, 0.3);
+    }
+  }
+
+  &__glod-exchange {
+    justify-content: space-between;
+
+    padding: 0 to(37) 0 to(30);
+
+    background: linear-gradient(136deg,
+		#fad961 0%,
+		#f66b1c 100%);
+
+    &::after {
+      box-shadow: 0 to(20) to(20) 0 rgba(245, 166, 35, 0.6);
+    }
+
+    .text {
+      display: inline-flex;
+      flex-wrap: wrap;
+
+      width: to(50);
+    }
+
+    .icon-exchange {
+      width: to(90);
+      height: to(67);
+    }
+  }
+}
+/* =E 提现、查看历史收入记录、金币兑换入口样式 */
+
+
+.entrance__withdraw,
+.entrance__earnings-history {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+
+  height: inherit;
+
+  .text {
+    display: inline-flex;
+    flex-wrap: wrap;
+
+    width: to(58);
+    margin-left: to(10);
+
+    font-family: PingFangSC-Medium;
+    font-size: to(24);
+    color: #fff;
+  }
+}
+
+.entrance__withdraw {
+  .icon-withdraw {
+    width: to(44);
+    height: to(36);
+  }
+}
+
+.entrance__earnings-history {
+  .icon-history {
+    width: to(38);
+    height: to(38);
+  }
+
+  .text {
+    font-family: PingFangSC-Semibold;
+    font-size: to(12);
+  }
+}
+</style>

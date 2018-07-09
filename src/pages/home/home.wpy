@@ -1,560 +1,172 @@
 <template lang="pug">
-  view.home
-    Sign(
-      wx:if="{{!isSign}}"
-      :awardMsg.sync="awardMsg"
-      :bigAwardMsg.sync="bigAwardMsg"
-      :forgetSign.sync="forgetSign"
-      :willSign.sync="willSign"
-      :signState.sync="signState"
-      :continuousCount.sync="continuousCount")
-    view.container(
-      wx:else)
-      CaseVideo(
-        wx:if="{{isVideoSrc}}"
-        :video.sync="video")
-      VideoPlaceholder(
-        wx:else
-        :video.sync="video")
-      view.content
-        Deadline(
-          :t_label.sync="t_label"
-          :expired_at.sync="expired_at"
-          :bonusPool.sync="bonusPool")
-        form(
-          report-submit=true
-          @submit="startAnswer")
-          button.startAnswerBtn(
-            form-type="submit") 开始答题
-        Card(
-          :pid.sync="pid"
-          :card.sync="card"
-          :honor.sync="honor"
-          :userInfo.sync="userInfo"
-          :total_score.sync="total_score"
-          :total_bonus.sync="total_bonus"
-          :is_answer.sync="is_answer")
-      Share(
-        wx:if="{{isShowShare}}")
-      Comment(
-        wx:if="{{ isShowCommentBlock }}"
-        :comments.sync="comments")
-      Poster(
-        wx:if="{{isShowPoster}}"
-        :posterSrc.sync="posterSrc")
-  </template>
+  view.bg(
+    wx:if="{{isSign}}"
+  )
+  Sign(
+    wx:if="{{!isSign}}"
+    :share_uid.sync="share_uid"
+  )
+  HomeCard(
+    wx:else
+  )
+  view.poster(
+    wx:if="{{isPoster}}"
+    @tap="closePoster"
+  )
+    image.poster__img(
+      src="{{poster.url}}"
+    )
+</template>
 
 <script>
   import wepy from 'wepy'
-  import Panel from '@/components/panel'
-  import Btn from '@/components/btn'
-  import Card from './hCard'
-  import Share from './share'
-  import Comment from './comment'
-  import Sign from './sign/index'
-  import Deadline from './deadline'
-  import CaseVideo from './caseVideo'
-  import Poster from './poster'
-  import VideoPlaceholder from './videoPlaceholder/index'
+  import Sign from './sign'
+  import HomeCard from './home-card'
+  import SharePage from '@/extends/share'
 
-  import { getUserData, getToken, getUserInfo, sign, getVideo, postFormId, getComments, postComment, getPosterState, postGid } from '@/utils/api'
+  import {
+    getToken,
+    getPosterState
+  } from '@/utils/api'
+  import { connect } from 'wepy-redux'
+  import { fetchUserData } from '@/store/actions/user-data'
 
-  export default class HomePage extends wepy.page {
+  @connect({
+    uid (state) {
+      return state.userData.uid
+    },
+    userInfo (state) {
+      return state.userData.userInfo
+    }
+  }, {
+    fetchUserData
+  })
+  export default class homePage extends SharePage {
     data = {
-      isSign: 1,                        // 今天签到情况
-      willSign: 0,                      // 今天签到索引
-      forgetSign: 0,                    // 漏签的索引
-      signState: [],                    // 一周签到情况
-      awardMsg: '',                     // 获奖信息
-      bigAwardMsg: '',                  // 获得大奖信息
-      continuousCount: 0,               // 连续签到的天数
-      video: {},                        // 病历视频
-      isVideoSrc: false,                // 是否有视频地址
-      videoContext: {},                 // video 上下文对象
-      isShowShare: false,               // 是否显示分享模块
-      isShowCommentBlock: false,        // 是否显示屏幕模块
-      t_label: '',                      // 答题时间提示
-      share_uid: '',                    // 分享人的 uid
-      token: '',                        // token
-      userInfo: {},                     // 用户信息
-      uid: '',                          // 数据库中用户 ID
-      card: 0,                          // 复活卡
-      total_score: 0,                   // 累计得分
-      pid: '',                          // 本期试卷的 id
-      total_bonus: 0,                   // 累计奖金
-      expired: 0,                       // 题目是否过期
-      is_answer: 0,                     // 是否答过题
-      expired_at: '',                   // 答题截止时间
-      bonusPool: 0,                     // 奖池总金额
-      honor: '',                        // 级别称号
-      comments: [],                     // 评论列表
-      timer: null,                      // 定时器
-      posterSrc: '',                    // poster 的地址
-      isShowPoster: false               // 是否显示 poster
+      isSign: 1,                        // 今天是否签到
+      isPoster: 0,                      // 是否显示公告
+      poster: {},                       // 公告
+      user: {},                         // 用户
+      share_uid: '',                    // 分享人的 id
     }
 
     components = {
-      Panel,
-      Btn,
       Sign,
-      CaseVideo,
-      Deadline,
-      Card,
-      Share,
-      VideoPlaceholder,
-      Comment,
-      Poster
-    }
-
-    watch = {
-      isSign: async (newValue, oldValue) => {
-        if (newValue) {
-          this.userInfo = wepy.getStorageSync('userInfo')
-          if (this.token && this.video.src) this.isVideoSrc = true
-          await this.getUserData()
-          await this.getComments()
-          if (!this.isSign) return
-          this.isVideoSrc ? this.$invoke(this.$com.CaseVideo, 'initComments', this.comments) : this.$broadcast('beginBarrage', this.comments)
-        }
-        if (!oldValue || oldValue === 1) {
-          let { data: { show = 0, url: posterSrc } } = await getPosterState({isNeedToken: false})
-          if (show && this.video.src) this.isVideoSrc = false
-          this.isShowPoster = show
-          this.posterSrc = posterSrc
-          this.$apply()
-        }
-      },
-    }
-
-    methods = {
-      // 开始答题
-      async startAnswer (event) {
-        let { detail: { formId } } = event
-        let params = {
-          method: 'POST',
-          data: {
-            formId,
-          }
-        }
-        await postFormId(params)
-
-        switch (this.expired) {
-          case 0:
-            if (this.is_answer === 1) {
-              wepy.showModal({
-                content: '您已参与过本期答题了，请下期再答。',
-                showCancel: false
-              })
-            } else {
-              let modal = await wepy.showModal({
-                title: '提示',
-                content: '开始答题后，一旦中途退出，则成绩无效(详情请查看活动规则)。'
-              })
-              if (!modal.confirm) return
-              wepy.navigateTo({
-                url: `/pages/answer/index?pid=${this.pid}&total_bonus=${this.total_bonus}&total_score=${this.total_score}`
-              })
-            }
-            break
-          case 1:
-            wepy.showToast({
-              title: '本期答题已结束',
-              icon: 'none'
-            })
-            break
-        }
-      },
-      // 显示分享模块
-      showShareBlock () {
-        this.isShowShare = true
-      },
-      // 隐藏分享模块
-      hideShareBlock () {
-        this.isShowShare = false
-      }
+      HomeCard
     }
 
     events = {
-      'collectFormId': async (event) => {
-        let { detail: { formId } } = event
-        let params = {
-          method: 'POST',
-          data: {
-            formId,
-          }
+      async updateSignState (isSign, closeSignAward) {
+        this.isSign = isSign
+
+        if (!isSign) return
+        this.methods.fetchUserData()
+        if (closeSignAward) {
+          let poster = await this.getPoster()
+          this.poster = poster
+          this.isPoster = poster.show
+          this.$apply()
         }
-        await postFormId(params)
-      },
-      'collectUserInfo': async (event) => {
-        let { authSetting } = await wepy.getSetting()
-        if (authSetting['scope.userInfo']) {
-          let { detail: { iv, encryptedData, userInfo } } = event
-          wepy.setStorageSync('userInfo', userInfo)
-          await getUserInfo({ data: { iv, encryptedData } })
-          let { data: { LX: continuousCount, bmsg: bigAwardMsg, msg: awardMsg, error, sign_log } } = await sign({method: 'POST'})
-          if (error !== 0) return
-          if (error === 0) {
-            if (this.video.src) this.isVideoSrc = true
-            this.$broadcast('toggleSignAward', true)
-            this.signState = this.initSignState(sign_log)
-            this.continuousCount = continuousCount
-            this.awardMsg = awardMsg
-            this.$apply()
-            await this.timeout(1000)
-            this.bigAwardMsg = bigAwardMsg
-            this.$apply()
-          }
-        } else {
-          wepy.showModal({
-            title: '提示',
-            content: '您已拒绝授权，请重新点击并授权',
-            showCancel: false
-          })
-        }
-      },
-      'toggleCommentsBlock': (params) => {
-        this.isShowCommentBlock = params
-      },
-      'submitComment': async (content) => {
-        const fn = async () => {
-          let comment = {}
-          comment.text = content
-          this.formatComment(comment)
-          let params = {
-            method: 'POST',
-            data: {
-              pid: this.pid,
-              content
-            }
-          }
-          await postComment(params)
-        }
-        this.debounce(fn)
-      },
-      'showShareBlock': () => {
-        this.isShowShare = true
-      },
-      'hideShareBlock': () => {
-        this.isShowShare = false
-      },
-      'hidePoster': () => {
-        if (this.video.src) {
-          this.isVideoSrc = true
-        }
-        this.isShowPoster = false
+      }
+    }
+
+    methods = {
+      closePoster () {
+        this.isPoster = false
       }
     }
 
     async onLoad ({ share_uid = '', scene = '' }) {
-      try {
-        wepy.showShareMenu({withShareTicket: true})
-        if (share_uid) this.share_uid = share_uid
-        if (scene) this.share_uid = decodeURIComponent(scene)
-
-        this.signState = this.initSignState()
-
-        await this.getToken({ share_uid })
-        await this.sign()
-
-        let { data: { data: { video: { data: video } } } } = await getVideo({isNeedToken: false})
-
-        if (video.src) {
-          this.isVideoSrc = true
-          this.videoContext = wepy.createVideoContext('caseVideo')
-        } else {
-          this.isVideoSrc = false
-        }
-
-        this.video = video
-        this.$apply()
-      } catch (error) {
-        console.log(error)
-      }
-    }
-
-    onHide () {
-      wepy.removeStorageSync('is_answer')
-    }
-
-    onShow () {
-      let is_answer = wepy.getStorageSync('is_answer')
-      if (is_answer.length !== 0 && is_answer === 1) {
-        wepy.showToast({
-          title: '您已答过题啦',
-          icon: 'none'
-        })
-      }
-    }
-
-    onShareAppMessage (options) {
-      let { share_uid = '' } = { share_uid: wepy.getStorageSync('uid') }
-      return {
-        title: '参与医学知识竞答，赢现金大奖！',
-        path: `/pages/home/home?share_uid=${share_uid}`,
-        imageUrl: '../../images/poster.png',
-        success: ({ shareTickets }) => {
-          this.isShowShare = false
-          this.$apply()
-
-          wx.getShareInfo({
-            shareTicket: shareTickets[0],
-            success: async ({ encryptedData, iv }) => {
-              try {
-                let params = {
-                  method: 'POST',
-                  data: {
-                    st: shareTickets[0],
-                    gid: [
-                      { encryptedData, iv },
-                    ]
-                  }
-                }
-                let { data: { error_code } } = await postGid(params)
-                if (error_code === 0) {
-                  wepy.showModal({
-                    title: '分享成功',
-                    content: '快去道具箱里查看新道具吧！',
-                    showCancel: false
-                  })
-                } else {
-                  wepy.showToast({
-                    title: '同一个群每天只能分享一次',
-                    icon: 'none'
-                  })
-                }
-              } catch (error) {
-                console.log(error)
-              }
-            }
-          })
-        },
-        fail: () => {
-          this.isShowShare = false
-          this.$apply()
-          wepy.showToast({
-            title: '分享失败',
-            icon: 'none'
-          })
-        }
-      }
-    }
-
-    // 获取 token
-    async getToken ({ share_uid = '' }) {
-      try {
-        let { code } = await wepy.login()
-        let params = {
-          data: {
-            code,
-            share_uid,
-          },
-          isNeedToken: false,
-        }
-
-        let { data: { token } } = await getToken(params)
-        this.token = token
-        this.$apply()
-        wepy.setStorageSync('token', token)
-      } catch (error) {
-
-      }
-    }
-
-    // 签到
-    async sign () {
-      let { data: { is_sign: isSign, sign_log, LX } } = await sign()
-      if (this.isVideoSrc && !isSign) this.isVideoSrc = false
-      let forgetSign = sign_log.lastIndexOf(0)
-      let willSign = sign_log.indexOf(-1)
-
-      this.isSign = Boolean(isSign)
-      this.continuousCount = LX
-      this.signState = this.initSignState(sign_log)
-      this.forgetSign = forgetSign
-      this.willSign = willSign === 0 ? 0 : isSign ? willSign - 1 : willSign
+      // share_uid 由朋友或者群分享进入获取带的参数
+      if (share_uid) this.share_uid = share_uid
+      // decodeURIComponent(scene) 由扫小程序码进入获取带的参数
+      if (scene) this.share_uid = decodeURIComponent(scene)
       this.$apply()
-    }
 
-    // 初始化签到状态
-    initSignState (signState = []) {
-      let initSignState = [
-        {
-          day: '星期一',
-          bgColor: '#fa6577',
-          src: '/images/box01.svg',
-        },
-        {
-          day: '星期二',
-          bgColor: '#f5a523',
-          src: '/images/box02.svg',
-        },
-        {
-          day: '星期三',
-          bgColor: '#f5a523',
-          src: '/images/box03.svg',
-        },
-        {
-          day: '星期四',
-          bgColor: '#ffec00',
-          src: '/images/box04.svg',
-        },
-        {
-          day: '星期五',
-          bgColor: '#31d2ae',
-          src: '/images/box05.svg',
-        },
-        {
-          day: '星期六',
-          bgColor: '#bf76ff',
-          src: '/images/box06.svg',
-        },
-        {
-          day: '星期日',
-          bgColor: '#61a5f5',
-          src: '/images/box07.svg',
-        },
-      ]
-      if (signState.length === initSignState.length) {
-        return initSignState.map((item, index) => {
-          item.log = signState[index]
-          return item
-        })
-      } else {
-        return initSignState
-      }
-    }
-
-    // 获取用户相关展示数据
-    async getUserData () {
-      let { data: { userInfo, uid, card, score, pid, bonus, expired, expired_at, is_answer, total_bonus, honor, t_label } } = await getUserData()
-      this.userInfo = userInfo
-      this.uid = uid
-      this.card = card
-      this.total_score = score
-      this.pid = pid
-      this.total_bonus = bonus
-      this.expired = expired
-      this.expired_at = expired_at
-      this.is_answer = is_answer
-      this.bonusPool = total_bonus
-      this.honor = honor
-      this.t_label = t_label
-      this.$apply()
-      wepy.setStorageSync('pid', pid)
-      wepy.setStorageSync('uid', uid)
-      wepy.setStorageSync('userInfo', userInfo)
-    }
-
-    // 请求所有评论
-    async getComments () {
+      let { code } = await wepy.login()
       let params = {
+        isNeedToken: false,
         data: {
-          pid: this.pid
+          code,
+          share_uid: this.share_uid
         }
       }
-      let { data: { data: comments } } = await getComments(params)
+      let { data: { token, props } } = await getToken(params)
+      if (!token) return
+      wepy.setStorageSync('token', token)
+      this.$invoke(this.$com.Sign, 'sign')
 
-      for (let [index, item] of comments.entries()) {
-        let comment = {}
-        comment.text = item.content
-        comment.color = '#fff'
-        comment.time = index + 1
-        comment.created_at = item.created_at
-        comment.user = item.user.data
-        this.comments[index] = comment
-        this.$apply()
-      }
-    }
-
-    // 获取评论并处理数据结构
-    formatComment (comment) {
-      let len = this.comments.length
-      let user = {
-        nickname: this.userInfo.nickName,
-        avatar_url: this.userInfo.avatarUrl
-      }
-      comment.time = len + 1
-      comment.created_at = '1秒前'
-      comment.user = user
-      comment.color = '#fff'
-      this.comments.push(comment)
-      this.$apply()
-
-      if (this.isVideoSrc) return
-      this.$broadcast('beginBarrage', this.comments)
-    }
-
-    // 向后台发送 formId
-    async postFormId (event) {
-      let params = {
-        method: 'POST',
-        data: {
-          formId: event.detail.formId
-        }
-      }
-      await postFormId(params)
-    }
-
-    async timeout (ms) {
-      return new Promise((resolve, reject) => {
-        this.timer = setTimeout(resolve, ms)
+      if (!props) return
+      wepy.showModal({
+        title: '恭喜！',
+        content: '您获得一个随机道具，快去道具箱中查看吧！',
+        showCancel: false
       })
     }
 
-    // 函数防抖
-    debounce (fn, ms = 1000) {
-      if (this.timer) {
-        clearTimeout(this.timer)
-        this.timer = null
-      } else {
-        this.timer = setTimeout(fn, ms)
+    onShow () {
+      if (this.isSign === 1) return
+      this.methods.fetchUserData()
+    }
+
+    async getPoster () {
+      let { data: { error_code, show, url } } = await getPosterState()
+      let poster = {
+        show,
+        url
       }
+      if (error_code) return
+      return poster
     }
   }
 </script>
 
 <style lang="scss">
-@import '../../scss/_layout.scss';
-@import '../../scss/_variables.scss';
-@import '../../scss/_element.scss';
+@import '../../scss/_base.scss';
 
 page {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
   width: 100vw;
   height: 100vh;
-  background: linear-gradient(to bottom right, #3023AE, #C86DD7 );
+
+  background: linear-gradient(90deg,
+  #02cefd 0%,
+  #1380ff 100%);
 }
 
-.home,
-.container {
-  position: fixed;
+.bg {
+  content: '';
+  position: absolute;
+  top: to(145);
+  right: 0;
   left: 0;
+  bottom: 0;
+  z-index: 9;
+
+  background: #f5f5f5;
+}
+
+.poster {
+  position: fixed;
   top: 0;
+  left: 0;
+  z-index: 99;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
   width: 100%;
   height: 100%;
-  /* overflow: hidden; */
-}
 
-.home {
-  @include verticalHorizontalCenter();
-}
-.container {
-  @include horizontalCenter();
-  font-family: PingFangSC-Regular;
-  font-size: 14px;
-}
-.content {
-  width: 100%;
-  @include horizontalCenter();
-  flex-direction: column;
-  position: fixed;
-  top: $videoHeight;
-  left: 0;
-  padding-top: 30rpx;
-}
-.startAnswerBtn {
-  @include btn($width:350rpx, $height:80rpx, $size:18px, $color:#54049b, $radius:60rpx);
-  background-image: linear-gradient(180deg, #ffffff 0%, #f7c8ff 100%);
-  box-shadow: 0 6rpx 6rpx 0 rgba(188, 15, 224, 0.48);
-  margin: 30rpx 0;
+  background: rgba(74,74,74, 0.7);
+
+  &__img {
+    width: to(325);
+    height: to(500);
+  }
 }
 </style>

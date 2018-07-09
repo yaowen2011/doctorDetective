@@ -1,0 +1,214 @@
+<template lang="pug">
+  view.barrage
+    image.barrage__cover-img(
+      src="{{video.cover}}"
+    )
+    view#barrage__wall.barrage__wall(
+      class="{{isShowBarrage ? '' : 'barrage__wall--hide'}}"
+      @tap="toggleBarrageBtn"
+    )
+      block(
+        wx:for="{{comments}}"
+        wx:key="{{index}}"
+      )
+        view.barrage__wall-item(
+          id="barrage{{index}}"
+          animation="{{animationDatas[index]}}"
+        ) {{item.text}}
+    view.barrage__btn-control(
+      wx:if="{{isShowBarrageBtn}}"
+      class="{{isShowBarrage ? 'barrage__btn-control--active' : ''}}"
+      @tap="toggleBarrage"
+    ) 弹
+</template>
+
+<script>
+  import wepy from 'wepy'
+
+  export default class BarrageComponent extends wepy.component {
+    props = {
+      video: {
+        type: Object,
+        default: {}
+      }
+    }
+
+    data = {
+      isShowBarrageBtn: true,                     // 是否显示弹幕开关
+      isShowBarrage: true,                        // 是否显示弹幕墙
+      timer: 0,                                   // 定时器
+      comments: [],                               // 弹幕数据
+      animationDatas: [],                         // 动画数据
+      barrageWrapperW: 0,                         // 弹幕容器的宽
+      barrageWrapperH: 0,                         // 弹幕容器的高
+    }
+
+    events = {
+      // 开始滚动弹幕
+      async beginBarrage (comments) {
+        this.comments = comments
+        await this.endBarrage()
+        await this.beginBarrage()
+      }
+    }
+
+    methods = {
+      // 显示、隐藏弹幕墙
+      async toggleBarrage () {
+        if (this.isShowBarrage) {
+          this.isShowBarrage = false
+          this.endBarrage()
+        } else {
+          this.isShowBarrage = true
+          this.beginBarrage()
+        }
+      },
+      // 显示、隐藏 弹幕墙控制按钮
+      async toggleBarrageBtn () {
+        await this.timeout(600)
+        this.isShowBarrageBtn = !this.isShowBarrageBtn
+        this.$apply()
+      }
+    }
+
+    onUnload () {
+      clearTimeout(this.timer)
+    }
+
+    // 开始滚动弹幕
+    async beginBarrage () {
+      try {
+        clearTimeout(this.timer)
+        await this.timeout(100)
+        let { width: barrageWrapperW, height: barrageWrapperH } = await this.getBoundingClientRect({ id: '#barrage__wall' })
+        this.barrageWrapperW = barrageWrapperW
+        this.barrageWrapperH = barrageWrapperH
+        this.animationDatas = this.comments.map((item, i) => {
+          let animation = wepy.createAnimation({
+            transformOrigin: '50% 50% 0',
+            duration: 10,
+            timingFunction: 'linear',
+            delay: 300 * i
+          })
+          let randomTop = Math.round(Math.random() * (barrageWrapperH - 40))
+
+          animation.opacity(1).top(randomTop).step()
+          animation.right(barrageWrapperW).step({ duration: 4500 })
+          return animation.export()
+        })
+        this.$apply()
+      } catch (error) {
+        console.log(error)
+      }
+    }
+
+    // 结束滚动弹幕
+    async endBarrage () {
+      clearTimeout(this.timer)
+      await this.timeout(100)
+      let { width: barrageWrapperW } = await this.getBoundingClientRect({ id: '#barrage__wall' })
+      for (let i of this.comments.keys()) {
+        let right = 0
+        let { width: barrageW } = await this.getBoundingClientRect({id: `#barrage${i}`})
+        let animation = wepy.createAnimation({
+          duration: 10,
+          delay: 0
+        })
+        barrageWrapperW >= barrageW ? right = -barrageWrapperW : right = -barrageW
+        animation.opacity(0).top(0).right(right).step()
+        this.animationDatas[i] = animation.export()
+        this.$apply()
+      }
+    }
+
+    // 查找并返回节点相关信息
+    getBoundingClientRect ({ id }) {
+      return new Promise((resolve, reject) => {
+        let query = wepy.createSelectorQuery()
+        query.select(id).boundingClientRect(rect => {
+          resolve(rect)
+        }).exec()
+      })
+    }
+
+    // Promise化setTimeout
+    async timeout (ms) {
+      return new Promise((resolve, reject) => {
+        this.timer = setTimeout(resolve, ms)
+      })
+    }
+  }
+</script>
+
+<style lang="scss">
+@import '../../scss/_base.scss';
+
+.barrage {
+  position: relative;
+
+  width: 100%;
+  height: to(210);
+
+  &__cover-img {
+    width: 100%;
+    height: 100%;
+  }
+
+  &__btn-control {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    z-index: 999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    width: to(25);
+    height: to(25);
+    border-radius: 50%;
+    margin: to(20);
+    border: 1px solid #fff;
+
+    font-size: to(12);
+    color: #fff;
+  }
+
+  &__btn-control--active {
+    border: 1px solid #41C331;
+
+    color: #41C331;
+  }
+
+  &__wall {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 9;
+    display: flex;
+    overflow: hidden;
+
+    background: rgba(0, 0, 0, 0.3);
+
+    width: 100%;
+    height: to(210);
+  }
+
+  &__wall--hide {
+    background: rgba(0, 0, 0, 0);
+  }
+
+  &__wall-item {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 9;
+
+    height: to(30);
+
+    font-size: to(17);
+    color: #fff;
+    opacity: 0;
+    white-space:nowrap;
+  }
+}
+</style>

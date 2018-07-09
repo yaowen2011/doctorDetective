@@ -4,17 +4,17 @@
       @tap="toggleXbResult")
     view.xb_card_block
       view.xb_card_title 点击你想查看答案的用户头像
-      block(
+      view.xb_user_item(
         wx:for="{{groupUserAnswer}}"
-        wx:key="{{index}}")
-        view.xb_user_item
-          image.xb_user_avatar(
-            @tap="seeUserAnswer({{item}}, {{index}})"
-            src="{{item.avatar}}")
-          view.xb_user_info
-            view.xb_nickName(
-              @tap="seeUserAnswer({{item}}, {{index}})") {{item.nickName}}
-            view.xb_user_answer {{item.answer}}
+        wx:key="{{index}}"
+      )
+        image.xb_user_avatar(
+          @tap="seeUserAnswer({{item}}, {{index}})"
+          src="{{item.avatar ? item.avatar: '/images/avatar-default.svg'}}")
+        view.xb_user_info
+          view.xb_nickName(
+            @tap="seeUserAnswer({{item}}, {{index}})") {{item.nickName ? item.nickName : '匿名用户'}}
+          view.xb_user_answer {{item.answer}}
 </template>
 
 <script>
@@ -39,7 +39,8 @@
 </script>
 
 <style lang="scss">
-@import '../../scss/_layout.scss';
+@import '../../scss/_base.scss';
+
 .xb_wrapper {
   position: fixed;
   top: 0;
@@ -47,61 +48,67 @@
   right: 0;
   bottom: 0;
   z-index: 1000;
+}
 
-  .xb_model {
-    width: 100%;
-    height: 100%;
-    background: rgba(73, 73, 73, 0.6);
-  }
+.xb_model {
+  width: 100%;
+  height: 100%;
+  background: rgba(73, 73, 73, 0.6);
+}
 
-  .xb_card_block {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 590rpx;
-    height: 650rpx;
-    background: #fff;
-    border-radius: 40rpx;
-    overflow: hidden;
-    padding: 40rpx;
-    box-sizing: border-box;
+.xb_card_block {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  box-sizing: border-box;
+  overflow: hidden;
 
-    .xb_card_title {
-      text-align: center;
-      margin: 20rpx;
-      font-family: PingFangSC-Regular;
-      font-size: 24rpx;
-      color: #9b9b9b;
-    }
+  width: to(335);
+  height: to(355);
+  border-radius: to(3);
+  padding: to(20);
 
-    .xb_user_item {
-      display: flex;
-      margin-top: 40rpx;
-      align-items: center;
+  background: #fff;
+}
 
-      .xb_user_avatar {
-        width: 120rpx;
-        height: 120rpx;
-        border-radius: 50%;
-        margin-right: 30rpx;
-      }
+.xb_card_title {
+  margin: to(10);
 
-      .xb_user_info {
-        display: flex;
-        flex-direction: column;
-        font-family: PingFangSC-Regular;
-        font-size: 36rpx;
-        color: #4a4a4a;
+  font-family: PingFangSC-Regular;
+  font-size: to(12);
+  color: #9b9b9b;
+  text-align: center;
+}
 
-        .xb_user_answer {
-          margin-top: 10rpx;
-          font-family: PingFangSC-Medium;
-          font-size: 36rpx;
-          color: #9013fe;
-        }
-      }
-    }
+.xb_user_item {
+  display: flex;
+  align-items: center;
+
+  margin-top: to(20);
+}
+
+.xb_user_avatar {
+  width: to(60);
+  height: to(60);
+  border-radius: 50%;
+  margin-right: to(15);
+}
+
+.xb_user_info {
+  display: flex;
+  flex-direction: column;
+
+  font-family: PingFangSC-Regular;
+  font-size: to(18);
+  color: #4a4a4a;
+
+  .xb_user_answer {
+    margin-top: to(10);
+
+    font-family: PingFangSC-Medium;
+    font-size: to(14);
+    color: #1480ff;
   }
 }
 </style>

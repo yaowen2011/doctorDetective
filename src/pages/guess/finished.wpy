@@ -1,0 +1,174 @@
+<template lang="pug">
+  view.wrapper
+    view.finished
+      view.finished__shadow
+      image.finished__bg(
+        src="/images/guess-finished-bg.svg"
+      )
+      view.finished__card
+        image.avatar(
+          src="{{userInfo.avatarUrl ? userInfo.avatarUrl : '/images/avatar-default.svg'}}"
+        )
+        view.nickname {{userInfo.nickName}}
+        view.clearance 通关成功
+        view.all-gold
+          view.all-gold__count {{allGold}}
+          view.all-gold__tip 累计获得金币
+        view.navigator
+          navigator.navigator__rank(
+            url="/pages/rank/index?isGuess=1&type={{type}}"
+          ) 查看排行榜
+          navigator.navigator__share(
+            url="/pages/share/index?scence=guess&type={{type}}&allGold={{allGold}}&isFinished=true&questionAmount={{questionAmount}}&index={{index}}"
+          ) 分享战绩
+</template>
+
+<script>
+import wepy from 'wepy'
+import { connect } from 'wepy-redux'
+
+@connect({
+  userInfo (state) {
+    return state.userData.userInfo
+  }
+})
+export default class FinishedCmponent extends wepy.component {
+  props = {
+    type: String,
+    allGold: Number,
+    questionAmount: Number,
+    index: Number
+  }
+}
+</script>
+
+<style lang="scss">
+@import '../../scss/_base.scss';
+
+.wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  width: 100vw;
+  height: 100vh;
+
+  background:#f5f5f5;
+}
+
+.finished {
+  position: relative;
+
+  width: to(335);
+  height: to(490);
+	border-radius: to(6);
+
+  &__shadow {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    z-index: 1;
+    transform: translateX(-50%);
+
+    width: to(305);
+    height: to(358);
+    border-radius: to(6);
+
+    box-shadow: 0 to(20) to(30) 0 rgba(19, 61, 110, 0.19);
+  }
+
+  &__bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 9;
+
+    width: inherit;
+    height: inherit;
+    border-radius: to(6);
+  }
+
+  &__card {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 99;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    width: inherit;
+    height: inherit;
+    border-radius: to(6);
+  }
+}
+
+.avatar {
+  width: to(85);
+  height: to(85);
+  border-radius: 50%;
+
+  margin: to(25) 0 to(5) 0;
+}
+
+.nickname {
+  font: to(16) PingFangSC-Regular;
+  color: #fff;
+}
+
+.clearance {
+  margin: to(15) 0 to(85) 0;
+
+  font: to(36) PingFangSC-Semibold;
+  color: #fff;
+}
+
+.all-gold {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  &__count {
+    font: to(72) DINCondensed-Bold;
+    color: #ffdf7b;
+  }
+
+  &__tip {
+    margin-top: to(-10);
+
+    font: to(14) PingFangSC-Regular;
+    color: #4a4a4a;
+  }
+}
+
+.navigator {
+  position: absolute;
+  left: 0;
+  bottom: to(14);
+  display: flex;
+
+  width: 100%;
+  height: to(35);
+
+  &__rank,
+  &__share {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+
+    font: to(14) PingFangSC-Regular;
+    color: #1480ff;
+  }
+
+  &__rank {
+    border-right: 1px solid #9b9a9b;
+  }
+}
+</style>

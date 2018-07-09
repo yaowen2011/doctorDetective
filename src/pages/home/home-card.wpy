@@ -1,0 +1,370 @@
+<template lang="pug">
+  scroll-view.container(
+    scroll-y
+  )
+    navigator.knowledge-answer(
+      hover-class="none"
+      url="/pages/answer-prepare/index"
+    )
+      view.knowledge-answer__content
+        text.title 知识大通关
+        text.bonus 现金大奖：{{total_bonus}}元
+      view.knowledge-answer__state
+        text 火热进行中
+      image.knowledge-answer__img-bg(
+        lazy-load
+        src="//audio.geekheal.net/QA/cover/knowledge-answer.png"
+      )
+    scroll-view.features(
+      scroll-x="true"
+    )
+      navigator.features__item.features__item--bank(
+        url="/pages/bank/index"
+      )
+        text.title 银行
+        image.img-bg(
+          lazy-load
+          src="/images/bank.svg"
+        )
+      navigator.features__item.features__item--my(
+        url="/pages/my/index"
+      )
+        text.title 个人中心
+        image.img-bg(
+          lazy-load
+          src="/images/my.svg"
+        )
+      navigator.features__item.features__item--props(
+        url="/pages/props/index"
+      )
+        text.title 道具箱
+        image.img-bg(
+          lazy-load
+          src="/images/props.svg"
+        )
+    view.activity
+      navigator.activity-anatomy--worldcup(
+        url="/pages/guess/index?type=muscle"
+      )
+        view.activity-state
+          text 火热进行中
+        view.activity-content
+          view.activity-content__title
+            text 解剖大作战
+            text.worldcap 世界杯特辑
+            text.season Season 2
+          text.activity-content__award 金币奖励
+        image.activity-img--bg(
+          lazy-load
+          src="//oi7gusker.qnssl.com/QA/share/world_cup_.png"
+        )
+      navigator.activity-anatomy(
+        url="/pages/guess/index?type=bone"
+      )
+        view.activity-state
+          text 火热进行中
+        view.activity-content
+          view.activity-content__title
+            text 解剖大作战
+            text.season Season 1
+          text.activity-content__award 金币奖励
+        image.activity-img--bg(
+          lazy-load
+          src="//audio.geekheal.net/QA/cover/human-anatomy.png"
+        )
+      navigator.activity-guess(
+        url="/pages/guess/index?type=drugs"
+      )
+        view.activity-state
+          text 火热进行中
+        view.activity-content
+          view.activity-content__title
+            text 我“药”猜猜看
+            text.season Season 1
+          text.activity-content__award 金币奖励
+        image.activity-img--bg(
+          lazy-load
+          src="//audio.geekheal.net/QA/cover/guess.png"
+        )
+</template>
+
+
+<script>
+  import wepy from 'wepy'
+  import { connect } from 'wepy-redux'
+
+  @connect({
+    expired (state) {
+      return state.userData.expired
+    },
+    expired_at (state) {
+      return state.userData.expired_at
+    },
+    t_label (state) {
+      return state.userData.t_label
+    },
+    total_bonus (state) {
+      return state.userData.total_bonus
+    }
+  })
+
+  export default class CardComponent extends wepy.component {
+    methods = {
+    }
+  }
+</script>
+
+<style lang="scss">
+@import '../../scss/_base.scss';
+
+.container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 99;
+
+  background: transparent;
+}
+
+/* S 知识大通关 */
+.knowledge-answer {
+  position: relative;
+  overflow: hidden;
+
+  width: to(355);
+  height: to(199);
+  margin: to(30) auto to(8) auto;
+  border-radius: to(3);
+
+  font-family: PingFangSC-Regular;
+  font-size: to(12);
+  color: #74746b;
+
+  background: linear-gradient(135deg,
+  #ffffff 0%,
+  #ffffff 51%,
+  #effcff 100%);
+
+  &__content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 9;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    width: 100%;
+    height: 100%;
+
+    font-family: PingFangSC-Semibold;
+    color: #fff;
+
+    .title {
+      font-size: to(40);
+    }
+
+    .bonus {
+      display: inline-flex;
+
+      margin-top: to(5);
+      padding: to(6) to(20);
+      border-radius: to(3);
+
+      font-size: to(12);
+
+      background: linear-gradient(132deg,
+		#02cefd 0%,
+		#1380ff 100%);
+    }
+  }
+
+  &__state {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    z-index: 99;
+
+    padding: to(4) to(10);
+    border-radius: to(3);
+
+    font-family: PingFangSC-Regular;
+    font-size: to(10);
+    color: #fff;
+
+    background: linear-gradient(135deg,
+		#02cefd 0%,
+		#1380ff 100%);
+  }
+
+  &__img-bg {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    z-index: 1;
+
+    width: 100%;
+    height: 100%;
+  }
+}
+/* E 知识大通关 */
+
+/* S 功能模块(银行、个人中心、道具箱等) */
+.features {
+  display: flex;
+
+  width: 100%;
+
+  white-space: nowrap;
+
+  &__item {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    box-sizing: border-box;
+
+    width: to(113);
+    height: to(75);
+    border-radius: to(3);
+    margin-right: to(8);
+
+    font-family: PingFangSC-Medium;
+    font-size: to(14);
+    color: #fff;
+
+    &:first-child {
+      margin-left: to(10);
+    }
+
+    &:last-child {
+      margin-right: to(10);
+    }
+
+    .title {
+      margin-left: to(10);
+    }
+
+    .img-bg {
+      position: absolute;
+      top: to(7);
+      left: 0;
+
+      width: inherit;
+      height: inherit;
+    }
+  }
+
+  &__item--bank {
+    background: linear-gradient(-90deg,
+		#fad961 0%,
+		#f66b1c 100%);
+  }
+
+  &__item--my {
+    background: linear-gradient(-90deg,
+		#8af1ff 0%,
+		#26b0ff 100%);
+  }
+
+  &__item--props {
+    background: linear-gradient(-90deg,
+		#aeffae 0%,
+		#0be137 100%);
+  }
+}
+/* E 功能模块(银行、个人中心、道具箱等) */
+
+/* S 活动模块(猜药名、企业答题、用户问卷等)*/
+.activity {
+  width: to(355);
+  margin: 0 auto;
+}
+/* E 活动模块(猜药名、企业答题、用户问卷等)*/
+
+/* S 猜药名、解刨大作战 */
+.activity-guess,
+.activity-anatomy,
+.activity-anatomy--worldcup {
+  position: relative;
+  overflow: hidden;
+
+  width: inherit;
+  height: to(132);
+  border-radius: to(3);
+  margin: to(8) 0;
+
+  color: #fff;
+}
+/* E 猜药名、解刨大作战 */
+
+.activity-anatomy {
+  color: #1480ff;
+}
+
+.activity-state {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  z-index: 99;
+
+  padding: to(4) to(10);
+  border-radius: to(3);
+
+  font-family: PingFangSC-Regular;
+  font-size: to(10);
+  color: #fff;
+
+  background: linear-gradient(135deg,
+  #02cefd 0%,
+  #1380ff 100%);
+}
+
+.activity-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 9;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-sizing: border-box;
+
+  width: 100%;
+  height: 100%;
+  padding: to(15) to(15) to(5) to(15);
+
+  &__title {
+    display: flex;
+    flex-direction: column;
+
+    font-family: PingFangSC-Semibold;
+    font-size: to(28);
+
+    .season {
+      font-size: to(14);
+    }
+  }
+
+  &__award {
+    font-family: PingFangSC-Regular;
+    font-size: to(14);
+  }
+}
+
+.activity-img--bg {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  z-index: 1;
+
+  width: 100%;
+  height: 100%;
+}
+
+.worldcap {
+  font: to(20) PingFangSC-Semibold;
+}
+</style>

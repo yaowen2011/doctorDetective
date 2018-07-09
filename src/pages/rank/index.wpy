@@ -1,106 +1,151 @@
 <template lang="pug">
-  view.container
-    swiper.swiper(
-      previous-margin="60rpx"
-      next-margin="60rpx"
-      @change="change"
-      @animationfinish="animationfinish")
-      swiper-item.swiper_item
-        view.card_wrapper(
-          class="{{current === 0 ? 'not_scale' : 'scale'}}")
-          view.rank_person_top3
-            block(
-              wx:for="{{personalListTopThree}}"
-              wx:key="{{item._id}}")
-              view.rank_person_top3_item
-                view.avatar_block
-                  image.avatar(
-                    src="{{item.user.avatarUrl ? item.user.avatarUrl : '../../images/avatar-default.svg'}}")
-                  image.crown(
-                    src="{{item.crownSrc}}")
-                  image.star1(
-                    wx:if="{{index === 0}}"
-                    src="../../images/star.svg")
-                  image.star2(
-                    wx:if="{{index === 0}}"
-                    src="../../images/star.svg")
-                  image.star3(
-                    wx:if="{{index === 0}}"
-                    src="../../images/star.svg")
-                  view.medal
-                    view.medal_placeholder {{index + 1}}
-                view.nickname {{item.user.nickName}}
-                viwe.score  {{item.score}}分
-          scroll-view.rank_list.rank_list_person(
-            scroll-y)
-            repeat(
-              for="{{personalList}}"
-              key="{{item._id}}")
-              view.rank_item(
-                wx:if="{{index > 2}}")
-                view.rank_item-left
-                  view.number {{index + 1}}.
-                  image.avatar(
-                    src="{{item.user.avatarUrl ? item.user.avatarUrl : '../../images/avatar-default.svg'}}")
-                  view.nickname {{item.user.nickName}}
-                view.rank_item-right
-                  text.score {{item.score}}
-                  text.unit 分
-      swiper-item.swiper_item
-        view.card_wrapper(
-          class="{{current === 1 ? 'not_scale' : 'scale'}}")
-          scroll-view.rank_list.rank_list_hp(
-            scroll-y)
-            repeat(
-              for="{{hpList}}"
-              key="{{item._id}}")
-              view.rank_item
-                view.rank_item-left
-                  view.number
-                    view.medal_placeholder {{index > 2 ? index + 1 + '.' : index + 1}}
-                  view.hp_name {{item.name}}
-                view.rank_item-right
-                  text.score {{item.score}}
-                  text.unit 分
-      swiper-item.swiper_item
-        view.card_wrapper(
-          class="{{current === 2 ? 'not_scale' : 'scale'}}")
-          scroll-view.rank_list.rank_list_hp(
-            scroll-y)
-            repeat(
-              for="{{goldList}}"
-              key="{{item._id}}")
-              view.rank_item
-                view.rank_item-left
-                  view.number
-                    view.medal_placeholder {{index > 2 ? index + 1 + '.' : index + 1}}
-                  image.avatar(
-                    src="{{item.user.avatarUrl ? item.user.avatarUrl : '../../images/avatar-default.svg'}}")
-                  view.hp_name {{item.user.nickName}}
-                view.rank_item-right.gold_item-right
-                  text.score {{item.gold}}
-                  text.unit 金币
+  swiper.knowladge-rank(
+    wx:if="{{!isGuess}}"
+    previous-margin="40rpx"
+    next-margin="40rpx"
+    @change="change"
+    @animationfinish="animationfinish"
+  )
+    swiper-item.swiper-item
+      view.knowladge-rank__person(
+        class="{{current === 0 ? 'not_scale' : 'scale'}}"
+      )
+        view.rank-top3
+          view(
+            wx:for="{{personalListTop3}}"
+            wx:key="{{item._id}}"
+            class="rank-top3__{{index+1}}"
+          )
+            view.placeholder-bg
+            image.crown(
+              src="/images/crown{{index+1}}.svg"
+            )
+            image.avatar(
+              src="{{item.user.avatarUrl ? item.user.avatarUrl : '/images/avatar-default.svg'}}"
+            )
+            view.medal
+              view.medal__text {{index+1}}
+            view.info
+              text {{item.user.nickName}}
+              text {{item.score}}分
+        scroll-view.rank-list(
+          scroll-y
+        )
+          view.rank-item(
+            wx:for="{{personalList}}"
+            wx:key="{{item._id}}"
+            wx:if="{{index>2}}"
+          )
+            text.rank-item__number {{index+1}}.
+            image.rank-item__avatar(
+              src="{{item.user.avatarUrl ? item.user.avatarUrl : '/images/avatar-default.svg'}}"
+            )
+            text.rank-item__nickName {{item.user.nickName}}
+            text.rank-item__result {{item.score}}分
+    swiper-item.swiper-item
+      view.knowladge-rank__hp(
+        class="{{current === 1 ? 'not_scale' : 'scale'}}"
+      )
+        view.rank-hp-top3
+          view(
+            wx:for="{{hpListTop3}}"
+            wx:key="{{item._id}}"
+            class="rank-hp-top3__{{index+1}}"
+          )
+            view.medal
+              view.medal__text {{index+1}}
+            view.hp-name
+              text {{item.name}}
+            view.hp-score
+              text {{item.score}}
+              text.unit 分
+        scroll-view.rank-hp-list(
+          scroll-y
+        )
+          view.rank-hp-item(
+            wx:for="{{hpList}}"
+            wx:key="{{item.key}}"
+            wx:if="{{index>2}}"
+          )
+            view.rank-hp-item__number
+              text {{index+1}}
+            view.rank-hp-item__name
+              text {{item.name}}
+            view.rank-hp-item__score
+              text {{item.score}}
+              text.unit 分
+
+  view.gold-rank(
+    wx:else
+  )
+    view.rank-top3
+      view(
+        wx:for="{{goldListTop3}}"
+        wx:key="{{item._id}}"
+        class="rank-top3__{{index+1}}"
+      )
+        view.placeholder-bg
+        image.crown(
+          src="/images/crown{{index+1}}.svg"
+        )
+        image.avatar(
+          src="{{item.user.avatarUrl ? item.user.avatarUrl : '/images/avatar-default.svg'}}"
+        )
+        view.medal
+          view.medal__text {{index+1}}
+        view.info
+          text {{item.user.nickName}}
+          text {{item.gold}}金币
+    scroll-view.rank-list(
+      scroll-y
+    )
+      view.rank-item(
+        wx:for="{{goldList}}"
+        wx:key="{{item._id}}"
+        wx:if="{{index>2}}"
+      )
+        text.rank-item__number {{index+1}}.
+        image.rank-item__avatar(
+          src="{{item.user.avatarUrl ? item.user.avatarUrl : '/images/avatar-default.svg'}}"
+        )
+        text.rank-item__nickName {{item.user.nickName}}
+        text.rank-item__result {{item.gold}}金币
 </template>
 
 <script>
   import wepy from 'wepy'
-  import { postPersonalRank, postHospitalRank, postGuessRank } from '@/utils/api'
+  import {
+    postPersonalRank,
+    postHospitalRank,
+    postGuessRank
+  } from '@/utils/api'
+  import SharePage from '@/extends/share'
 
-  export default class RankPage extends wepy.page {
+  import { connect } from 'wepy-redux'
+
+  @connect({
+    pid (state) {
+      return state.userData.pid
+    },
+    uid (state) {
+      return state.userData.uid
+    }
+  })
+
+  export default class RankPage extends SharePage {
     config = {
-      navigationBarTitleText: '排行榜'
+      navigationBarTitleText: '知识大通关排行榜'
     }
 
     data = {
-      pid: '',
+      isGuess: false,                  // 是否由猜药名页面进入排行榜
       current: 0,
-      personalListTopThree: [],
-      personalSort: 0,                 // 当前个人排名
       personalList: [],                // 个人排名列表
-      avatarUrl: '',                   // 当前用户头像
+      personalListTop3: [],
       hpList: [],                      // 医院排名列表
-      hpSort: 0,                       // 个人所在机构排名
+      hpListTop3: [],
       goldList: [],                    // 金币排行列表
+      goldListTop3: [],
     }
 
     methods = {
@@ -111,30 +156,9 @@
       animationfinish () {}
     }
 
-    async onLoad ({ pid = '' }) {
+    onLoad (params) {
       try {
-        this.avatarUrl = wepy.getStorageSync('userInfo').avatarUrl
-        let params = {
-          method: 'POST',
-          data: { pid }
-        }
-
-        let { data: { sort, list: { data: list } } } = await postPersonalRank(params)
-        this.personalListTopThree = list.slice(0, 3).map((item, index) => {
-          item.crownSrc = `../../images/crown${index + 1}.svg`
-          return item
-        })
-        this.personalList = list
-        this.personalSort = sort
-
-        let { data: { my_hp, hp: { data: hpList } } } = await postHospitalRank(params)
-        this.hpList = hpList
-        this.hpSort = my_hp
-
-        let { data: { list: goldList } } = await postGuessRank({ method: 'POST' })
-        this.goldList = goldList
-
-        this.$apply()
+        this.initData(params)
       } catch (error) {
         wepy.showToast({
           title: '数据加载失败',
@@ -143,54 +167,87 @@
       }
     }
 
-    onShareAppMessage () {
-      let { share_uid = '' } = { share_uid: wepy.getStorageSync('uid') }
-      return {
-        title: '参与医学知识竞答，赢现金大奖！',
-        path: `/pages/home/home?share_uid=${share_uid}`,
-        success: (res) => {
-          this.$apply()
-          wepy.showToast({
-            title: '分享成功'
-          })
-        },
-        fail: () => {
-          this.$apply()
-          wepy.showToast({
-            title: '分享失败',
-            icon: 'none'
+    async initData (payload) {
+      let { isGuess, type } = payload
+      wepy.showLoading({
+        title: '加载中',
+        mask: true
+      })
+
+      if (isGuess === '1') {
+        let params = {
+          method: 'POST',
+          data: {
+            type
+          }
+        }
+        this.isGuess = true
+
+        if (type === 'drugs') {
+          wepy.setNavigationBarTitle({
+            title: '我药猜猜看排行榜'
           })
         }
+
+        if (type === 'bone') {
+          wepy.setNavigationBarTitle({
+            title: '解剖大作战排行榜'
+          })
+        }
+
+        if (type === 'muscle') {
+          wepy.setNavigationBarTitle({
+            title: '解剖大作战-世界杯特辑排行榜'
+          })
+        }
+
+        let { data: { list: goldList } } = await postGuessRank(params)
+        this.goldListTop3 = goldList.slice(0, 3)
+        this.goldList = goldList
+        this.$apply()
+        wepy.hideLoading()
+        return
       }
+
+      let params = {
+        method: 'POST',
+        data: {
+          pid: this.pid
+        }
+      }
+      let { data: { list: { data: list } } } = await postPersonalRank(params)
+      let { data: { hp: { data: hpList } } } = await postHospitalRank(params)
+      this.personalListTop3 = list.slice(0, 3)
+      this.personalList = list
+      this.hpListTop3 = hpList.slice(0, 3)
+      this.hpList = hpList
+      this.$apply()
+      wepy.hideLoading()
     }
   }
 </script>
 
 <style lang="scss">
-@import '../../scss/_layout.scss';
-@import '../../scss/_element.scss';
+@import '../../scss/_base.scss';
 
-.unit {
-  font-family: PingFangSC-Semibold;
-  font-size: 28rpx;
-  color: #39393a;
-}
-page,
-.container {
+page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
   width: 100vw;
   height: 100vh;
+
+  background: linear-gradient(135deg,
+  #02cefd 0%,
+  #1380ff 100%);
 }
 
-.container {
-  @include verticalHorizontalCenter();
-  background: linear-gradient(to bottom right, #3023AE, #C86DD7 );
-}
+.knowladge-rank {
+  width: inherit;
+  height: inherit;
 
-.swiper {
-  width: 100%;
-  height: 100%;
-
-  .swiper_item {
+  .swiper-item {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -205,337 +262,499 @@ page,
       transition: transform 0.6s ease-in-out;
     }
   }
+
+  &__person,
+  &__hp {
+    position: relative;
+    box-sizing: border-box;
+
+    width: to(335);
+    height: to(490);
+    border-radius: to(3);
+
+    background: #fff;
+    box-shadow: 0 to(2) to(30) 0 rgba(0, 0, 0, 0.2);
+  }
 }
 
-.card_wrapper {
+.gold-rank {
   position: relative;
-  width: 610rpx;
-  height: 1080rpx;
   box-sizing: border-box;
-  border-radius: 40rpx;
-  background: #fff;
-  overflow: hidden;
 
-  &:after {
+  width: to(335);
+  height: to(490);
+  border-radius: to(3);
+
+  background: #fff;
+  box-shadow: 0 to(2) to(30) 0 rgba(0, 0, 0, 0.2);
+
+  &::after {
     content: '';
     position: absolute;
-    left: 50%;
     bottom: 0;
-    z-index: -99;
-    margin-left: -250rpx;
-    width: 450rpx;
-    height: 10rpx;
-    box-shadow: 0 30rpx 40rpx 0 rgba(0, 0, 0, 0.2);
+    left: 50%;
+    z-index: -1;
+    transform: translateX(-50%);
+
+    width: to(305);
+    height: to(358);
+    border-radius: to(20);
+
+    background-color: #fff;
+    box-shadow: 0 to(20) to(30) 0 rgba(19, 61, 110, 0.5);
   }
 }
 
-.rank_person_top3 {
-  position: relative;
+.rank-top3 {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 9;
   display: flex;
   box-sizing: border-box;
-  height: 430rpx;
-  border-bottom: 2rpx solid #f0f0f0;
 
-  .rank_person_top3_item {
+  width: inherit;
+  height: to(216);
+  border-bottom: 1px solid #f1f1f1;
+
+  &__1,
+  &__2,
+  &__3 {
     position: absolute;
-    top: 0;
-    width: 200rpx;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    box-sizing: border-box;
-    font-family: PingFangSC-Semibold;
-    font-size: 24rpx;
-    color: #8b572a;
-    padding-top: 136rpx;
 
-    &:nth-child(1) {
-      left: 210rpx;
-      padding-top: 60rpx;
-      .avatar_block {
-        background: linear-gradient(136deg,#ffd643 0%,#f7c136 43%,#e38813 100%);
+    width: to(73);
+    height: to(73);
 
-        .star1,
-        .star2,
-        .star3 {
-          position: absolute;
-          width: 26rpx;
-          height: 26rpx;
-          transform: rotate(45deg);
-        }
+    .placeholder-bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 9;
 
-        .star1 {
-          top: 26rpx;
-          left: -26rpx;
-        }
-
-        .star2 {
-          top: -30rpx;
-          left: -10rpx;
-          width: 50rpx;
-          height: 50rpx;
-        }
-
-        .star3 {
-          bottom: 0;
-          right: -6rpx;
-          transform: rotate(30deg);
-        }
-      }
-    }
-
-    &:nth-child(2) {
-      float: left;
-      padding-left: 44rpx;
-      .avatar_block {
-        background: linear-gradient(136deg,#b5b5b5 0%,#e4e4e4 100%);
-
-        .medal {
-          .medal_placeholder {
-            background: #bababa;
-            border: 10rpx solid #d3d3d3;
-          }
-        }
-      }
-    }
-
-    &:nth-child(3) {
-      right: 0;
-      padding-right: 44rpx;
-      .avatar_block {
-        background: linear-gradient(140deg,#ffbe72 0%,	#d9621f 100%);
-
-        .medal {
-          .medal_placeholder {
-            background: #e37b12;
-            border: 10rpx solid #ff9129;
-          }
-        }
-      }
-
-    }
-
-    .avatar_block {
-      position: relative;
-      display: flex;
-      width: 146rpx;
-      height: 146rpx;
-      margin-bottom: 56rpx;
+      width: inherit;
+      height: inherit;
       border-radius: 50%;
-
-      .avatar {
-        margin: auto;
-        box-sizing: border-box;
-        width: 130rpx;
-        height: 130rpx;
-        border-radius: 50%;
-      }
-
-      .crown {
-        width: 74rpx;
-        height: 66rpx;
-        position: absolute;
-        right: -10rpx;
-        top: -40rpx;
-        z-index: -5;
-        transform: rotate(30deg);
-      }
-
-      .medal {
-        @include medal();
-        position: absolute;
-        top: 104rpx;
-        left: 50%;
-        margin-left: -30rpx;
-
-        .medal_placeholder {
-          display: flex;
-          box-sizing: border-box;
-          align-items: center;
-          justify-content: center;
-          width: 60rpx;
-          height: 60rpx;
-          border-radius: 50%;
-          background: #ffcb54;
-          border: 10rpx solid #f7be1f;
-          position: absolute;
-          top: -10rpx;
-          left: -10rpx;
-          z-index: 999;
-
-          .number_content {
-            margin: auto;
-          }
-        }
-      }
-    }
-  }
-}
-
-.rank_list {
-  box-sizing: border-box;
-
-  .rank_item {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    height: 80rpx;
-    margin: 0 20rpx;
-    box-sizing: border-box;
-    font-family: PingFangSC-Regular;
-    font-size: 28rpx;
-    color:#4a4a4a;
-
-    .number{
-      width: 60rpx;
-      margin-right: 20rpx;
     }
 
-    .nickname {
-      width: 300rpx;
+    .crown {
+      position: absolute;
+      top: to(-21);
+      right: to(-9);
+      transform: rotate(30deg);
+
+      width: to(47);
+      height: to(44);
+      z-index: 1;
     }
-
-    .hp_name {
-      width: 342rpx;
-    }
-    .score {
-      margin-right: 10rpx;
-    }
-  }
-}
-
-.rank_list_person {
-  position: absolute;
-  top: 430rpx;
-  left: 0;
-  width: 100%;
-  height: 650rpx;
-
-  .rank_item {
-    height: 120rpx;
-    margin: 0;
-    padding: 0 20rpx 0 40rpx;
-    border-bottom: 2rpx solid #f0f0f0;
-
-    .number,
-    .score {
-      font-family: DINAlternate-Bold;
-      font-size: 40rpx;
-      color: #4a4a4a;
-    }
-
-    .score {
-      font-size: 40rpx;
-      color: #464f51;
-    }
-  }
-}
-
-.rank_list_hp {
-  height: 100%;
-
-  .rank_item {
-    position: relative;
-    height: 120rpx;
-    margin: 0;
-    padding: 0 20rpx 0 40rpx;
-    border-bottom: 2rpx solid #f0f0f0;
 
     .avatar {
-      width:60rpx;
-      height:60rpx;
-      border-radius:50%;
-      margin-right:20rpx;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+
+      width: to(65);
+      height: to(65);
+      border-radius: 50%;
+      z-index: 19;
     }
 
-    .number,
-    .score {
+    .medal {
+      position: absolute;
+      left: 50%;
+      bottom: to(-12);
+      z-index: 29;
+      box-sizing: border-box;
+      transform: translateX(-50%);
+
+      width: to(30);
+      height: to(30);
+
       font-family: DINAlternate-Bold;
-      font-size: 40rpx;
-      color: #4a4a4a;
+      font-size: to(18);
+      color: #fff;
+
+      &__text {
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+
+        width: inherit;
+        height: inherit;
+        border-radius: 50%;
+      }
+
+      &:before {
+        content: '';
+        position: absolute;
+        top: 90%;
+        left: 50%;
+        z-index: 1;
+        transform: translateX(-50%);
+
+        border-color: transparent #f75829;
+        border-style: solid;
+        border-width: 0 0 to(14) to(16);
+      }
+
+      &:after {
+        content: '';
+        position: absolute;
+        top: 90%;
+        left: 50%;
+        z-index: 1;
+        transform: translateX(-50%);
+
+        border-color: transparent #cb3206;
+        border-style: solid;
+        border-width: 0 to(16) to(14) 0;
+      }
     }
 
-    .score {
-      font-size: 40rpx;
+    .info {
+      position: absolute;
+      left: to(-10);
+      top: to(100);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+
+      width: to(93);
+
+      font-family: PingFangSC-Semibold;
+      font-size: to(12);
+      color: #8b572a;
+      text-align:center;
+    }
+  }
+
+  &__1 {
+    top: to(32);
+    left: 50%;
+    transform: translateX(-50%);
+
+    .placeholder-bg {
+      background: linear-gradient(136deg,
+      #ffd643 0%,
+      #f7c136 43%,
+      #e38813 100%);
+    }
+
+    .medal {
+      &__text {
+        border: to(5) solid #ffcb53;
+
+        background: #f6be1e;
+      }
+    }
+  }
+
+  &__2 {
+    top: to(68);
+    left: to(37);
+
+    .placeholder-bg {
+      background: linear-gradient(136deg,
+      #b5b5b5 0%,
+      #e4e4e4 100%);
+    }
+
+    .medal {
+      &__text {
+        border: to(5) solid #d2d2d2;
+
+        background: #bababa;
+      }
+    }
+  }
+
+  &__3 {
+    top: to(68);
+    right: to(37);
+
+    .placeholder-bg {
+      background: linear-gradient(140deg,
+      #ffbe72 0%,
+      #d9621f 100%);
+    }
+
+    .medal {
+      &__text {
+        border: to(5) solid #ff9128;
+
+        background: #e27b12;
+      }
+    }
+  }
+}
+
+
+.rank-list {
+  position: absolute;
+  top: to(216);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9;
+}
+
+.rank-item {
+  display: flex;
+  position: relative;
+
+  padding: to(15) to(20);
+  border-bottom: 1px solid #f1f1f1;
+
+  &__number {
+    font-family: DINCondensed-Bold;
+    font-size: to(20);
+    color: #4a4a4a;
+  }
+
+  &__avatar {
+    width: to(30);
+    height: to(30);
+    border-radius: 50%;
+    margin: 0 to(15);
+  }
+
+  &__nickName {
+    display: flex;
+    flex-wrap: wrap;
+
+    width: to(180);
+
+    font-family: PingFangSC-Regular;
+    font-size: to(14);
+    color: #4a4a4a;
+  }
+
+  &__result {
+    position: absolute;
+    top: 50%;
+    right: to(20);
+    transform: translateY(-50%);
+
+    font-family: PingFangSC-Semibold;
+    font-size: to(14);
+    color: #4a4a4a;
+  }
+}
+
+.rank-hp-top3 {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 9;
+  box-sizing: border-box;
+  overflow: hidden;
+
+  width: inherit;
+  height: to(243);
+  border-radius: to(3) to(3) 0 0;
+
+  &__1,
+  &__2,
+  &__3 {
+    position: relative;
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+
+    padding: to(20) to(20) to(20) to(10);
+    border-bottom: 1px solid #f1f1f1;
+
+    .medal {
+      position: relative;
+
+      width: to(30);
+      height: to(30);
+
+      font-family: DINAlternate-Bold;
+      font-size: to(18);
+      color: #fff;
+
+      &__text {
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+
+        width: inherit;
+        height: inherit;
+        border-radius: 50%;
+      }
+
+      &:before {
+        content: '';
+        position: absolute;
+        top: 90%;
+        left: 50%;
+        z-index: 1;
+        transform: translateX(-50%);
+
+        border-color: transparent #f75829;
+        border-style: solid;
+        border-width: 0 0 to(14) to(16);
+      }
+
+      &:after {
+        content: '';
+        position: absolute;
+        top: 90%;
+        left: 50%;
+        z-index: 1;
+        transform: translateX(-50%);
+
+        border-color: transparent #cb3206;
+        border-style: solid;
+        border-width: 0 to(16) to(14) 0;
+      }
+    }
+
+    .hp-name {
+      display: flex;
+      flex-wrap: wrap;
+
+      width: to(180);
+      margin-left: to(5);
+
+      font-family: PingFangSC-Semibold;
+      font-size: to(14);
+    }
+
+    .hp-score {
+      position: absolute;
+      top: 50%;
+      right: to(20);
+      transform: translateY(-50%);
+
+      font-family: DINCondensed-Bold;
+      font-size: to(20);
+
+      .unit {
+        font-family: PingFangSC-Semibold;
+        font-size: to(14);
+      }
+    }
+  }
+
+  &__1 {
+    padding: to(35) to(20) to(35) to(10);
+
+    background: linear-gradient(135deg,
+		#ffe99c 0%,
+    #fcc42d 100%);
+
+    .medal {
+      &__text {
+        border: to(5) solid #ffcb53;
+
+        background: #f6be1e;
+      }
+    }
+
+    .hp-name,
+    .hp-score {
+      color: #8b572a;
+    }
+  }
+
+  &__2 {
+    background: linear-gradient(135deg,
+		#b5b5b5 0%,
+    #e4e4e4 100%);
+
+    .medal {
+      &__text {
+        border: to(5) solid #d2d2d2;
+
+        background: #bababa;
+      }
+    }
+
+    .hp-name,
+    .hp-score {
       color: #464f51;
     }
   }
 
-  .rank_item:nth-child(1),
-  .rank_item:nth-child(2),
-  .rank_item:nth-child(3) {
-    padding-left: 20rpx;
+  &__3 {
+    background: linear-gradient(135deg,
+		#ffbe72 0%,
+    #ff833d 100%);
 
-    .number {
-      @include medal();
-      margin-right: 40rpx;
+    .medal {
+      &__text {
+        border: to(5) solid #ff9128;
 
-      .medal_placeholder {
-        display: flex;
-        box-sizing: border-box;
-        align-items: center;
-        justify-content: center;
-        width: 60rpx;
-        height: 60rpx;
-        border-radius: 50%;
-        background: #ffcb54;
-        border: 10rpx solid #f7be1f;
-        position: absolute;
-        top: -10rpx;
-        left: -10rpx;
-        z-index: 999;
-
-        .number_content {
-          margin: auto;
-        }
+        background: #e27b12;
       }
     }
-  }
 
-  .rank_item:nth-child(1) {
-    height: 180rpx;
-    background: linear-gradient(135deg,#ffe99c 0%,#fcc42d 100%);
-  }
-
-  .rank_item:nth-child(2) {
-    background: linear-gradient(135deg,#b5b5b5 0%,#e4e4e4 100%);
-    .number {
-      .medal_placeholder {
-        background: #bababa;
-        border: 10rpx solid #d3d3d3;
-      }
-    }
-  }
-
-  .rank_item:nth-child(3) {
-    background: linear-gradient(135deg,#ffbe72 0%,#ff833d 100%);
-    .number {
-      .medal_placeholder {
-        background: #e37b12;
-        border: 10rpx solid #ff9129;
-      }
+    .hp-name,
+    .hp-score {
+      color: #c54a39;
     }
   }
 }
 
-.rank_item-left {
-  display: flex;
-  align-items: center;
-
-  .avatar {
-    width: 60rpx;
-    height: 60rpx;
-    border-radius: 50%;
-    margin-right: 20rpx;
-  }
-}
-
-.gold_item-right {
+.rank-hp-list {
   position: absolute;
-  top: 50%;
-  right: 20rpx;
-  transform: translate(0, -50%);
+  top: to(243);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9;
+  overflow: hidden;
+
+  border-radius: 0 0 to(3) to(3);
+}
+
+.rank-hp-item {
+  position: relative;
+  display: flex;
+  padding: to(20);
+
+  &__number {
+    margin-right: to(20);
+
+    font-family: DINCondensed-Bold;
+    font-size: to(20);
+    color: #4a4a4a;
+  }
+
+  &__name {
+    width: to(180);
+
+    font-family: PingFangSC-Regular;
+    font-size: to(12);
+    color: #4a4a4a;
+  }
+
+  &__score {
+    position: absolute;
+    top: 50%;
+    right: to(20);
+    transform: translateY(-50%);
+
+    font-family: DINCondensed-Bold;
+    font-size: to(20);
+    color: #4a4a4a;
+
+    .unit {
+      font-family: PingFangSC-Semibold;
+	    font-size: to(14);
+    }
+  }
 }
 </style>

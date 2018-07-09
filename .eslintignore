@@ -1,1 +1,3 @@
 dist/*
+src/utils/sprite-wxapp.js
+src/utils/wxdraw.js

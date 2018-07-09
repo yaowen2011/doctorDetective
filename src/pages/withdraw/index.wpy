@@ -1,37 +1,42 @@
 <template lang="pug">
-  view.wrapper
-    view.top
-      view.top-left
-        view.top-left-label 提现
-      view.top-right
-        view.wallet 到微信钱包
-        view.arrived-time 5个工作日内到账
-    view.mid
-      view.mid-left
-        view.mid-left-label 提现金额
-        view.unit ￥
-      view.mid-right
+  view.withdraw
+    view.withdraw__tip
+      view.withdraw__label
+        text 提现
+      view.withdraw__wallet
+        text 到微信钱包
+        text.arrival-time 5个工作日内到账
+    view.withdraw__amount
+      view.withdraw__label
+        text 提现金额
+        text.unit ￥
+      view.withdraw__input
         input.input(
           @input="getAmount"
           type="digit"
+          cursor-spacing=20
           value="{{amount}}"
-          cursor-spacing=20)
-    view.bottom
+        )
+    view.withdraw__overage
       text 当前余额{{total_bonus}}元，
-      text.allBouns(
-        @tap="getAllBouns") 全部提现
-    text.handle_button(
-        @tap="getCash") 提现
+      text.all(
+        @tap="getAllBouns"
+      ) 全部提现
+    view.withdraw__btn(
+      @tap="getCash"
+    ) 全部提现
 </template>
 
 <script>
   import wepy from 'wepy'
-  import { postCash, postcheckUser } from '@/utils/api'
+  import {
+    postCash,
+    postcheckUser
+  } from '@/utils/api'
 
   export default class BounsPage extends wepy.page {
     config = {
-      navigationBarTitleText: '提现',
-      backgroundColor: '#fff'
+      navigationBarTitleText: '提现'
     }
 
     onLoad ({ total_bonus = 0 }) {
@@ -48,7 +53,6 @@
     methods = {
       getAmount (e) {
         this.amount = e.detail.value.trim()
-        this.$apply()
       },
       async getCash () {
         const fn = async () => {
@@ -98,7 +102,7 @@
               }
             } else {
               wepy.navigateTo({
-                url: `/pages/information/index?isBonus=1`
+                url: `/pages/information/index?isWithdraw=1`
               })
             }
           } catch (error) {
@@ -110,7 +114,6 @@
 
       getAllBouns () {
         this.amount = this.total_bonus
-        this.$apply()
       }
     }
 
@@ -143,75 +146,110 @@
 </script>
 
 <style lang="scss">
-@import '../../scss/_element.scss';
+@import '../../scss/_base.scss';
 
-.wrapper {
-  padding: 60rpx 40rpx;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+page {
+  position: relative;
+
+  width: 100vw;
+  height: 100vh;
+}
+
+.withdraw {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  box-sizing: border-box;
+
   font-family: PingFangSC-Medium;
-  font-size: 28rpx;
-  color: #4a4a4a;
-}
 
-.top,
-.mid {
-  width: 100%;
-  display: flex;
-  box-sizing: border-box;
-  border-bottom: 2rpx #d7d7d7 solid;
-  margin-top: 50rpx;
-  padding-left: 30rpx;
-}
-.top-left-label,
-.mid-left-label {
-  font-size: 20rpx;
-  color: #54049b;
-}
-.top-left,
-.mid-left {
-  width: 100rpx;
-  margin-right: 60rpx;
-}
-.unit {
-  font-size: 72rpx;
-  color: #4a4a4a;
-}
-.arrived-time {
-  font-family: PingFangSC-Regular;
-  color: #9b9b9b;
-  margin-top: 10rpx;
-  margin-bottom: 20rpx;
-}
-.top-right,
-.mid-right{
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-  justify-content: flex-end;
-}
-.input {
-  display: flex;
-  flex-direction: column;
-  align-self: flex-end;
-  height: 100rpx;
-  font-size: 40rpx;
-}
+  padding: to(30) to(40);
 
-.bottom {
-  width: 100%;
-  padding-left: 56rpx;
-  margin: 40rpx 0 60rpx 0;
-  font-family: PingFangSC-Regular;
-  font-size: 24rpx;
-  color: #9b9b9b;
+  &__tip,
+  &__amount {
+    display: flex;
 
-  .allBouns {
-    color: #bf00e3;
+    margin-bottom: to(20);
+    padding-bottom: to(10);
+
+    border-bottom: 1px solid #d7d7d7;
+  }
+
+  &__btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: to(200);
+    height: to(35);
+    border-radius: to(3);
+    margin: 0 auto;
+
+    font-family: PingFangSC-Medium;
+    font-size: to(14);
+    color: #fff;
+
+    background: linear-gradient(90deg,
+		#ffd643 0%,
+		#f7c136 54%,
+		#ffaf00 100%);
   }
 }
-.handle_button {
-  @include btn($width:500rpx, $height:100rpx, $radius:60rpx, $size: 36rpx);
+
+.withdraw__label {
+  display: flex;
+  flex-direction: column;
+
+  width: to(50);
+  margin: 0 to(30) 0 to(15);
+
+  font-family: PingFangSC-Regular;
+  font-size: to(10);
+  color: #1480ff;
+
+  .unit {
+    font-size: to(36);
+    color: #4a4a4a;
+  }
+}
+
+.withdraw__wallet {
+  display: flex;
+  flex-direction: column;
+
+  font-size: to(14);
+  color: #4a4a4a;
+
+  .arrival-time {
+    font-family: PingFangSC-Regular;
+    color: #9b9b9b;
+  }
+}
+
+.withdraw__overage {
+  margin: to(25) 0;
+  padding-left: to(15);
+
+  font-family: PingFangSC-Regular;
+  font-size: to(12);
+  color: #9b9b9b;
+
+  .all {
+    color: #1480ff;
+  }
+}
+
+.withdraw__input {
+  display: flex;
+  flex-direction: column;
+  justify-content:flex-end;
+
+  height: to(50);
+
+  .input {
+    font-size: to(20);
+  }
 }
 </style>

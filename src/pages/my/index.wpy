@@ -1,121 +1,127 @@
 <template lang="pug">
-  view.container
-    view.profile_card_block
-      view.userInfo_block
+  scroll-view.my(
+    scroll-y
+  )
+    view.my__profile-info
+      view.profile-user
         image.avatar(
-          src="{{userInfo.avatarUrl ? userInfo.avatarUrl : '../../images/avatar-default.svg'}}")
+          src="{{userInfo.avatarUrl ? userInfo.avatarUrl : '/images/avatar-default.svg'}}"
+        )
         text.nickname {{userInfo.nickName}}
-      view.profile_block
-        button.customerservice_btn(
-          open-type="contact") 客服
-        button.reserve_btn(
-          @tap="toggleAllow") {{allow ? '允许推送': '关闭推送'}}
-        view.designation
+      view.profile-base
+        view.profile-base__designation
           view.title
-            view 级
-            view 别
-          view ：
-          view.unit {{honor}}
-        view.total_score
+            text 级
+            text 别
+          text ：
+          text.unit {{honor}}
+        view.profile-base__total-score
           view.title
-            view 总
-            view 积
-            view 分
-          view ：
-          view.unit {{total_score}}
-    view.answer_info_block
-      view.answer_info_wrapper
-        view.answer_count_block
-          view
-            text 答题数：
-            text.unit {{answerNum}}
-        view.answer_accuracy_block
-          view
-            text 正确率：
-            text.unit {{rightPercent}}%
-    view.answer_analysis_block(
-      @tap="goAnswerAnalysisPage")
-      view.answer_analysis_wrapper
-        image.answer_analysis_icon(
-          src="/images/answerAnalysis.svg")
-        view.answer_analysis_tip
-          text 查看上期答案解析
-          text.saying 温故而知新
-    button.btn(
-      @tap="goInformationPage") 认证信息
-    button.btn(
-      @tap="goShareCardPage") 生成卡片
+            text 总
+            text 积
+            text 分
+          text ：
+          text.unit {{total_score}}
+        button.customerservice-btn(
+          open-type="contact"
+        ) 客服
+        button.reserve-btn(
+          @tap="toggleAllow"
+        ) {{allow ? '允许推送': '关闭推送'}}
+    view.my__answer-info
+      view.answer-info__count
+        view
+          text 答题数：
+          text.number {{answerNum}}
+      view.answer-info__accuracy
+        view
+          text 正确率：
+          text.number {{rightPercent}}%
+    navigator.my__answer-analysis(
+      url="/pages/answer-analysis-list/index"
+    )
+      image.answer-analysis__icon(
+        src="/images/answerAnalysis.svg"
+      )
+      view.answer-analysis__tip
+        text 查看往期答案解析
+        text.saying 温故而知新
+    navigator.my__common-btn(
+      url="/pages/information/index"
+    ) 认证信息
+    navigator.my__common-btn(
+      url="/pages/share/index?scence=my"
+    ) 生成卡片
 </template>
 
 <script>
   import wepy from 'wepy'
-  import { postAllow, getProfile, postShareCode, postShareInfo } from '@/utils/api'
+  import {
+    postAllow,
+    getProfile
+  } from '@/utils/api'
 
-  export default class RulePage extends wepy.page {
+  import { connect } from 'wepy-redux'
+
+  @connect({
+    honor (state) {
+      return state.userData.honor
+    },
+    total_score (state) {
+      return state.userData.score
+    },
+    userInfo (state) {
+      return state.userData.userInfo
+    }
+  })
+  export default class MyPage extends wepy.page {
     config = {
-      navigationBarTitleText: '个人中心',
-      backgroundColor: '#fff'
+      navigationBarTitleText: '个人中心'
     }
 
     data = {
-      userInfo: {},
       honor: '',
       total_score: 0,
       answerNum: 0,
       rightPercent: 0,
-      allow: 1
+      allow: true
     }
 
-    async onLoad (params) {
+    async onLoad () {
       let { data: { data } } = await getProfile()
-      this.initData({ ...params, ...data })
+      this.initData({ honor: this.honor, total_score: this.total_score, ...data })
     }
 
     methods = {
-      goInformationPage () {
-        wepy.navigateTo({
-          url: `/pages/information/index`
-        })
-      },
-      goAnswerAnalysisPage () {
-        wepy.navigateTo({
-          url: `/pages/answerAnalysis/index`
-        })
-      },
-      goShareCardPage () {
-        this.goShareCardPage()
-      },
       async toggleAllow () {
         let res
-        if (this.allow) {
-          res = await postAllow({
-            method: 'POST',
-            data: { allow: 0 }
-          })
-          if (!res.data.error_code) {
-            this.allow = 0
-            this.$apply()
-            wepy.showToast({
-              title: '已关闭推送',
-              icon: 'none'
-            })
+        let params = {
+          method: 'POST',
+          data: {
+            allow: 0
           }
-          console.log('res close', res)
-        } else {
-          res = await postAllow({
-            method: 'POST',
-            data: { allow: 1 }
-          })
-          if (!res.data.error_code) {
-            this.allow = 1
-            this.$apply()
-            wepy.showToast({
-              title: '已允许推送',
-              icon: 'none'
-            })
-          }
-          console.log('res open', res)
         }
+
+        if (this.allow) {
+          res = await postAllow(params)
+          if (res.data.error_code) return
+          this.allow = !this.allow
+          this.$apply()
+          wepy.showToast({
+            title: '已关闭推送',
+            icon: 'none'
+          })
+          return
+        }
+        params.data.allow = 1
+        res = await postAllow(params)
+        if (res.data.error_code) return
+        this.allow = !this.allow
+        this.$apply()
+        wepy.showToast({
+          title: '已允许推送',
+          icon: 'none'
+        })
       }
     }
 
@@ -126,284 +132,294 @@
       this.rightPercent = (right_percent * 100).toFixed(2).toString()
       this.honor = honor
       this.total_score = total_score
-      this.userInfo = wepy.getStorageSync('userInfo')
       this.$apply()
-    }
-
-    async goShareCardPage () {
-      try {
-        wepy.showLoading({
-          title: '生成中',
-          mask: true
-        })
-        let avatar_default = '../../images/avatar-default.png'
-        let avatar_model = '../../images/avatar-model.png'
-        let canvasbg = 'https://case.geekheal.net/codeImg/card.png'
-
-        let { data: { url = '' } } = await postShareCode({ method: 'POST' })
-        let { data: { slogan = '', all_bouns = 0, total_question = 0, avatar = '', dw = '' } } = await postShareInfo({ method: 'POST' })
-        let { tempFilePath: mpcode_snap } = await wepy.downloadFile({ url })
-        let { tempFilePath: avatar_snap } = await wepy.downloadFile({ url: avatar })
-        let { tempFilePath: canvasbg_snap } = await wepy.downloadFile({ url: canvasbg })
-        if (!avatar) avatar_snap = avatar_default
-        if (!mpcode_snap || !avatar_snap || !canvasbg_snap) {
-          this.goShareCardPage()
-        } else {
-          wepy.hideLoading()
-          wepy.navigateTo({
-            url: `/pages/shareCard/index?dw=${dw}&slogan=${slogan}&all_bouns=${all_bouns}&avatar_model=${avatar_model}&total_question=${total_question}&avatar_snap=${avatar_snap}&avatar_snap=${avatar_snap}&mpcode_snap=${mpcode_snap}&canvasbg_snap=${canvasbg_snap}`
-          })
-        }
-      } catch (error) {
-        console.log(error)
-      }
     }
   }
 </script>
 
 <style lang="scss">
-@import '../../scss/_element.scss';
-@import '../../scss/_layout.scss';
+@import '../../scss/_base.scss';
 
 page {
+  position: relative;
+
   width: 100vw;
   height: 100vh;
-  position: relative;
-  background: linear-gradient(to bottom right, #3023AE, #C86DD7 );
+
+  background: linear-gradient(90deg,
+  #02cefd 0%,
+  #1380ff 100%);
 
   &::after {
     content: '';
     position: absolute;
-    top: 290rpx;
+    top: to(145);
     right: 0;
     left: 0;
     bottom: 0;
     z-index: 9;
+
     background: #ededed;
   }
 }
 
-.container {
-  @include horizontalCenter();
+.my {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
   z-index: 99;
-  padding-top: 50rpx;
 
-  .profile_card_block {
+  padding-top: to(25);
+
+  &__profile-info {
     position: relative;
-    width: 650rpx;
-    height: 320rpx;
     box-sizing: border-box;
+
+    width: to(355);
+    height: to(160);
+    margin: 0 auto to(8) auto;
+
     font-family: PingFangSC-medium;
-    font-size: 36rpx;
+    font-size: to(16);
     color: #4a4a4a;
-    margin-bottom: 40rpx;
 
     &::after {
       content: '';
       position: absolute;
       left: 50%;
-      bottom: 20rpx;
-      margin-left: -268rpx;
-      width: 536rpx;
-      height: 160rpx;
-      box-shadow: 0 40rpx 40rpx 0 rgba(73, 73, 73, 0.2);
-      border-radius: 12rpx;
-      z-index: 1;
-    }
+      bottom: to(10);
+      z-index: -1;
+      transform: translateX(-50%);
 
-    .userInfo_block {
-      @include horizontalCenter();
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 99;
-      width: 240rpx;
-
-      .avatar {
-        width: 160rpx;
-        height: 160rpx;
-        border-radius: 50%;
-        margin-bottom: 20rpx;
-      }
-    }
-
-    .profile_block {
-      position: absolute;
-      left: 0;
-      bottom: 0;
-      z-index: 9;
-      width: 100%;
-      height: 240rpx;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-      box-sizing: border-box;
-      padding-top:54rpx;
-      background: #fff;
-      border-radius: 24rpx;
-      font-family: PingFangSC-Regular;
-      font-size: 24rpx;
-      color: #464f51;
-
-      .reserve_btn {
-        @include btn($width: 160rpx, $height: 60rpx);
-        position: absolute;
-        top: -30rpx;
-        right: 40rpx;
-      }
-
-      .customerservice_btn {
-        @include btn($width: 160rpx, $height: 60rpx);
-        position: absolute;
-        top: -30rpx;
-        right: 220rpx;
-      }
-
-      .designation,
-      .total_score {
-        display: flex;
-        align-items: center;
-        box-sizing: border-box;
-        padding-left: 274rpx;
-        margin-bottom: 20rpx;
-
-        .title {
-          width: 76rpx;
-          display: flex;
-          justify-content: space-between;
-        }
-
-        .unit {
-          font-family: PingFangSC-Medium;
-          font-size: 40rpx;
-          color: #bd10e0;
-        }
-      }
+      width: to(300);
+      height: to(80);
+      box-shadow: 0 to(20) to(20) 0 rgba(73, 73, 73, 0.2);
+      border-radius: to(6);
     }
   }
 
-  .answer_info_block {
+  &__answer-info {
     position: relative;
-    width: 650rpx;
-    height: 180rpx;
-    border-radius: 12rpx;
-    margin-bottom: 40rpx;
+    display: flex;
+
+    width: to(355);
+    height: to(90);
+    border-radius: to(6);
+    margin: 0 auto to(8) auto;
+
+    background: linear-gradient(136deg,
+		#fad961 0%,
+		#f66b1c 100%);
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+
+      height: to(65);
+      border-right: 1px solid #fff;
+    }
 
     &::after {
       content: '';
       position: absolute;
       left: 50%;
       top: 50%;
-      z-index: 1;
-      margin-left: -268rpx;
-      margin-top: -70rpx;
-      width: 536rpx;
-      height: 140rpx;
-      box-shadow: 0 40rpx 40rpx 0 rgba(245, 166, 35, 0.7);
-      border-radius: 12rpx;
-    }
+      z-index: -1;
+      transform: translate(-50%, -50%);
 
-    .answer_info_wrapper {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      z-index: 99;
-      display: flex;
-      align-items: center;
-      border-radius: 12rpx;
-      background-image: linear-gradient(134deg,#ffd643 0%,#f7c136 54%,#ffaf00 100%);
-
-      .answer_count_block,
-      .answer_accuracy_block {
-        flex: 1;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        box-sizing: border-box;
-        height: 130rpx;
-        font-family: PingFangSC-Regular;
-        font-size: 28rpx;
-        color: #fff;
-
-        .unit {
-          font-family: DINAlternate-Bold;
-          font-size: 60rpx;
-        }
-      }
-
-      .answer_count_block {
-        border-right: 2rpx solid #fff;
-      }
+      width: to(300);
+      height: to(70);
+      border-radius: to(6);
+      box-shadow: 0 to(20) to(20) 0 rgba(245, 166, 35, 0.7);
     }
   }
 
-  .answer_analysis_block {
+  &__answer-analysis {
     position: relative;
-    width: 650rpx;
-    height: 300rpx;
-    margin-bottom: 40rpx;
-    border-radius: 12rpx;
+
+    width: to(355);
+    height: to(150);
+    border-radius: to(6);
+    margin: 0 auto to(27) auto;
+
+    background: linear-gradient(135deg,
+		#02cefd 0%,
+		#1380ff 100%);
 
     &::after {
       content: '';
       position: absolute;
-      bottom: 20rpx;
+      bottom: to(10);
       left: 50%;
-      z-index: 1;
-      margin-left: -268rpx;
-      width: 536rpx;
-      height: 240rpx;
-	    border-radius: 12rpx;
-      box-shadow: 0 40rpx 40rpx 0 rgba(189, 15, 224, 0.3);
-    }
+      z-index: -1;
+      transform: translateX(-50%);
 
-    .answer_analysis_wrapper {
-      position: absolute;
-      left: 0;
-      right: 0;
-      top: 0;
-      bottom: 0;
-      z-index: 99;
-      padding-left: 50rpx;
-      padding-top: 50rpx;
-      border-radius: 12rpx;
-      overflow: hidden;
-      padding: 50rpx 0 0 50rpx;
-      background-image: linear-gradient(134deg,#af0df8 0%,#e42ccb 100%,#ee32c3 100%);
-
-      .answer_analysis_icon {
-        width: 278rpx;
-        height: 250rpx;
-      }
-
-      .answer_analysis_tip {
-        @include horizontalCenter();
-        position: absolute;
-        top: 74rpx;
-        right: 70rpx;
-        width: 176rpx;
-        font-family: PingFangSC-Semibold;
-        font-size: 44rpx;
-        color: #fff;
-
-        .saying {
-          font-family: PingFangSC-Thin;
-          font-size: 24rpx;
-        }
-      }
+      width: to(268);
+      height: to(120);
+	    border-radius: to(6);
+      box-shadow: 0 to(20) to(20) 0 rgba(30, 165, 251, 0.3);
     }
   }
 
-  .btn {
-    @include btn($width: 650rpx, $height: 70rpx, $family:PingFangSC-Regular, $size: 28rpx);
-    margin-bottom: 20rpx;
+  &__common-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: to(355);
+    height: to(35);
+    border-radius: to(3);
+    margin: 0 auto to(8) auto;
+
+    font-family: PingFangSC-Regular;
+    font-size: to(14);
+    color: #fff;
+
+    background: linear-gradient(90deg,
+		#02cefd 0%,
+		#1380ff 100%);
+  }
+}
+
+.answer-info__count,
+.answer-info__accuracy {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+
+  font-family: PingFangSC-Regular;
+  font-size: to(14);
+  color: #fff;
+
+  .number {
+    font-family: DINAlternate-Bold;
+    font-size: to(30);
+  }
+}
+
+.answer-analysis__icon {
+  width: to(140);
+  height: to(125);
+  margin: to(25) 0 0 to(40);
+}
+
+.answer-analysis__tip {
+  position: absolute;
+  top: to(37);
+  right: to(50);
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  box-sizing: border-box;
+  align-items: center;
+
+  width: to(88);
+
+  font-family: PingFangSC-Semibold;
+  font-size: to(22);
+  color: #fff;
+
+  .saying {
+    font-family: PingFangSC-Regular;
+    font-size: to(12);
+  }
+}
+
+.profile-user {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 99;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  align-items: center;
+  box-sizing: border-box;
+
+  width: to(120);
+
+  .avatar {
+    width: to(80);
+    height: to(80);
+    border-radius: 50%;
+    margin-bottom: to(10);
+  }
+}
+
+.profile-base {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  z-index: 9;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  box-sizing: border-box;
+
+  width: inherit;
+  height: to(120);
+  padding-top: to(27);
+  background: #fff;
+  border-radius: to(3);
+
+  font-family: PingFangSC-Regular;
+  font-size: to(12);
+  color: #464f51;
+
+  &__designation,
+  &__total-score {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    box-sizing: border-box;
+
+    margin-bottom: to(10);
+    padding-left: to(194);
+
+    .title {
+      width: to(38);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .unit {
+      font-family: PingFangSC-Medium;
+      font-size: to(20);
+      color: #1480ff;
+    }
+  }
+
+  .reserve-btn,
+  .customerservice-btn {
+    position: absolute;
+    top: to(-15);
+
+    width: to(80);
+    height: to(30);
+    border-radius: to(20);
+
+    font-family: PingFangSC-Medium;
+    font-size: to(12);
+    color: #fff;
+
+    background: linear-gradient(90deg,
+		#8af1ff 0%,
+		#26b0ff 100%);
+  }
+
+  .reserve-btn {
+    right: to(20);
+  }
+
+  .customerservice-btn {
+    right: to(110);
   }
 }
 </style>

@@ -1,0 +1,4 @@
+// to px 转换为 rpx
+@function to ($px) {
+  @return $px * 2rpx
+}

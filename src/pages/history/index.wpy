@@ -1,0 +1,197 @@
+<template lang="pug">
+  scroll-view.history-list(
+    scroll-y
+  )
+    view.history-list__item(
+      wx:for="{{aHistory}}"
+      wx:key="{{item._id}}"
+    )
+      view.history-list__time
+        text {{item.created_at}}
+      view.history-list__title
+        text {{item.flagText}}
+      view.history-list__money
+        text(
+          wx:if="{{isCash}}"
+        ) +{{item.amount}}元
+        text(
+          wx:else
+        ) +{{item.bonus}}元
+    view.history-list__item.history-list__item--more(
+      wx:if="{{totalPage !== 1}}"
+      @tap="loadMore"
+    )
+      text {{canLoadMore ? '查看更多...' : '暂无更多数据~'}}
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import {
+    getCashHistoryByPage,
+    getBonusHistoryByPage
+  } from '@/utils/api'
+
+  export default class HistoryPage extends wepy.page {
+    data = {
+      isCash: false,            // 是否展示提现记录
+      aHistory: [],             // 提现/收入历史记录
+      canLoadMore: false,       // 加载更多数据
+      currentPage: 1,           // 当前页码
+      totalPage: 1,             // 页码总数
+    }
+
+    methods = {
+      /**
+       * loadMoreHistory
+       * 加载更多数据(分页操作)
+       */
+      async loadMore() {
+        if (!this.canLoadMore) return
+
+        this.currentPage++
+        let aNewHistory = await this.updateHistory(this.currentPage)
+        this.aHistory = [...this.aHistory, ...aNewHistory]
+        this.$apply()
+      }
+    }
+
+    async onLoad (params) {
+      let { isCash } = params
+      console.log('isCash', isCash)
+      if (isCash) this.isCash = true
+      console.log('this.isCash', this.isCash)
+
+      let aNewHistory = await this.updateHistory(this.currentPage)
+      console.log('aNewHistory', aNewHistory)
+      this.aHistory = aNewHistory
+      this.$apply()
+      console.log('this.aHistory', this.aHistory)
+    }
+
+    onReady () {
+      wepy.setNavigationBarTitle({
+        title: this.isCash ? '历史提现记录' : '历史收入记录'
+      })
+    }
+
+    /**
+     * updateHistory
+     * 更新提现、收入的列表数据
+     * @param page {Numbber} 页码, 默认值为1
+     * @return aCurrentHistory {Array} 当前页的提现、收入数据
+     */
+    async updateHistory (page = 1) {
+      let { data: { data: { data, current_page, last_page } } } = await this.getHistoryByPage(page)
+      console.log('data updateHistory', data)
+      let aCurrentHistory = this.formatHitoryData(data)
+
+      current_page < last_page ? this.canLoadMore = true : this.canLoadMore = false
+      this.currentPage = current_page
+      this.totalPage = last_page
+      this.$apply()
+
+      console.log('aCurrentHistory updateHistory', aCurrentHistory)
+      return aCurrentHistory
+    }
+
+    /**
+     * getHistoryByPage
+     * 根据页码去请求数据
+     * @param page {Number} 页码，默认值为1
+     * @return res {Object} 根据页码从后台请求到的提现/收入的相关数据
+     */
+    async getHistoryByPage (page = 1) {
+      let res
+      console.log('this.isCash', this.isCash)
+      if (this.isCash) {
+        res = await getCashHistoryByPage({ data: { page } })
+      } else {
+        res = await getBonusHistoryByPage({ data: { page } })
+      }
+      console.log('response', res)
+      return res
+    }
+
+    /**
+     * formatHitoryData
+     * 格式化提现/收入数据
+     * @param aHistory {Array} 要被格式化的数据
+     * @return aNewHistory {Array} 格式化之后的数据
+     */
+    formatHitoryData (aHistory) {
+      console.log('aHistory before', aHistory)
+      let aNewHistory = aHistory.map(item => {
+        if (this.isCash) {
+          let flagText = item.flag === 0 ? '审核中' : '提现成功'
+          item.flagText = flagText
+        }
+        return item
+      })
+      console.log('aHistory after', aHistory)
+      return aNewHistory
+    }
+  }
+</script>
+
+<style lang="scss">
+@import '../../scss/_base.scss';
+
+page {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  width: 100vw;
+  height: 100vh;
+}
+
+.history-list {
+  height: 100vh;
+
+  font-family: PingFangSC-Regular;
+  font-size: to(10);
+  color: #9b9b9b;
+
+  &__item {
+    display: flex;
+    box-sizing: border-box;
+
+    padding: to(15) to(30);
+
+    background: #f2f2f2;
+
+    &:nth-child(2n+1) {
+      background: #fff;
+    }
+  }
+
+  &__item--more {
+    justify-content: center;
+  }
+
+  &__time,
+  &__title,
+  &__money {
+    display: flex;
+    flex-wrap: wrap;
+    box-sizing: border-box;
+  }
+
+  &__time {
+    flex: 3;
+  }
+
+  &__title {
+    flex: 4;
+  }
+
+  &__money {
+    flex: 2;
+    justify-content: flex-end;
+
+    font-size: to(12);
+    color: #4a4a4a;
+  }
+}
+</style>

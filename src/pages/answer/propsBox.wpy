@@ -1,57 +1,164 @@
 <template lang="pug">
-  view.props_box
-    scroll-view.scroll_view(
-      wx:if="{{isShowPropsBox}}"
-      scroll-x)
-      view.props_block
-        block(
-          wx:for="{{props}}"
-          wx:key="{{index}}")
-          view.props_item_shadow(
-            style="box-shadow: 0 30rpx 30rpx {{item.wrapperBg}};"
-            @tap="useProp({{item}})")
-            view.props_item_shadow_viod
-            view.props_item(
-              style="background: {{item.wrapperBg}}")
-              text.props_num(
-                style="padding: {{item.num > 9 ? '10rpx' : ''}}; top: {{item.num > 9 ? '-10rpx' : ''}}; right: {{item.num > 9 ? '-10rpx' : ''}}") {{item.num > 99 ? '99+' : item.num}}
-              view.props_icon_block
-                image(
-                  style="width: {{2*item.style.w}}rpx; height: {{2*item.style.h}}rpx; margin-top: {{2*item.style.marginT}}rpx; margin-left: {{2*item.style.marginL}}rpx; box-sizing: border-box;"
-                  src="{{item.src}}")
-    view.props_box_btn(
-      @tap="togglePropsBox") 道具箱
+  view.props-box
+    view.props-box__shadow
+    view.props-box__content
+      view.props-box-content-close(
+        wx:if="{{isOpenPropsBox}}"
+        @tap="togglePropsBox"
+      )
+      image.props-box-content-icon(
+        wx:else
+        src="/images/props-small.svg"
+        @tap="togglePropsBox"
+      )
+      scroll-view.props-box-content-list(
+        scroll-x
+        wx:if="{{isOpenPropsBox}}"
+      )
+        view.props-box-content-item(
+          wx:for="{{aUsableProps}}"
+          wx:key="{{item.index}}"
+          @tap="useProps({{item}})"
+        )
+          view.props-box-content-item__shadow(
+            style="box-shadow: {{item.shadow}};"
+          )
+          view.props-box-content-item__bg(
+            style="background: {{item.bg}};"
+          )
+            image.content-item-bg-icon(
+              src="{{item.iconSrc}}"
+            )
+          view.props-box-content-item__number {{item.numMap}}
 </template>
 
 <script>
   import wepy from 'wepy'
+  import { getProps } from '@/utils/api'
 
   export default class PropsBoxComponent extends wepy.component {
     data = {
       startTime: 0,
-      props: [],
-      isShowPropsBox: false,
+      aUsableProps: [],
+      isOpenPropsBox: false,
     }
 
     events = {
-      'updateProps': (props) => {
-        this.props = props
+      /**
+       * closePropsBox
+       * 关闭道具箱
+       */
+      closePropsBox (params) {
+        this.isOpenPropsBox = params
       },
-      'hidePropsBox': (params) => {
-        this.isShowPropsBox = params
-      },
+      /**
+       * updatePropsCount
+       * 更新所使用的道具数量
+       * @param name {String} 使用的道具名
+       */
+      updatePropsCount (name) {
+        this.aUsableProps.forEach((item, i) => {
+          if (item.name === name && item.num > 0) {
+            this.aUsableProps[i].numMap--
+            this.$apply()
+          }
+        })
+      }
     }
 
     methods = {
-      useProp (dataset) {
+      /**
+       * useProps
+       * 使用道具
+       * @param props {Object} 准备使用的道具
+       */
+      useProps (props) {
         const fn = () => {
-          this.$emit('useProp', dataset)
+          let { num } = props
+          if (num === 0) {
+            wepy.showToast({
+              title: '你已经没有这个道具了',
+              icon: 'none'
+            })
+            return
+          }
+          this.$emit('useProps', props)
         }
         this.throttling(fn, 300)
       },
+      /**
+       * togglePropsBox
+       * 开启、关闭道具箱，且在第一次开启时加载道具数据
+       */
       togglePropsBox () {
-        this.isShowPropsBox = !this.isShowPropsBox
+        if (!this.isOpenPropsBox && !this.aUsableProps.length) this.initData()
+        this.isOpenPropsBox = !this.isOpenPropsBox
       }
+    }
+
+    /**
+     * initData
+     * 初始化组件相关数据
+     */
+    async initData () {
+      let { data: { props } } = await getProps()
+      let aUsableProps = []
+      props.forEach(item => {
+        let propsName = item.name
+        if (propsName && propsName !== 'r_card' && propsName !== 'double') {
+          aUsableProps.push(item)
+        }
+      })
+
+      this.aUsableProps = this.formatProps(aUsableProps)
+      this.$apply()
+    }
+
+    /**
+     * formatProps
+     * 格式化可使用的道具数据
+     * @param aUsableProps {Array} 筛选过的可使用的道具列表
+     * @return aNewUsableProps {Array} 格式化后的可使用的道具列表
+     */
+    formatProps (aUsableProps) {
+      if (!aUsableProps.length) return
+      let aNewUsableProps = []
+
+      aNewUsableProps = aUsableProps.map(item => {
+        let name = item.name
+        item.num > 99 ? item.numMap = 99 : item.numMap = item.num
+
+        switch (name) {
+          case 'HSZWRNS':
+            item.full_name = '护士长的温柔凝视'
+            item.iconSrc = '/images/props1.svg'
+            item.bg = '#ff71a0'
+            item.shadow = '0 30rpx 30rpx 0 rgba(255, 113, 160, 0.6)'
+            break
+          case 'ZRSYTX':
+            item.full_name = '主任的善意提醒'
+            item.iconSrc = '/images/props2.svg'
+            item.bg = '#72dd71'
+            item.shadow = '0 30rpx 30rpx 0 rgba(114, 221, 113, 0.6)'
+            break
+          case 'XBDDA':
+            item.full_name = '学霸的答案'
+            item.iconSrc = '/images/props3.svg'
+            item.bg = '#72cced'
+            item.shadow = '0 30rpx 30rpx 0 rgba(113, 204, 237, 0.6)'
+            break
+          case 'DrWhyXC':
+            item.full_name = 'Dr.Why的小抄'
+            item.iconSrc = '/images/props4.svg'
+            item.bg = '#ffdf12'
+            item.shadow = '0 30rpx 30rpx 0 rgba(255, 223, 18, 0.6)'
+            break
+        }
+
+        return item
+      })
+
+      return aNewUsableProps
     }
 
     // 函数节流
@@ -75,77 +182,174 @@
 </script>
 
 <style lang="scss">
-@import '../../scss/_layout.scss';
+@import '../../scss/_base.scss';
 
-.props_box {
+/* S 道具箱按钮 */
+.props-box {
+  position: absolute;
+  left: to(10);
+  bottom: to(70);
+  z-index: 99;
+
+  width: to(45);
+  height: to(45);
+  border-radius: 50%;
+
+  /* S 道具箱按钮底部阴影 */
+  &__shadow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 1;
+    transform: translate(-50%, -50%);
+
+    width: to(30);
+    height: to(30);
+
+    background: #1380ff;
+    box-shadow: 0 to(15) to(15) 0 rgba(19, 128, 255, 0.6);
+  }
+  /* E 道具箱按钮底部阴影 */
+
+  /* S 道具箱按钮内容 */
+  &__content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+    background: linear-gradient(137deg,
+    #02cefd 0%,
+    #1382fe 84%,
+    #1380ff 100%);
+  }
+  /* E 道具箱按钮内容 */
+}
+/* E 道具箱按钮 */
+
+/* S 道具箱图标 */
+.props-box-content-icon {
+  width: to(25);
+  height: to(25);
+}
+/* E 道具箱图标 */
+
+/* S 道具箱提示关闭 */
+.props-box-content-close {
   position: relative;
 
-  .scroll_view {
+  width: to(30);
+  height: to(30);
+
+  &::before,
+  &::after {
+    content: '';
     position: absolute;
-    top: -150rpx;
-    left: 0;
-    width: 570rpx;
-    display: flex;
+    top: to(3);
+    left: to(13);
 
-    .props_block {
-      height: 146rpx;
-      padding-top: 10rpx;
-      display: flex;
-    }
+    width: to(3);
+    height: to(25);
+    background: #fff;
+  }
 
-    .props_item_shadow,
-    .props_item_shadow_viod {
-      width: 80rpx;
-      height: 80rpx;
-      border-radius: 50%;
-    }
+  &::before {
+    transform: rotate(45deg);
+  }
 
-    .props_item_shadow {
-      position: relative;
-      margin: 20rpx 44rpx 0 20rpx;
-
-
-      .props_item {
-        position: absolute;
-        top: -20rpx;
-        left: -20rpx;
-        width: 120rpx;
-        height: 120rpx;
-        border-radius: 50%;
-
-        .props_icon_block {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          border-radius: 50%;
-          background: transparent;
-          overflow: hidden;
-        }
-
-        .props_num {
-          position: absolute;
-          top: 0;
-          right: 0;
-          z-index: 99;
-          padding: 0 10rpx;
-          border-radius: 50%;
-          font-size: 20rpx;
-          background: red;
-          color:#fff;
-        }
-      }
-    }
+  &::after {
+    transform: rotate(-45deg);
   }
 }
+/* E 道具箱提示关闭 */
 
-.props_box_btn {
-  @include verticalHorizontalCenter();
-  width: 180rpx;
-  height: 80rpx;
+/* S 道具列表 */
+.props-box-content-list {
+  $w: to(212);
 
-  background: linear-gradient(128deg,#af0df8 0%,#e42ccb 100%,#ee32c3 100%);
-  border-radius: 60rpx;
+  position: absolute;
+  top: 0;
+  right: -$w;
+
+  width: $w;
+  height: 140%;
+  // background: rgba(0, 0, 0, 0.2);
 }
+/* E 道具列表 */
+
+/* S 道具项 */
+.props-box-content-item {
+  position: relative;
+  display: inline-flex;
+
+  width: to(45);
+  height: to(45);
+  margin-left: to(8);
+
+  /* S 道具底部阴影 */
+  &__shadow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 1;
+    transform: translate(-50%, -50%);
+
+    width: to(30);
+    height: to(30);
+  }
+  /* E 道具底部阴影 */
+
+  /* S 道具背景 */
+  &__bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 9;
+    overflow: hidden;
+
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+
+    .content-item-bg-icon {
+      position: absolute;
+      top: to(2);
+      left: 50%;
+      transform: translateX(-50%);
+
+      width: to(28);
+      height: to(47);
+    }
+  }
+  /* E 道具背景 */
+
+  /* S 道具数量 */
+  &__number {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 99;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: to(15);
+    height: to(15);
+    border-radius: 50%;
+
+    font-family: PingFangSC-Regular;
+    font-size: to(10);
+    color: #fff;
+
+    background: red;
+  }
+  /* E 道具数量 */
+}
+/* E 道具项 */
 </style>
