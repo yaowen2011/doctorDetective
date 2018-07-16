@@ -554,6 +554,7 @@
     startTimer () {
       clearTimeout(this.timer)
       this.number = 30
+      this.isDengerTime = false
       this.$apply()
       this.interval(this.countdown(), 1000)
     }
