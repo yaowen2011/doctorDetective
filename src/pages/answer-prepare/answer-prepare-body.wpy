@@ -4,6 +4,9 @@
       view.answer-prepare-main__start-time
         text {{t_label}}
         text.time {{expired_at}}
+      navigator.answer-prepare-main__preview(
+        url="/pages/answer-peview/index"
+      ) 预习知识
       navigator.answer-prepare-main__rule(
         hover-class="none"
         url="/pages/rule/index"
@@ -187,6 +190,21 @@
       display: inline-flex;
       font: PingFangSC-Regular;
     }
+  }
+
+  &__preview {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+
+    padding: to(5) to(10);
+    border-radius: to(20) 0 0 to(20);
+
+    font: to(12) PingFangSC-Medium;
+    color:#fff;
+
+    background:linear-gradient(90deg, #8af1ff 0%, #26b0ff 100%);
   }
 
   &__rule {

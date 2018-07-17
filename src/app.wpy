@@ -12,6 +12,7 @@
     config = {
       pages: [
         'pages/home/home',
+        'pages/answer-peview/index',
         'pages/result/index',
         'pages/share/index',
         'pages/answer-prepare/index',

@@ -1,0 +1,19 @@
+<template lang="pug">
+  web-view(
+    src='{{preview_url}}'
+  )
+</template>
+
+<script>
+import wepy from 'wepy'
+import { connect } from 'wepy-redux'
+
+@connect({
+  preview_url (state) {
+    return state.userData.preview_url
+  }
+}, {})
+export default class AnswerDataPage extends wepy.page {
+
+}
+</script>
