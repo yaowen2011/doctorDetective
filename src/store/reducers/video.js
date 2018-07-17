@@ -13,7 +13,7 @@ export default handleActions(
       let len = subject.length
       let subjectBrief = subject
 
-      if (len > 8) subjectBrief = subject.slice(0, 8)
+      if (len > 10) subjectBrief = subject.slice(0, 10)
 
       return {
         ...state,

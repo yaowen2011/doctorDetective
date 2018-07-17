@@ -194,17 +194,19 @@
 
   &__preview {
     position: absolute;
-    right: 0;
+    left: 0;
     top: 50%;
     transform: translateY(-50%);
 
-    padding: to(5) to(10);
-    border-radius: to(20) 0 0 to(20);
+    padding: to(6) to(10);
+    border-radius: 0 to(30) to(30) 0;
+    border: 1px solid #fff;
+    border-left: 0;
 
-    font: to(12) PingFangSC-Medium;
+    font: to(12) PingFangSC-Regular;
     color:#fff;
 
-    background:linear-gradient(90deg, #8af1ff 0%, #26b0ff 100%);
+    background: linear-gradient(135deg, #02cefd 0%, #1380ff 100%);
   }
 
   &__rule {

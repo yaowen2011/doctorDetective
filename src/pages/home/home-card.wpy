@@ -170,7 +170,7 @@
     color: #fff;
 
     .title {
-      font-size: to(40);
+      font: to(30) PingFangSC-Semibold;
     }
 
     .bonus {
