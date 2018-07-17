@@ -29,7 +29,10 @@
     getPosterState
   } from '@/utils/api'
   import { connect } from 'wepy-redux'
-  import { fetchUserData } from '@/store/actions/user-data'
+  import {
+    fetchUserData,
+    fetchVideo
+  } from '@/store/actions/index'
 
   @connect({
     uid (state) {
@@ -37,9 +40,13 @@
     },
     userInfo (state) {
       return state.userData.userInfo
+    },
+    subject (state) {
+      return state.video.subject
     }
   }, {
-    fetchUserData
+    fetchUserData,
+    fetchVideo
   })
   export default class homePage extends SharePage {
     data = {
@@ -82,6 +89,8 @@
       // decodeURIComponent(scene) 由扫小程序码进入获取带的参数
       if (scene) this.share_uid = decodeURIComponent(scene)
       this.$apply()
+
+      this.methods.fetchVideo()
 
       let { code } = await wepy.login()
       let params = {
