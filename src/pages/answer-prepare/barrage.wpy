@@ -46,6 +46,7 @@
     events = {
       // 开始滚动弹幕
       async beginBarrage (comments) {
+        if (!comments.length) return
         this.comments = comments
         await this.endBarrage()
         await this.beginBarrage()
