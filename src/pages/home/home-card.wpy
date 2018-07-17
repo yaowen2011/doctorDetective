@@ -7,13 +7,13 @@
       url="/pages/answer-prepare/index"
     )
       view.knowledge-answer__content
-        text.title 知识大通关
+        view.title {{subject}}
         text.bonus 现金大奖：{{total_bonus}}元
       view.knowledge-answer__state
         text 火热进行中
       image.knowledge-answer__img-bg(
         lazy-load
-        src="//audio.geekheal.net/QA/cover/knowledge-answer.png"
+        src="{{video.cover}}"
       )
     scroll-view.features(
       scroll-x="true"
@@ -94,6 +94,12 @@
   import { connect } from 'wepy-redux'
 
   @connect({
+    video (state) {
+      return state.video.video
+    },
+    subject (state) {
+      return state.video.subject
+    },
     expired (state) {
       return state.userData.expired
     },

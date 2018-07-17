@@ -25,8 +25,8 @@
 <script>
   import wepy from 'wepy'
   import {
-    getVideo,
     getComments,
+    postComment
   } from '@/utils/api'
 
   import AnswerPrepareBody from './answer-prepare-body'
@@ -36,18 +36,19 @@
   import { connect } from 'wepy-redux'
 
   @connect({
-    pid (state) {
-      return state.userData.pid
+    video (state) {
+      return state.video.video
     },
     userInfo (state) {
       return state.userData.userInfo
+    },
+    pid (state) {
+      return state.userData.pid
     }
-  }, {
-  })
+  }, {})
 
   export default class PrepareAnswer extends wepy.page {
     data = {
-      video: {},                    // 视频数据
       videoContext: null,           // 视频组件控制对象
       comments: [],                 // 评论
       isShowComment: false,         // 是否打开评论
@@ -87,24 +88,16 @@
     }
 
     async onLoad () {
-      await this.getVideoData()
+      this.videoContext = wepy.createVideoContext('case-video')
       await this.getAndFormatComments()
+    }
 
-      if (!this.video.src && this.comments.length) {
-        this.$broadcast('beginBarrage', this.comments)
-      }
+    onShow () {
+      this.$broadcast('beginBarrage', this.comments)
     }
 
     onUnload () {
       clearTimeout(this.timer)
-    }
-
-    // 获取视频数据
-    async getVideoData () {
-      let { data: { data: { video: { data: video } } } } = await getVideo()
-      if (video.src) this.videoContext = wepy.createVideoContext('case-video')
-      this.video = video
-      this.$apply()
     }
 
     // 获取并格式化评论列表
