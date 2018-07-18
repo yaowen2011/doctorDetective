@@ -396,6 +396,7 @@
         })
       }
       wepy.hideLoading()
+      questions = JSON.parse(JSON.stringify(questions).replace(/\u00A0|\u2028|\u2029|\uFEFF/g, ''))
       return questions
     }
 
