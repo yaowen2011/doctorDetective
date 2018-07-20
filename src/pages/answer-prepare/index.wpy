@@ -61,6 +61,14 @@
       Barrage
     }
 
+    watch = {
+      comments (newVal) {
+        if (newVal && newVal.length) {
+          this.$broadcast('beginBarrage', this.comments)
+        }
+      }
+    }
+
     events = {
       toggleComment (param) {
         this.isShowComment = param
@@ -93,6 +101,7 @@
     }
 
     onShow () {
+      if (!this.comments.length) return
       this.$broadcast('beginBarrage', this.comments)
     }
 
