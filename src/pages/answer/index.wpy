@@ -1,7 +1,7 @@
 <template lang='pug'>
   view.question
     view.question__timer(
-      class="{{isDengerTime ? 'question__timer--denger' : 'question__timer--normal'}}"
+      class="{{number > 10 ? 'question__timer--normal' : 'question__timer--denger'}}"
     )
       text {{number}}s
     view.question__title(
@@ -64,7 +64,6 @@
     data = {
       number: 0,                      // 倒计时
       timer: null,                    // 定时器
-      isDengerTime: false,            // 是否为最后几秒
       questionTitleH: 0,              // 题干高度
       lastOutIndex: 0,                // 最后一个淘汰题的索引
       lastInIndex: 0,                 // 最后一个晋级题的索引
@@ -555,7 +554,6 @@
     startTimer () {
       clearTimeout(this.timer)
       this.number = 30
-      this.isDengerTime = false
       this.$apply()
       this.interval(this.countdown(), 1000)
     }
@@ -581,13 +579,8 @@
           this.number--
           this.$apply()
         }
-
-        if (this.number && this.number <= 10) {
-          this.isDengerTime = true
-          this.$apply()
         }
       }
-    }
 
     // Promise化setTimeout
     async timeout (ms) {
