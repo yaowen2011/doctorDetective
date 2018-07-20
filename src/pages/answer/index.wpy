@@ -4,16 +4,13 @@
       class="{{number > 10 ? 'question__timer--normal' : 'question__timer--denger'}}"
     )
       text {{number}}s
-    view.question__title(
-      id="question__title{{index}}"
+    scroll-view.question__options(
+      scroll-y
     )
-      text {{ index+1 }}.
-      text {{questions[index].subject}}
-      text.multiple-choice {{questions[index].type === 2 ? '(多选)': ''}}
-    scoll-view.question__options(
-      scoll-y
-      style="top: {{questionTitleH ? 2*questionTitleH : 2*57}}rpx;"
-    )
+      view.question-options-title
+        text {{ index+1 }}.
+        text {{questions[index].subject}}
+        text.multiple-choice {{questions[index].type === 2 ? '(多选)': ''}}
       view.question-options-item(
         wx:for="{{questions[index].choice}}"
         wx:key="{{index}}"
@@ -83,22 +80,6 @@
       PropsBox,
       XbResult,
       DrWhyResult,
-    }
-
-    watch = {
-      /**
-       * index
-       * 监听当前所答题的索引，动态获取题干高度
-       * @param newIndex {Number}
-       * @param oldIndex {Number}
-       */
-      async index (newIndex, oldIndex) {
-        if (newIndex < oldIndex) return
-        let ele = `#question__title${newIndex}`
-        let { height = 57 } = await this.getBoundingClientRect(ele)
-        this.questionTitleH = height
-        this.$apply()
-      }
     }
 
     events = {
@@ -579,8 +560,8 @@
           this.number--
           this.$apply()
         }
-        }
       }
+    }
 
     // Promise化setTimeout
     async timeout (ms) {
@@ -722,13 +703,14 @@ page {
   /* S 题目选项 */
   &__options {
     position: absolute;
-    top: to(76);
+    top: 0;
     left: 0;
-    right: 0;
-    bottom: 0;
     z-index: 9;
+    box-sizing: border-box;
 
-    width: inherit;
+    width: 100%;
+    height: 100%;
+    border-radius: to(3);
   }
   /* E 题目选项 */
 
@@ -763,7 +745,18 @@ page {
 }
 /* E 多选题提示文字 */
 
-/* S 选项的基本样式 */
+/* S 题干 */
+.question-options-title {
+  padding: to(15);
+  border: 1px solid #d7d7d7;
+
+  font-family: PingFangSC-Medium;
+  font-size: to(18);
+  color: #4a4a4a;
+}
+/* E 题干*/
+
+/* S 选项 */
 .question-options-item {
   box-sizing: border-box;
 
@@ -777,11 +770,13 @@ page {
 	color: #4a4a4a;
 
   background: #f5f5f5;
+
+  &:last-child {
+    margin-bottom: to(58);
 }
-/* E 选项的基本样式 */
 
 /* S 选项的选中样式 */
-.question-options-item--active {
+  &--active {
   color: #fff;
 
   background: linear-gradient(90deg,
@@ -791,7 +786,7 @@ page {
 /* E 选项的选中样式 */
 
 /* S 选项的禁止选中样式 */
-.question-options-item--disabled {
+  &--disabled {
   color: #fff;
 
   background: linear-gradient(90deg,
@@ -799,4 +794,6 @@ page {
   #ff4242 100%);
 }
 /* S 选项的禁止选中样式 */
+}
+/* E 选项 */
 </style>
