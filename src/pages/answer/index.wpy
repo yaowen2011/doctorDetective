@@ -4,9 +4,7 @@
       class="{{number > 10 ? 'question__timer--normal' : 'question__timer--denger'}}"
     )
       text {{number}}s
-    scroll-view.question__options(
-      scroll-y
-    )
+    view.question__options
       view.question-options-title
         text {{ index+1 }}.
         text {{questions[index].subject}}
@@ -689,30 +687,21 @@ page {
   }
   /* E 倒计时正常状态 */
 
-  /* S 题干 */
-  &__title {
-    padding: to(15);
-    border: 1px solid #d7d7d7;
 
-    font-family: PingFangSC-Medium;
-    font-size: to(18);
-    color: #4a4a4a;
-  }
-  /* E 题干 */
-
-  /* S 题目选项 */
+  /* S 题目 */
   &__options {
     position: absolute;
     top: 0;
     left: 0;
     z-index: 9;
     box-sizing: border-box;
+    overflow-y: scroll;
 
     width: 100%;
     height: 100%;
     border-radius: to(3);
   }
-  /* E 题目选项 */
+  /* E 题目 */
 
   /* S 提交答案按钮 */
   &__confirm-btn {
@@ -748,7 +737,7 @@ page {
 /* S 题干 */
 .question-options-title {
   padding: to(15);
-  border: 1px solid #d7d7d7;
+  border-bottom: 1px solid #d7d7d7;
 
   font-family: PingFangSC-Medium;
   font-size: to(18);
