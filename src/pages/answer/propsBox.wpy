@@ -187,7 +187,7 @@
 /* S 道具箱按钮 */
 .props-box {
   position: absolute;
-  left: to(10);
+  right: to(10);
   bottom: to(70);
   z-index: 99;
 
@@ -275,11 +275,10 @@
 
   position: absolute;
   top: 0;
-  right: -$w;
+  left: -$w;
 
   width: $w;
   height: 140%;
-  // background: rgba(0, 0, 0, 0.2);
 }
 /* E 道具列表 */
 
