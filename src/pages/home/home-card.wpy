@@ -171,6 +171,7 @@
 
     .title {
       font: to(30) PingFangSC-Semibold;
+      text-align: center;
     }
 
     .bonus {
