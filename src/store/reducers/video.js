@@ -10,14 +10,10 @@ export default handleActions(
   {
     [GET_VIDEO] (state, action) {
       let { payload: { data: { subject, video: { data: video } } } } = action
-      let len = subject.length
-      let subjectBrief = subject
-
-      if (len > 10) subjectBrief = subject.slice(0, 10)
 
       return {
         ...state,
-        subject: subjectBrief,
+        subject,
         video
       }
     }
