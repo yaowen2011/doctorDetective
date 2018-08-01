@@ -532,7 +532,7 @@
     // 开启定时器
     startTimer () {
       clearTimeout(this.timer)
-      this.number = 30
+      this.number = 50
       this.$apply()
       this.interval(this.countdown(), 1000)
     }
