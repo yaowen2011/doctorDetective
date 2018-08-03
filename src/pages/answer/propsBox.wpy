@@ -34,7 +34,7 @@
 
 <script>
   import wepy from 'wepy'
-  import { getProps } from '@/utils/api'
+  import { getProps } from '@/api'
 
   export default class PropsBoxComponent extends wepy.component {
     data = {
@@ -182,7 +182,7 @@
 </script>
 
 <style lang="scss">
-@import '../../scss/_base.scss';
+@import '../../scss/main.scss';
 
 /* S 道具箱按钮 */
 .props-box {

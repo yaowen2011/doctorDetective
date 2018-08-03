@@ -32,7 +32,7 @@
   import {
     postCash,
     postcheckUser
-  } from '@/utils/api'
+  } from '@/api'
 
   export default class BounsPage extends wepy.page {
     config = {
@@ -146,7 +146,7 @@
 </script>
 
 <style lang="scss">
-@import '../../scss/_base.scss';
+@import '../../scss/main.scss';
 
 page {
   position: relative;

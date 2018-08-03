@@ -1,4 +1,4 @@
-@import './_base.scss';
+@import '../helpers/_functions.scss';
 
 @mixin bounce () {
   @keyframes bounce {

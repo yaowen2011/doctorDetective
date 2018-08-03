@@ -27,7 +27,7 @@
   import {
     getToken,
     getPosterState
-  } from '@/utils/api'
+  } from '@/api'
   import { connect } from 'wepy-redux'
   import {
     fetchUserData,
@@ -103,7 +103,7 @@
       let { data: { token, props } } = await getToken(params)
       if (!token) return
       wepy.setStorageSync('token', token)
-      this.$invoke(this.$com.Sign, 'sign')
+      this.$invoke('Sign', 'sign')
 
       if (!props) return
       wepy.showModal({
@@ -131,7 +131,7 @@
 </script>
 
 <style lang="scss">
-@import '../../scss/_base.scss';
+@import '../../scss/main.scss';
 
 page {
   position: relative;

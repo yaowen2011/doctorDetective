@@ -72,7 +72,7 @@
     getSign,
     postFormId,
     getUserInfo
-  } from '@/utils/api'
+  } from '@/api'
 
   export default class SignComponent extends wepy.component {
     props = {
@@ -219,8 +219,7 @@
 </script>
 
 <style lang="scss">
-@import '../../scss/_animate.scss';
-@import '../../scss/_base.scss';
+@import '../../scss/main.scss';
 
 @include bounce();
 @include zoomIn();

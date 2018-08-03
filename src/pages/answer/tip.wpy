@@ -38,7 +38,7 @@
 </script>
 
 <style lang="scss">
-@import '../../scss/_base.scss';
+@import '../../scss/main.scss';
 
 /* S 答题结果提示组件 */
 .response-tip {

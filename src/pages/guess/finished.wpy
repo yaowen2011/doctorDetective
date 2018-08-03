@@ -43,7 +43,7 @@ export default class FinishedCmponent extends wepy.component {
 </script>
 
 <style lang="scss">
-@import '../../scss/_base.scss';
+@import '../../scss/main.scss';
 
 .wrapper {
   position: absolute;

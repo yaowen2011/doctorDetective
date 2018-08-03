@@ -11,18 +11,17 @@ import wepy from 'wepy'
  * @param params.data {Object} 发送请求时需要传带的数据
  * @return res {Object} 请求成功后收到的响应数据，返回一个 Promise 对象
  */
-export const request = async (url, params = {}) => {
+const request = async (url = '', params = {}) => {
   try {
     let res
+    let host = wepy.$appConfig.baseUrl
     let token = wepy.getStorageSync('token')
     let { method = 'GET', data = {}, isNeedToken = true } = params
-    let options = { url, method, data }
 
-    if (isNeedToken) {
-      res = await wepy.request({ ...options, header: { 'Authorization': `Bearer ${token}` } })
-    } else {
-      res = await wepy.request(options)
-    }
+    url = host + url
+    res = isNeedToken
+      ? await wepy.request({ url, method, data, header: { 'Authorization': `Bearer ${token}` } })
+      : await wepy.request({ url, method, data })
 
     let { statusCode } = res
     if (typeof statusCode === 'undefined' || statusCode !== 200) {
@@ -37,3 +36,5 @@ export const request = async (url, params = {}) => {
     console.log(`error! errUrl: ${url}, errParams:`, params)
   }
 }
+
+export default request

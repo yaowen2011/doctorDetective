@@ -28,7 +28,7 @@
 
 <script>
   import wepy from 'wepy'
-  import { postPastAnswerAnalysisByPage } from '@/utils/api'
+  import { postPastAnswerAnalysisByPage } from '@/api'
 
   export default class AnswerAnaysisListPage extends wepy.page {
     config = {
@@ -118,7 +118,7 @@
 </script>
 
 <style lang="scss">
-@import '../../scss/_base.scss';
+@import '../../scss/main.scss';
 
 page {
   width: 100vw;

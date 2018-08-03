@@ -51,7 +51,7 @@
   import wepy from 'wepy'
   import {
     postFormId,
-  } from '@/utils/api'
+  } from '@/api'
 
   import { connect } from 'wepy-redux'
   import { fetchUserData } from '@/store/actions/user-data'
@@ -138,7 +138,7 @@
 </script>
 
 <style lang="scss">
-@import '../../scss/_base.scss';
+@import '../../scss/main.scss';
 
 .answer-prepare {
   position: absolute;

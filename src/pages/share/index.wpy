@@ -23,7 +23,7 @@ import {
   postCurrentInfo,
   postShareCode,
   postShareInfo,
-} from '@/utils/api'
+} from '@/api'
 
 import { connect } from 'wepy-redux'
 @connect({
@@ -589,7 +589,7 @@ export default class ShareCardPage extends wepy.page {
 </script>
 
 <style lang="scss">
-@import '../../scss/_base.scss';
+@import '../../scss/main.scss';
 
 page,
 .share {

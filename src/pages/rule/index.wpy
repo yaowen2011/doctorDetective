@@ -10,7 +10,7 @@
 
 <script>
   import wepy from 'wepy'
-  import { getRules } from '@/utils/api'
+  import { getRules } from '@/api'
 
   export default class RulePage extends wepy.page {
     config = {
@@ -38,7 +38,7 @@
 </script>
 
 <style lang="scss">
-@import '../../scss/_base.scss';
+@import '../../scss/main.scss';
 
 page,
 .rule {

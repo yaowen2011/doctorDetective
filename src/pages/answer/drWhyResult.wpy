@@ -35,7 +35,7 @@
 </script>
 
 <style lang="scss">
-@import '../../scss/_base.scss';
+@import '../../scss/main.scss';
 
 .dr_wrapper {
   position: fixed;

@@ -31,7 +31,7 @@
 
   import {
     getProps,
-  } from '@/utils/api'
+  } from '@/api'
 
   import { connect } from 'wepy-redux'
 
@@ -133,7 +133,7 @@
 </script>
 
 <style lang="scss">
-@import '../../scss/_base.scss';
+@import '../../scss/main.scss';
 
 page {
   width: 100vw;

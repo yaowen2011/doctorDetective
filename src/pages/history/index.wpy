@@ -29,7 +29,7 @@
   import {
     getCashHistoryByPage,
     getBonusHistoryByPage
-  } from '@/utils/api'
+  } from '@/api'
 
   export default class HistoryPage extends wepy.page {
     data = {
@@ -134,7 +134,7 @@
 </script>
 
 <style lang="scss">
-@import '../../scss/_base.scss';
+@import '../../scss/main.scss';
 
 page {
   display: flex;

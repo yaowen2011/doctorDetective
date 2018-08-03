@@ -30,7 +30,7 @@
 
   import {
     postAnswerAnalysisByPid
-  } from '@/utils/api'
+  } from '@/api'
 
   export default class AnswerAnalysisPage extends wepy.page {
     config = {
@@ -114,7 +114,7 @@
 </script>
 
 <style lang="scss">
-@import '../../scss/_base.scss';
+@import '../../scss/main.scss';
 
 page {
   display: flex;

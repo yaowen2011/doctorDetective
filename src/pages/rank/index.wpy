@@ -118,7 +118,7 @@
     postPersonalRank,
     postHospitalRank,
     postGuessRank
-  } from '@/utils/api'
+  } from '@/api'
   import SharePage from '@/extends/share'
 
   import { connect } from 'wepy-redux'
@@ -228,7 +228,7 @@
 </script>
 
 <style lang="scss">
-@import '../../scss/_base.scss';
+@import '../../scss/main.scss';
 
 page {
   display: flex;

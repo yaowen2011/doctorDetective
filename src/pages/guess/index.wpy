@@ -82,7 +82,7 @@
     postGuessTips,
     postGuessJudge,
     postGuessSchedule
-  } from '@/utils/api'
+  } from '@/api'
 
   import { connect } from 'wepy-redux'
   import {
@@ -442,7 +442,7 @@
 </script>
 
 <style lang="scss">
-@import '../../scss/_base.scss';
+@import '../../scss/main.scss';
 
 page {
   position: relative;

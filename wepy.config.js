@@ -20,15 +20,10 @@ module.exports = {
     modules: ['node_modules']
   },
   compilers: {
-    less: {
-      compress: prod
-    },
     sass: {
       outputStyle: 'compressed'
     },
-    pug: {
-
-    },
+    pug: {},
     babel: {
       sourceMap: !prod,
       presets: [
@@ -46,16 +41,14 @@ module.exports = {
   plugins: {
   },
   appConfig: {
-    noPromiseAPI: ['createSelectorQuery']
+    noPromiseAPI: ['createSelectorQuery'],
+    baseUrl: process.env.NODE_ENV === 'production' ? 'https://case.geekheal.net' : 'https://case.geekheal.net'
   }
 }
 
 if (prod) {
   // 压缩sass
   module.exports.compilers['sass'] = {outputStyle: 'compressed'}
-
-  // 压缩less
-  module.exports.compilers['less'] = {compress: true}
 
   // 压缩js
   module.exports.plugins = {

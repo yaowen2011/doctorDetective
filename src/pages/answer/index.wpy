@@ -45,7 +45,7 @@
     postAnswer,
     postProp,
     postUserAnswer
-  } from '@/utils/api'
+  } from '@/api'
   import md5 from 'blueimp-md5'
   import { connect } from 'wepy-redux'
 
@@ -421,13 +421,13 @@
       let isLastInIndex = this.index === this.lastInIndex
 
       if (error && !finished) {
-        this.$invoke(this.$com.Tip, 'hideTip')
+        this.$invoke('Tip', 'hideTip')
         this.nextQuestion()
         return
       }
 
       if (error && isLastOutIndex) {
-        this.$invoke(this.$com.Tip, 'hideTip')
+        this.$invoke('Tip', 'hideTip')
         wepy.redirectTo({
           url: `/pages/result/index?score=${total}`
         })
@@ -505,9 +505,9 @@
 
     // 展示提示框
     async showTip (tipcontent, isCorrect) {
-      this.$invoke(this.$com.Tip, 'showTip', tipcontent, isCorrect)
+      this.$invoke('Tip', 'showTip', tipcontent, isCorrect)
       await this.timeout(1000)
-      this.$invoke(this.$com.Tip, 'hideTip', tipcontent, isCorrect)
+      this.$invoke('Tip', 'hideTip', tipcontent, isCorrect)
     }
 
     // 切换到下一题
@@ -613,7 +613,7 @@
 </script>
 
 <style lang="scss">
-@import '../../scss/_base.scss';
+@import '../../scss/main.scss';
 
 page {
   display: flex;
