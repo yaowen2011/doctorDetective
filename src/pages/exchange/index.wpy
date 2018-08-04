@@ -1,27 +1,18 @@
 <template lang="pug">
-  scroll-view.exchange__list(
-    scroll-y
-  )
+  scroll-view.exchange__list(scroll-y)
     view.exchange-list__item(
       wx:for="{{aGoods}}"
       wx:key="{{item._id}}"
-      style="background: {{item.bg}};"
-    )
+      style="background: {{item.bg}};")
       view.exchange-list-item__icon
-        image.icon(
-          src="{{item.iconSrc}}"
-        )
+        image.icon(src="{{item.iconSrc}}")
       view.exchange-list-item__name
         text {{item.full_name}}
         text {{item.price}}金币
       view.exchange-list-item__operate
-        view.increase(
-          @tap="increaseGoods({{item}}, {{index}})"
-        )
+        view.increase(@tap="increaseGoods({{item}}, {{index}})")
         view.count {{item.number}}
-        view.decrease(
-          @tap="decreaseGoods({{item}}, {{index}})"
-        )
+        view.decrease(@tap="decreaseGoods({{item}}, {{index}})")
   view.exchange__result
       view.exchange-result__gold
         text 剩余金币:
@@ -29,16 +20,12 @@
         text.total {{totalGold}}
       button.exchange-result__btn(
         class="{{isActiveBtn ? 'exchange-result__btn--active' : ''}}"
-        @tap="confirmGoods"
-      ) 兑换道具
+        @tap="confirmGoods") 兑换道具
 </template>
 
 <script>
   import wepy from 'wepy'
-  import {
-    getGoldMall,
-    postExchanedGoods
-  } from '@/api'
+  import { getGoldMall, postExchanedGoods } from '@/api'
   import { connect } from 'wepy-redux'
   import { fetchUserData } from '@/store/actions/user-data'
 
@@ -49,7 +36,6 @@
   }, {
     fetchUserData
   })
-
   export default class ExchangePage extends wepy.page {
     config = {
       navigationBarTitleText: '金币兑换',

@@ -1,11 +1,8 @@
 <template lang="pug">
-  scroll-view.container(
-    scroll-y
-  )
+  scroll-view.container(scroll-y)
     view.profile
       view.profile__userInfo
-        image.profile__avatar(
-          src="{{userInfo.avatarUrl ? userInfo.avatarUrl : '../../images/avatar-default.svg'}}")
+        image.profile__avatar(src="{{userInfo.avatarUrl ? userInfo.avatarUrl : '../../images/avatar-default.svg'}}")
         text {{userInfo.nickName}}
       view.profile__assets
         view.profile__designation
@@ -16,28 +13,17 @@
           text.unit {{gold}}
     view.entrance
       view.entrance__withdraw-earnings
-        navigator.entrance__withdraw(
-          url="/pages/bonus/index?total_bonus={{total_bonus}}&pid={{pid}}"
-        )
-          image.icon-withdraw(
-            src="/images/withdraw.svg"
-          )
+        navigator.entrance__withdraw(url="/pages/bonus/index?total_bonus={{total_bonus}}&pid={{pid}}")
+          image.icon-withdraw(src="/images/withdraw.svg")
           text.text 提现
-        navigator.entrance__earnings-history(
-          url="/pages/history/index"
-        )
-          image.icon-history(
-            src="/images/history.svg"
-          )
+        navigator.entrance__earnings-history(url="/pages/history/index")
+          image.icon-history(src="/images/history.svg")
           text.text 查看历史收入记录
       navigator.entrance__glod-exchange(
         url="/pages/exchange/index"
-        hover-class="none"
-      )
+        hover-class="none")
         text.text 金币兑换
-        image.icon-exchange(
-          src="/images/exchange.svg"
-        )
+        image.icon-exchange(src="/images/exchange.svg")
 </template>
 
 <script>

@@ -1,12 +1,8 @@
 <template lang="pug">
-  scroll-view.my(
-    scroll-y
-  )
+  scroll-view.my(scroll-y)
     view.my__profile-info
       view.profile-user
-        image.avatar(
-          src="{{userInfo.avatarUrl ? userInfo.avatarUrl : '/images/avatar-default.svg'}}"
-        )
+        image.avatar(src="{{userInfo.avatarUrl ? userInfo.avatarUrl : '/images/avatar-default.svg'}}")
         text.nickname {{userInfo.nickName}}
       view.profile-base
         view.profile-base__designation
@@ -22,12 +18,8 @@
             text 分
           text ：
           text.unit {{total_score}}
-        button.customerservice-btn(
-          open-type="contact"
-        ) 客服
-        button.reserve-btn(
-          @tap="toggleAllow"
-        ) {{allow ? '允许推送': '关闭推送'}}
+        button.customerservice-btn(open-type="contact") 客服
+        button.reserve-btn(@tap="toggleAllow") {{allow ? '允许推送': '关闭推送'}}
     view.my__answer-info
       view.answer-info__count
         view
@@ -37,30 +29,18 @@
         view
           text 正确率：
           text.number {{rightPercent}}%
-    navigator.my__answer-analysis(
-      url="/pages/answer-analysis-list/index"
-    )
-      image.answer-analysis__icon(
-        src="/images/answerAnalysis.svg"
-      )
+    navigator.my__answer-analysis(url="/pages/answer-analysis-list/index")
+      image.answer-analysis__icon(src="/images/answerAnalysis.svg")
       view.answer-analysis__tip
         text 查看往期答案解析
         text.saying 温故而知新
-    navigator.my__common-btn(
-      url="/pages/information/index"
-    ) 认证信息
-    navigator.my__common-btn(
-      url="/pages/share/index?scence=my"
-    ) 生成卡片
+    navigator.my__common-btn(url="/pages/information/index") 认证信息
+    navigator.my__common-btn(url="/pages/share/index?scence=my") 生成卡片
 </template>
 
 <script>
   import wepy from 'wepy'
-  import {
-    postAllow,
-    getProfile
-  } from '@/api'
-
+  import { postAllow, getProfile } from '@/api'
   import { connect } from 'wepy-redux'
 
   @connect({

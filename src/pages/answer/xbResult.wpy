@@ -6,19 +6,18 @@
       view.xb_card_title 点击你想查看答案的用户头像
       view.xb_user_item(
         wx:for="{{groupUserAnswer}}"
-        wx:key="{{index}}"
-      )
+        wx:key="{{index}}")
         image.xb_user_avatar(
           @tap="seeUserAnswer({{item}}, {{index}})"
           src="{{item.avatar ? item.avatar: '/images/avatar-default.svg'}}")
         view.xb_user_info
-          view.xb_nickName(
-            @tap="seeUserAnswer({{item}}, {{index}})") {{item.nickName ? item.nickName : '匿名用户'}}
+          view.xb_nickName(@tap="seeUserAnswer({{item}}, {{index}})") {{item.nickName ? item.nickName : '匿名用户'}}
           view.xb_user_answer {{item.answer}}
 </template>
 
 <script>
   import wepy from 'wepy'
+
   export default class XbResultComponent extends wepy.component {
     props = {
       groupUserAnswer: {

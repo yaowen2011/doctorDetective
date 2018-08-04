@@ -2,25 +2,17 @@
   view.wrapper
     view.finished
       view.finished__shadow
-      image.finished__bg(
-        src="/images/guess-finished-bg.svg"
-      )
+      image.finished__bg(src="/images/guess-finished-bg.svg")
       view.finished__card
-        image.avatar(
-          src="{{userInfo.avatarUrl ? userInfo.avatarUrl : '/images/avatar-default.svg'}}"
-        )
+        image.avatar(src="{{userInfo.avatarUrl ? userInfo.avatarUrl : '/images/avatar-default.svg'}}")
         view.nickname {{userInfo.nickName}}
         view.clearance 通关成功
         view.all-gold
           view.all-gold__count {{allGold}}
           view.all-gold__tip 累计获得金币
         view.navigator
-          navigator.navigator__rank(
-            url="/pages/rank/index?isGuess=1&type={{type}}"
-          ) 查看排行榜
-          navigator.navigator__share(
-            url="/pages/share/index?scence=guess&type={{type}}&allGold={{allGold}}&isFinished=true&questionAmount={{questionAmount}}&index={{index}}"
-          ) 分享战绩
+          navigator.navigator__rank(url="/pages/rank/index?isGuess=1&type={{type}}") 查看排行榜
+          navigator.navigator__share(url="/pages/share/index?scence=guess&type={{type}}&allGold={{allGold}}&isFinished=true&questionAmount={{questionAmount}}&index={{index}}") 分享战绩
 </template>
 
 <script>

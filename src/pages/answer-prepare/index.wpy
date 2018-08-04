@@ -7,32 +7,25 @@
       poster="{{video.cover}}"
       danmu-list="{{comments}}"
       danmu-btn=true
-      enable-danmu=true
-    )
+      enable-danmu=true)
     Barrage(
       wx:else
       :video.sync="video"
-      :comments.sync="comments"
-    )
+      :comments.sync="comments")
     AnswerPrepareBody
     Comment(
       wx:if="{{isShowComment}}"
-      :comments.sync="comments"
-    )
+      :comments.sync="comments")
 
 </template>
 
 <script>
   import wepy from 'wepy'
-  import {
-    getComments,
-    postComment
-  } from '@/api'
+  import AnswerPrepareBody from './AnswerPrepareBody'
+  import Comment from './Comment'
+  import Barrage from './Barrage'
 
-  import AnswerPrepareBody from './answer-prepare-body'
-  import Comment from './comment'
-  import Barrage from './barrage'
-
+  import { getComments, postComment } from '@/api'
   import { connect } from 'wepy-redux'
 
   @connect({

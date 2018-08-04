@@ -7,33 +7,23 @@
       view.header-middle--title 每周签到奖励
       view.header-right
     view.sign__list
-      block(
+      view.award_item(
         wx:for="{{signState}}"
-        wx:key="{{index}}"
-      )
-        view.award_item
-          view.icon_block(
-            class="{{willSign === index ? 'bounce' : ''}}"
-            style="background: {{item.bgColor}}"
-          )
-            image.icon(
-              src="{{item.src}}"
-            )
-            image.icon_sign(
-              wx:if="{{item.log === 0 || item.log === 1}}"
-              src="{{item.log === 0 ? '/images/sign_forget.svg' : item.log === 1 ? '/images/sign_finished.svg' : ''}}"
-            )
-            view(
-              wx:if="{{item.log === 0 || item.log === 1}}"
-              class="{{item.log === 0 ? 'mask_forget' : item.log === 1 ? 'mask_finished' : ''}}"
-            )
-          view.week(
-            class="{{forgetSign + 3 === index ? 'week_continuous' : forgetSign + 7 === index ? 'week_continuous': ''}}"
-          ) {{item.day}}
+        wx:key="{{index}}")
+        view.icon_block(
+          class="{{willSign === index ? 'bounce' : ''}}"
+          style="background: {{item.bgColor}}")
+          image.icon(src="{{item.src}}")
+          image.icon_sign(
+            wx:if="{{item.log === 0 || item.log === 1}}"
+            src="{{item.log === 0 ? '/images/sign_forget.svg' : item.log === 1 ? '/images/sign_finished.svg' : ''}}")
+          view(
+            wx:if="{{item.log === 0 || item.log === 1}}"
+            class="{{item.log === 0 ? 'mask_forget' : item.log === 1 ? 'mask_finished' : ''}}")
+        view.week(class="{{forgetSign + 3 === index ? 'week_continuous' : forgetSign + 7 === index ? 'week_continuous': ''}}") {{item.day}}
     form(
       report-submit=true
-      @submit="collectFormId"
-    )
+      @submit="collectFormId")
       button(
         class="sign__btn"
         open-type="getUserInfo"
@@ -41,8 +31,7 @@
         form-type="submit") 点击签到
     view.sign__award(
       wx:if="{{isSignAward}}"
-      @tap="closeSignAward"
-    )
+      @tap="closeSignAward")
       SignAward(
         wx:if="{{awardMsg}}"
         class="zoomIn {{isSignAward ? '' : 'zoomOut'}}"
@@ -50,8 +39,7 @@
         :awardMsg.sync="awardMsg"
         :bigAwardMsg.sync=""
         :signState.sync="signState"
-        :continuousCount.sync="continuousCount"
-      )
+        :continuousCount.sync="continuousCount")
       BigSignAward(
         wx:if="{{bigAwardMsg}}"
         class="zoomIn {{isSignAward ? '' : 'zoomOut'}}"
@@ -59,20 +47,14 @@
         :awardMsg.sync=""
         :bigAwardMsg.sync="bigAwardMsg"
         :signState.sync="signState"
-        :continuousCount.sync="continuousCount"
-      )
+        :continuousCount.sync="continuousCount")
 </template>
 
 <script>
   import wepy from 'wepy'
-  import SignAward from './sign-award'
+  import SignAward from './SignAward'
 
-  import {
-    // getToken,
-    getSign,
-    postFormId,
-    getUserInfo
-  } from '@/api'
+  import { getSign, postFormId, getUserInfo } from '@/api'
 
   export default class SignComponent extends wepy.component {
     props = {

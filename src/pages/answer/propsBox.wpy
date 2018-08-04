@@ -4,31 +4,21 @@
     view.props-box__content
       view.props-box-content-close(
         wx:if="{{isOpenPropsBox}}"
-        @tap="togglePropsBox"
-      )
+        @tap="togglePropsBox")
       image.props-box-content-icon(
         wx:else
         src="/images/props-small.svg"
-        @tap="togglePropsBox"
-      )
+        @tap="togglePropsBox")
       scroll-view.props-box-content-list(
         scroll-x
-        wx:if="{{isOpenPropsBox}}"
-      )
+        wx:if="{{isOpenPropsBox}}")
         view.props-box-content-item(
           wx:for="{{aUsableProps}}"
           wx:key="{{item.index}}"
-          @tap="useProps({{item}})"
-        )
-          view.props-box-content-item__shadow(
-            style="box-shadow: {{item.shadow}};"
-          )
-          view.props-box-content-item__bg(
-            style="background: {{item.bg}};"
-          )
-            image.content-item-bg-icon(
-              src="{{item.iconSrc}}"
-            )
+          @tap="useProps({{item}})")
+          view.props-box-content-item__shadow(style="box-shadow: {{item.shadow}};")
+          view.props-box-content-item__bg(style="background: {{item.bg}};")
+            image.content-item-bg-icon(src="{{item.iconSrc}}")
           view.props-box-content-item__number {{item.numMap}}
 </template>
 

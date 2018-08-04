@@ -1,23 +1,21 @@
 <template lang="pug">
   view.dr_wrapper
-    view.dr_model(
-      @tap="toggleDrWhyResult")
+    view.dr_model( @tap="toggleDrWhyResult")
     view.dr_card_block
-      scroll-view.scroll_view(
-        scroll-y)
+      scroll-view.scroll_view(scroll-y)
         view.dr_card_title 当前问题的选项比例
-        block(
+        view.dr_answer_item(
           wx:for="{{optionList}}"
           wx:key="{{index}}")
-          view.dr_answer_item
-            view.dr_answer_option {{item.optionStr}}
-            view.dr_answer_proportion_blcok
-              view.dr_answer_proportion(
-                style="width: {{2 * item.proportionWidth}}rpx;") {{item.proportionValue}}
+          view.dr_answer_option {{item.optionStr}}
+          view.dr_answer_proportion_blcok
+            view.dr_answer_proportion(
+              style="width: {{2 * item.proportionWidth}}rpx;") {{item.proportionValue}}
 </template>
 
 <script>
   import wepy from 'wepy'
+
   export default class drResultComponent extends wepy.component {
     props = {
       optionList: {

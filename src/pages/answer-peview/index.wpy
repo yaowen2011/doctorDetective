@@ -1,7 +1,5 @@
 <template lang="pug">
-  web-view(
-    src='{{preview_url}}'
-  )
+  web-view(src='{{preview_url}}')
 </template>
 
 <script>
@@ -13,7 +11,5 @@ import { connect } from 'wepy-redux'
     return state.userData.preview_url
   }
 }, {})
-export default class AnswerDataPage extends wepy.page {
-
-}
+export default class AnswerDataPage extends wepy.page {}
 </script>

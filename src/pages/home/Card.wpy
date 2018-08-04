@@ -1,51 +1,26 @@
 <template lang="pug">
-  scroll-view.container(
-    scroll-y
-  )
+  scroll-view.container(scroll-y)
     navigator.knowledge-answer(
       hover-class="none"
-      url="/pages/answer-prepare/index"
-    )
+      url="/pages/answer-prepare/index")
       view.knowledge-answer__content
         view.title {{subject}}
         text.bonus 现金大奖：{{total_bonus}}元
       view.knowledge-answer__state
         text 火热进行中
-      image.knowledge-answer__img-bg(
-        lazy-load
-        src="{{video.cover}}"
-      )
-    scroll-view.features(
-      scroll-x="true"
-    )
-      navigator.features__item.features__item--bank(
-        url="/pages/bank/index"
-      )
+      image.knowledge-answer__img-bg(src="{{video.cover}}")
+    scroll-view.features(scroll-x="true")
+      navigator.features__item.features__item--bank(url="/pages/bank/index")
         text.title 银行
-        image.img-bg(
-          lazy-load
-          src="/images/bank.svg"
-        )
-      navigator.features__item.features__item--my(
-        url="/pages/my/index"
-      )
+        image.img-bg(src="/images/bank.svg")
+      navigator.features__item.features__item--my(url="/pages/my/index")
         text.title 个人中心
-        image.img-bg(
-          lazy-load
-          src="/images/my.svg"
-        )
-      navigator.features__item.features__item--props(
-        url="/pages/props/index"
-      )
+        image.img-bg(src="/images/my.svg")
+      navigator.features__item.features__item--props(url="/pages/props/index")
         text.title 道具箱
-        image.img-bg(
-          lazy-load
-          src="/images/props.svg"
-        )
+        image.img-bg(src="/images/props.svg")
     view.activity
-      navigator.activity-anatomy--worldcup(
-        url="/pages/guess/index?type=muscle"
-      )
+      navigator.activity-anatomy--worldcup(url="/pages/guess/index?type=muscle")
         view.activity-state
           text 火热进行中
         view.activity-content
@@ -54,13 +29,8 @@
             text.worldcap 世界杯特辑
             text.season Season 2
           text.activity-content__award 金币奖励
-        image.activity-img--bg(
-          lazy-load
-          src="//oi7gusker.qnssl.com/QA/share/world_cup_.png"
-        )
-      navigator.activity-anatomy(
-        url="/pages/guess/index?type=bone"
-      )
+        image.activity-img--bg(src="//oi7gusker.qnssl.com/QA/share/world_cup_.png")
+      navigator.activity-anatomy(url="/pages/guess/index?type=bone")
         view.activity-state
           text 火热进行中
         view.activity-content
@@ -68,13 +38,8 @@
             text 解剖大作战
             text.season Season 1
           text.activity-content__award 金币奖励
-        image.activity-img--bg(
-          lazy-load
-          src="//audio.geekheal.net/QA/cover/human-anatomy.png"
-        )
-      navigator.activity-guess(
-        url="/pages/guess/index?type=drugs"
-      )
+        image.activity-img--bg(src="//audio.geekheal.net/QA/cover/human-anatomy.png")
+      navigator.activity-guess(url="/pages/guess/index?type=drugs")
         view.activity-state
           text 火热进行中
         view.activity-content
@@ -82,10 +47,7 @@
             text 我“药”猜猜看
             text.season Season 1
           text.activity-content__award 金币奖励
-        image.activity-img--bg(
-          lazy-load
-          src="//audio.geekheal.net/QA/cover/guess.png"
-        )
+        image.activity-img--bg(src="//audio.geekheal.net/QA/cover/guess.png")
 </template>
 
 
@@ -114,10 +76,7 @@
     }
   })
 
-  export default class CardComponent extends wepy.component {
-    methods = {
-    }
-  }
+  export default class CardComponent extends wepy.component {}
 </script>
 
 <style lang="scss">

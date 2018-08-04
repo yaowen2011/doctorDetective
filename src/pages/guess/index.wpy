@@ -1,82 +1,60 @@
 <template lang="pug">
   scroll-view.container(
     wx:if="{{!isFinished}}"
-    scroll-y
-  )
+    scroll-y)
     view.profile
       view.schedule
         text 第
         text.unit {{index}}
         text 题
-      image.avatar(
-        lazy-load
-        src="{{userInfo.avatarUrl ? userInfo.avatarUrl : '/images/avatar-default.svg'}}"
-      )
+      image.avatar(src="{{userInfo.avatarUrl ? userInfo.avatarUrl : '/images/avatar-default.svg'}}")
       view
         text.gold 金币：
         text.unit.gold_unit {{gold_all}}
     view.image_block
       image.tip_image(
-        lazy-load
         mode="scaleToFill"
-        src="{{tipImage}}"
-      )
+        src="{{tipImage}}")
       view.drug_block
-        block(
+        view.character(
           wx:for="{{aEnterCharacter}}"
           wx:key="{{index}}"
-        )
-          view.character(
-            class="{{drugJudgedState === 'default' ? '' : drugJudgedState ? 'character_right' : 'character_wrong'}}"
-            @tap="cancelCharacter({{item}}, {{index}})"
-          ) {{item ? item : ''}}
-      navigator.rank_btn(
-        url="/pages/rank/index?isGuess=1&type={{type}}"
-      ) 排行榜
-      navigator.share_btn(
-        url="/pages/share/index?scence=guess&type={{type}}&isFinished=false&allGold={{allGold}}&questionAmount={{questionAmount}}&index={{index}}"
-      ) 分享战绩
+          class="{{drugJudgedState === 'default' ? '' : drugJudgedState ? 'character_right' : 'character_wrong'}}"
+          @tap="cancelCharacter({{item}}, {{index}})") {{item ? item : ''}}
+      navigator.rank_btn(url="/pages/rank/index?isGuess=1&type={{type}}") 排行榜
+      navigator.share_btn(url="/pages/share/index?scence=guess&type={{type}}&isFinished=false&allGold={{allGold}}&questionAmount={{questionAmount}}&index={{index}}") 分享战绩
     view.waitingcharacter_block
       view.waitingcharacter(
         wx:for="{{aWaitingCharacter}}"
         wx:key="{{index}}"
         class="{{item.isActive ? 'waitingcharacter_active' : ''}}"
-        @tap="chooseCharacter({{item}}, {{index}})"
-      ) {{item.content}}
+        @tap="chooseCharacter({{item}}, {{index}})") {{item.content}}
     view.tips_block
       view.tip(
         wx:for="{{tips}}"
         wx:key="{{index}}"
         wx:if="{{item.isShow}}"
         class="{{item.isActive ? 'tip_active' : ''}}"
-        @tap="useTips({{item}}, {{index}})"
-      ) {{item.isActive ? item.clue : item.tip}}
+        @tap="useTips({{item}}, {{index}})") {{item.isActive ? item.clue : item.tip}}
       view.tip-answer(
         wx:if="{{isShowTellAnswerBtn}}"
-        @tap="tellUserAnswer"
-      ) 获取答案
+        @tap="tellUserAnswer") 获取答案
     view.bone-right(
       wx:if="{{type==='bone' && answerUrl}}"
-      @tap="closeBoneRightImg"
-    )
-      image.bone-right__content(
-        src="{{answerUrl}}"
-      )
-      view.bone-right__btn(
-        @tap="closeBoneRightImg"
-      ) 恭喜您！回答正确
+      @tap="closeBoneRightImg")
+      image.bone-right__content(src="{{answerUrl}}")
+      view.bone-right__btn(@tap="closeBoneRightImg") 恭喜您！回答正确
   Finished(
     wx:else
     :type.sync="type"
     :allGold.sync="allGold"
     :questionAmount.sync="questionAmount"
-    :index.sync="index"
-  )
+    :index.sync="index")
 </template>
 
 <script>
   import wepy from 'wepy'
-  import Finished from './finished'
+  import Finished from './Finished'
   import {
     postGuess,
     postGuessTips,
@@ -85,10 +63,7 @@
   } from '@/api'
 
   import { connect } from 'wepy-redux'
-  import {
-    INCREMENT_GOLD_ALL,
-    DECREMENT_GOLD_ALL
-  } from '@/store/types/user-data'
+  import { INCREMENT_GOLD_ALL, DECREMENT_GOLD_ALL } from '@/store/types/user-data'
   import { fetchUserData } from '@/store/actions'
 
   @connect({

@@ -7,13 +7,9 @@
         text {{total_bonus}}
         text.unit 元
     view.bonus-operate
-      navigator.bonus-operate__withdraw(
-        url="/pages/withdraw/index?total_bonus={{total_bonus}}&pid={{pid}}"
-      )
+      navigator.bonus-operate__withdraw(url="/pages/withdraw/index?total_bonus={{total_bonus}}&pid={{pid}}")
         text 提现
-      navigator.bonus-operate__history(
-        url="/pages/history/index?isCash=1"
-      )
+      navigator.bonus-operate__history(url="/pages/history/index?isCash=1")
         text 查看历史提现记录
       view.bonus-operate__explanation
         text 说明：账户总金额超过10元才可提现哦
@@ -31,7 +27,6 @@
       return state.userData.bonus
     }
   })
-
   export default class BonusPage extends wepy.page {
     config = {
       navigationBarTitleText: '账户余额'

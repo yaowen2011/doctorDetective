@@ -1,21 +1,14 @@
 <template lang="pug">
-  view.award-card(
-    style="background: {{bigAwardMsg ? '#ffce1a' : signState[willSign].bgColor}};"
-  )
-    view.award-card__icon(
-      style="background: {{bigAwardMsg ? '#ffce1a' : signState[willSign].bgColor}};"
-    )
-      image.icon--active(
-        src="{{bigAwardMsg ? '/images/boxsp.svg' : signState[willSign].src}}"
-      )
-    view.award-card__title(
-      style="background: {{bigAwardMsg ? '#ffce1a' : signState[willSign].bgColor}};"
-    ) 恭喜
+  view.award-card(style="background: {{bigAwardMsg ? '#ffce1a' : signState[willSign].bgColor}};")
+    view.award-card__icon(style="background: {{bigAwardMsg ? '#ffce1a' : signState[willSign].bgColor}};")
+      image.icon--active(src="{{bigAwardMsg ? '/images/boxsp.svg' : signState[willSign].src}}")
+    view.award-card__title(style="background: {{bigAwardMsg ? '#ffce1a' : signState[willSign].bgColor}};") 恭喜
     view.award-card__content {{bigAwardMsg ? bigAwardMsg : awardMsg}}
 </template>
 
 <script>
   import wepy from 'wepy'
+
   export default class SignAwardComponent extends wepy.component {
     props = {
       willSign: {

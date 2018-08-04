@@ -4,14 +4,9 @@
     scroll-y)
     view.props-list__item(
       wx:for="{{aProps}}"
-      wx:key="{{item._id}}"
-    )
-      view.item-card(
-        style="background: {{item.bg}};"
-      )
-        image.item-card__icon(
-          src="{{item.iconSrc}}"
-        )
+      wx:key="{{item._id}}")
+      view.item-card(style="background: {{item.bg}};")
+        image.item-card__icon(src="{{item.iconSrc}}")
         view.item-card__info
           text {{item.full_name}}
           text.mark x
@@ -20,19 +15,14 @@
         text {{item.use}}
   view.props-share
     view.props-share__tips 分享到微信群，每个小伙伴点击进入后，双方可各得一个随机道具。
-    button.props-share__btn(
-      open-type="share"
-    ) 获取道具
+    button.props-share__btn(open-type="share") 获取道具
 </template>
 
 <script>
   import wepy from 'wepy'
   import SharePage from '@/extends/share'
 
-  import {
-    getProps,
-  } from '@/api'
-
+  import { getProps } from '@/api'
   import { connect } from 'wepy-redux'
 
   @connect({
@@ -40,7 +30,6 @@
       return state.userData.uid
     }
   })
-
   export default class PropsPage extends SharePage {
     config = {
       navigationBarTitleText: '道具箱',

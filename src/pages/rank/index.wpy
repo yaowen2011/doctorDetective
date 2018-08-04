@@ -3,55 +3,38 @@
     wx:if="{{!isGuess}}"
     previous-margin="40rpx"
     next-margin="40rpx"
-    @change="change"
-    @animationfinish="animationfinish"
-  )
+    @change="change")
     swiper-item.swiper-item
-      view.knowladge-rank__person(
-        class="{{current === 0 ? 'not_scale' : 'scale'}}"
-      )
+      view.knowladge-rank__person(class="{{current === 0 ? 'not_scale' : 'scale'}}")
         view.rank-top3
           view(
             wx:for="{{personalListTop3}}"
             wx:key="{{item._id}}"
-            class="rank-top3__{{index+1}}"
-          )
+            class="rank-top3__{{index+1}}")
             view.placeholder-bg
-            image.crown(
-              src="/images/crown{{index+1}}.svg"
-            )
-            image.avatar(
-              src="{{item.user.avatarUrl ? item.user.avatarUrl : '/images/avatar-default.svg'}}"
-            )
+            image.crown(src="/images/crown{{index+1}}.svg")
+            image.avatar(src="{{item.user.avatarUrl ? item.user.avatarUrl : '/images/avatar-default.svg'}}")
             view.medal
               view.medal__text {{index+1}}
             view.info
               text {{item.user.nickName}}
               text {{item.score}}分
-        scroll-view.rank-list(
-          scroll-y
-        )
+        scroll-view.rank-list(scroll-y)
           view.rank-item(
             wx:for="{{personalList}}"
             wx:key="{{item._id}}"
-            wx:if="{{index>2}}"
-          )
+            wx:if="{{index>2}}")
             text.rank-item__number {{index+1}}.
-            image.rank-item__avatar(
-              src="{{item.user.avatarUrl ? item.user.avatarUrl : '/images/avatar-default.svg'}}"
-            )
+            image.rank-item__avatar(src="{{item.user.avatarUrl ? item.user.avatarUrl : '/images/avatar-default.svg'}}")
             text.rank-item__nickName {{item.user.nickName}}
             text.rank-item__result {{item.score}}分
     swiper-item.swiper-item
-      view.knowladge-rank__hp(
-        class="{{current === 1 ? 'not_scale' : 'scale'}}"
-      )
+      view.knowladge-rank__hp(class="{{current === 1 ? 'not_scale' : 'scale'}}")
         view.rank-hp-top3
           view(
             wx:for="{{hpListTop3}}"
             wx:key="{{item._id}}"
-            class="rank-hp-top3__{{index+1}}"
-          )
+            class="rank-hp-top3__{{index+1}}")
             view.medal
               view.medal__text {{index+1}}
             view.hp-name
@@ -59,14 +42,11 @@
             view.hp-score
               text {{item.score}}
               text.unit 分
-        scroll-view.rank-hp-list(
-          scroll-y
-        )
+        scroll-view.rank-hp-list(scroll-y)
           view.rank-hp-item(
             wx:for="{{hpList}}"
             wx:key="{{item.key}}"
-            wx:if="{{index>2}}"
-          )
+            wx:if="{{index>2}}")
             view.rank-hp-item__number
               text {{index+1}}
             view.rank-hp-item__name
@@ -75,52 +55,36 @@
               text {{item.score}}
               text.unit 分
 
-  view.gold-rank(
-    wx:else
-  )
+  view.gold-rank(wx:else)
     view.rank-top3
       view(
         wx:for="{{goldListTop3}}"
         wx:key="{{item._id}}"
-        class="rank-top3__{{index+1}}"
-      )
+        class="rank-top3__{{index+1}}")
         view.placeholder-bg
-        image.crown(
-          src="/images/crown{{index+1}}.svg"
-        )
-        image.avatar(
-          src="{{item.user.avatarUrl ? item.user.avatarUrl : '/images/avatar-default.svg'}}"
-        )
+        image.crown(src="/images/crown{{index+1}}.svg")
+        image.avatar(src="{{item.user.avatarUrl ? item.user.avatarUrl : '/images/avatar-default.svg'}}")
         view.medal
           view.medal__text {{index+1}}
         view.info
           text {{item.user.nickName}}
           text {{item.gold}}金币
-    scroll-view.rank-list(
-      scroll-y
-    )
+    scroll-view.rank-list(scroll-y)
       view.rank-item(
         wx:for="{{goldList}}"
         wx:key="{{item._id}}"
-        wx:if="{{index>2}}"
-      )
+        wx:if="{{index>2}}")
         text.rank-item__number {{index+1}}.
-        image.rank-item__avatar(
-          src="{{item.user.avatarUrl ? item.user.avatarUrl : '/images/avatar-default.svg'}}"
-        )
+        image.rank-item__avatar(src="{{item.user.avatarUrl ? item.user.avatarUrl : '/images/avatar-default.svg'}}")
         text.rank-item__nickName {{item.user.nickName}}
         text.rank-item__result {{item.gold}}金币
 </template>
 
 <script>
   import wepy from 'wepy'
-  import {
-    postPersonalRank,
-    postHospitalRank,
-    postGuessRank
-  } from '@/api'
   import SharePage from '@/extends/share'
 
+  import { postPersonalRank, postHospitalRank, postGuessRank } from '@/api'
   import { connect } from 'wepy-redux'
 
   @connect({
@@ -131,7 +95,6 @@
       return state.userData.uid
     }
   })
-
   export default class RankPage extends SharePage {
     config = {
       navigationBarTitleText: '知识大通关排行榜'
@@ -152,8 +115,7 @@
       change (e) {
         let { current } = e.detail
         this.current = current
-      },
-      animationfinish () {}
+      }
     }
 
     onLoad (params) {
@@ -183,25 +145,26 @@
         }
         this.isGuess = true
 
-        if (type === 'drugs') {
-          wepy.setNavigationBarTitle({
-            title: '我药猜猜看排行榜'
-          })
-        }
-
-        if (type === 'bone') {
-          wepy.setNavigationBarTitle({
-            title: '解剖大作战排行榜'
-          })
-        }
-
-        if (type === 'muscle') {
-          wepy.setNavigationBarTitle({
-            title: '解剖大作战-世界杯特辑排行榜'
-          })
+        switch (type) {
+          case 'drugs':
+            wepy.setNavigationBarTitle({
+              title: '我药猜猜看排行榜'
+            })
+            break
+          case 'bone':
+            wepy.setNavigationBarTitle({
+              title: '解剖大作战排行榜'
+            })
+            break
+          case 'muscle':
+            wepy.setNavigationBarTitle({
+              title: '解剖大作战-世界杯特辑排行榜'
+            })
+            break
         }
 
         let { data: { list: goldList } } = await postGuessRank(params)
+
         this.goldListTop3 = goldList.slice(0, 3)
         this.goldList = goldList
         this.$apply()
@@ -217,6 +180,7 @@
       }
       let { data: { list: { data: list } } } = await postPersonalRank(params)
       let { data: { hp: { data: hpList } } } = await postHospitalRank(params)
+
       this.personalListTop3 = list.slice(0, 3)
       this.personalList = list
       this.hpListTop3 = hpList.slice(0, 3)

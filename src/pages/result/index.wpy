@@ -1,25 +1,17 @@
 <template lang="pug">
   view.result
-    image.result__avatar(
-      src="{{userInfo.avatarUrl ? userInfo.avatarUrl : '/images/avatar-default.svg'}}"
-    )
-    view.result__score(
-      wx:if="{{isShowFinalScore}}"
-    )
+    image.result__avatar(src="{{userInfo.avatarUrl ? userInfo.avatarUrl : '/images/avatar-default.svg'}}")
+    view.result__score(wx:if="{{isShowFinalScore}}")
       view.score-count
         text {{nowScore}}
         text.score-unit 分
       view.score-tip 本轮答题得分
-    view.result__bonus(
-      wx:else
-    )
+    view.result__bonus(wx:else)
       view.score-bonus
         text {{nowBonus}}
         text.score-unit 元
       view.score-tip 本轮答题奖金
-    view.result__finally(
-      wx:if="{{isShowFinalScore}}"
-    )
+    view.result__finally(wx:if="{{isShowFinalScore}}")
       view.finally-score
         text 答题累计得分：
         text.finally-score__count {{totalScore}}
@@ -27,30 +19,20 @@
       view.finally-honor
         text 目前所在级别：
         text {{honor}}
-    view.result__finally(
-      wx:else
-    )
+    view.result__finally(wx:else)
       view.finally-bonus
         text 当前奖金余额：
         text.finally-bonus__count {{totalBonus}}
         text 元
     view.result__receive-bonus(
       wx:if="{{!isOut}}"
-      @tap="getPaperBonus"
-    ) 领取奖金
+      @tap="getPaperBonus") 领取奖金
     navigator.result__receive-rank(
       wx:if="{{isShowFinalScore}}"
-      url="/pages/rank/index"
-    ) 查看实时榜单
-    view.result__operate(
-      wx:else
-    )
-      navigator.operate-rank(
-        url="/pages/rank/index"
-      ) 查看实时排行榜
-      navigator.operate-home(
-        url="/pages/home/home"
-      ) 返回首页
+      url="/pages/rank/index") 查看实时榜单
+    view.result__operate(wx:else)
+      navigator.operate-rank(url="/pages/rank/index") 查看实时排行榜
+      navigator.operate-home(url="/pages/home/home") 返回首页
     view.result__operate-btn
       form(
         report-submit=true
@@ -58,19 +40,14 @@
         button.reserve-btn(
           form-type="submit")
           text 预约下次答题
-      navigator.share-btn(
-        url="/pages/share/index?scence=answer"
-      ) 分享战绩
+      navigator.share-btn(url="/pages/share/index?scence=answer") 分享战绩
 </template>
 
 <script>
   import wepy from 'wepy'
-
-  import {
-    getBonus,
-    postFormId
-  } from '@/api'
   import SharePage from '@/extends/share'
+
+  import { getBonus, postFormId } from '@/api'
   import { connect } from 'wepy-redux'
 
   @connect({

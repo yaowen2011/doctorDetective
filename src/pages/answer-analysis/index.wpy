@@ -4,22 +4,17 @@
     swiper.analysis__swiper(
       indicator-dots
       indicator-color="#d7d7d7"
-      indicator-active-color="#1380ff"
-    )
+      indicator-active-color="#1380ff")
       swiper-item(
         wx:for="{{aQuestions}}"
-        wx:key="{{item._id}}"
-      )
-        scroll-view.swiper-item(
-          scroll-y
-        )
+        wx:key="{{item._id}}")
+        scroll-view.swiper-item(scroll-y)
           view.swiper-item__title {{index + 1}}. {{item.subject}} {{item.type === 2 ? '(多选)' : ''}}
           view.swiper-item__choice
             view.item-choice(
               wx:for="{{item.choice}}"
               wx:key="{{index}}"
-              class="{{item.isAnswer ? 'item-choice--active' : ''}}"
-            ) {{item.option}}. {{item.content}}
+              class="{{item.isAnswer ? 'item-choice--active' : ''}}") {{item.option}}. {{item.content}}
           view.swiper-item__analysis
             view.analysis-mark 解析:
             viwe.analysis-content {{item.analysis ? item.analysis : '暂无解析'}}
@@ -27,10 +22,7 @@
 
 <script>
   import wepy from 'wepy'
-
-  import {
-    postAnswerAnalysisByPid
-  } from '@/api'
+  import { postAnswerAnalysisByPid } from '@/api'
 
   export default class AnswerAnalysisPage extends wepy.page {
     config = {

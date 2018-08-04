@@ -6,21 +6,15 @@
         text.time {{expired_at}}
       navigator.answer-prepare-main__rule(
         hover-class="none"
-        url="/pages/rule/index"
-      )
+        url="/pages/rule/index")
         text.rule-icon ?
         text 活动规则
       navigator.answer-prepare-main__avatar(
         url="/pages/my/index"
-        hover-class="none"
-      )
-        image.avatar(
-          src="{{userInfo.avatarUrl ? userInfo.avatarUrl : '/images/avatar-default.svg'}}"
-        )
+        hover-class="none")
+        image.avatar(src="{{userInfo.avatarUrl ? userInfo.avatarUrl : '/images/avatar-default.svg'}}")
         text.nickname {{userInfo.nickName}}
-      navigator.answer-prepare-main__preview(
-        url="/pages/answer-peview/index"
-      )
+      navigator.answer-prepare-main__preview(url="/pages/answer-peview/index")
         view.preview-shadow
         view.preview-text 预习
       form.answer-prepare-main__form(
@@ -31,28 +25,17 @@
           form-type="submit")
           text {{(is_answer || expired) ? '预约下次答题' : '开始答题'}}
     view.answer-prepare__operate
-      button.comment-btn(
-        @tap="toggleComment"
-      )
+      button.comment-btn(@tap="toggleComment")
         text.text 参与热评
-        image.comment-icon(
-          src="/images/prepare-comment.svg"
-        )
-      navigator.rank-btn(
-        url="/pages/rank/index"
-      )
+        image.comment-icon(src="/images/prepare-comment.svg")
+      navigator.rank-btn( url="/pages/rank/index")
         text.text 查看排行
-        image.rank-icon(
-          src="/images/prepare-rank.svg"
-        )
+        image.rank-icon(src="/images/prepare-rank.svg")
 </template>
 
 <script>
   import wepy from 'wepy'
-  import {
-    postFormId,
-  } from '@/api'
-
+  import { postFormId } from '@/api'
   import { connect } from 'wepy-redux'
   import { fetchUserData } from '@/store/actions/user-data'
 
@@ -113,6 +96,7 @@
           content: '开始答题后，一旦中途退出，则成绩无效(详情请查看活动规则)。'
         })
         if (!modal.confirm) return
+
         wepy.navigateTo({
           url: `/pages/answer/index`
         })

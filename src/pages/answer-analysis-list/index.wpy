@@ -1,29 +1,16 @@
 <template lang="pug">
-  view.answer-analysis-list--none(
-    wx:if="{{!aPastAnswerAnalysis.length}}"
-  )
+  view.answer-analysis-list--none(wx:if="{{!aPastAnswerAnalysis.length}}")
     view.answer-analysis-list--none__tip 您暂时还没有参与过答题哦
     navigator.answer-analysis-list--none__home-btn(
       url="/pages/home/home"
-      open-type="redirect"
-    ) 返回主页参与答题
-  scroll-view.answer-analysis-list(
-    scroll-y
-  )
-    block(
+      open-type="redirect") 返回主页参与答题
+  view.answer-analysis-list(wx:esle)
+    navigator.answer-analysis-list__item(
       wx:for="{{aPastAnswerAnalysis}}"
       wx:key="{{item._id}}"
-    )
-      navigator.answer-analysis-list__item(
-        url="/pages/answer-analysis/index?pid={{item.pid}}&subject={{item.paper.subject}}"
-      )
-        text.time {{item.created_at}}
-        text {{item.paper.subject}}
-    view.answer-analysis-list__item.answer-analysis-list__item--more(
-      wx:if="{{totalPage !== 1}}"
-      @tap="loadMore"
-    )
-      text {{canLoadMore ? '查看更多...' : '暂无更多数据~'}}
+      url="/pages/answer-analysis/index?pid={{item.pid}}&subject={{item.paper.subject}}")
+      text.time {{item.created_at}}
+      text {{item.paper.subject}}
 </template>
 
 <script>
@@ -32,7 +19,9 @@
 
   export default class AnswerAnaysisListPage extends wepy.page {
     config = {
-      navigationBarTitleText: '往期答案解析'
+      navigationBarTitleText: '往期答案解析',
+      enablePullDownRefresh: true,
+      onReachBottomDistance: 50
     }
 
     data = {
@@ -42,25 +31,47 @@
       totalPage: 1,                         // 页码总数
     }
 
-    methods = {
-      /**
-       * loadMore
-       * 加载更多数据(分页操作)
-       */
-      async loadMore () {
-        if (!this.canLoadMore) return
+    methods = {}
 
+    async onLoad () {
+      let aPastAnswerAnalysis = await this.updatePastAnswerAnalysis()
+      this.aPastAnswerAnalysis = [...aPastAnswerAnalysis]
+      this.$apply()
+    }
+
+    // 下拉刷新
+    async onPullDownRefresh () {
+      this.isPullDownRefresh = true
+
+      let aPastAnswerAnalysis = await this.updatePastAnswerAnalysis()
+      let len = aPastAnswerAnalysis.length
+
+      this.aPastAnswerAnalysis.splice(0, len)
+      this.aPastAnswerAnalysis = [...aPastAnswerAnalysis, ...this.aPastAnswerAnalysis]
+      this.$apply()
+      await wepy.stopPullDownRefresh()
+      wepy.showToast({
+        title: '数据已更新',
+        icon: 'none',
+        mask: true,
+        duration: 600
+      })
+    }
+
+    // 上拉加载
+    async onReachBottom () {
+      if (!this.canLoadMore) {
+        wepy.showToast({
+          title: '暂无更多数据',
+          icon: 'none'
+        })
+        return
+      } else {
         this.currentPage++
         let aPastAnswerAnalysis = await this.updatePastAnswerAnalysis(this.currentPage)
         this.aPastAnswerAnalysis = [...this.aPastAnswerAnalysis, ...aPastAnswerAnalysis]
         this.$apply()
       }
-    }
-
-    async onLoad () {
-      let aPastAnswerAnalysis = await this.updatePastAnswerAnalysis(this.currentPage)
-      this.aPastAnswerAnalysis = [...aPastAnswerAnalysis]
-      this.$apply()
     }
 
     /**
@@ -131,6 +142,7 @@ page {
   align-items: center;
   justify-content: center;
 
+  width: inherit;
   height: inherit;
 
   &__tip {
@@ -161,6 +173,7 @@ page {
 }
 
 .answer-analysis-list {
+  width: inherit;
   height: inherit;
 
   &__item {
@@ -183,14 +196,14 @@ page {
     }
   }
 
-  &__item--more {
-    justify-content: center;
+  // &__item--more {
+  //   justify-content: center;
 
-    border-bottom: 0;
+  //   border-bottom: 0;
 
-    font-family: PingFangSC-Regular;
-    font-size: to(10);
-    color: #9b9b9b;
-  }
+  //   font-family: PingFangSC-Regular;
+  //   font-size: to(10);
+  //   color: #9b9b9b;
+  // }
 }
 </style>

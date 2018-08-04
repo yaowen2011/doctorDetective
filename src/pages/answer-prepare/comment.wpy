@@ -1,29 +1,23 @@
 <template lang="pug">
   view.comment
-    view.comment__model(
-      @tap="toggleComment")
-    view.comment__main(
-      @tap="toggleCommentEdit(false)")
-      view.comment_close_wrapper(
-        @tap="toggleComment")
+    view.comment__model(@tap="toggleComment")
+    view.comment__main(@tap="toggleCommentEdit(false)")
+      view.comment_close_wrapper(@tap="toggleComment")
         view.comment_close x
-      scroll-view.scroll_view(
-        scroll-y)
-        block(
+      scroll-view.scroll_view(scroll-y)
+        view.comment_item(
           wx:for="{{ comments }}"
           wx:key="{{ key }}")
-          view.comment_item
-            view.comment_user
-              image(
-                class="avatar"
-                src="{{item.user.avatar_url}}")
-              view.nickName  {{item.user.nickname}}
-            view.comment_content
-              view {{item.text}}
-            view.comment_time
-              view {{item.created_at}}
-    view.comment__edit(
-      wx:if="{{ isEditComment }}")
+          view.comment_user
+            image(
+              class="avatar"
+              src="{{item.user.avatar_url}}")
+            view.nickName  {{item.user.nickname}}
+          view.comment_content
+            view {{item.text}}
+          view.comment_time
+            view {{item.created_at}}
+    view.comment__edit(wx:if="{{ isEditComment }}")
       view
         input(
           class="comment_input"
@@ -34,8 +28,7 @@
           focus="{{ isInputFocus }}"
           @input="getInputValue"
           value="{{ inputValue }}")
-      view(
-        @tap="submitComment") 发布
+      view(@tap="submitComment") 发布
     view.comment__edit(
       wx:else
       @tap="toggleCommentEdit(true)")

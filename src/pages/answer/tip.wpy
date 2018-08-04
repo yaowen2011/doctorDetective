@@ -1,20 +1,13 @@
 <template lang="pug">
-  view.response-tip(
-    wx:if="{{isShowTip}}"
-  )
-    view.response-tip__content(
-      class="{{isCorrect ? '' : '.response-tip__content--error'}}"
-    ) {{tipcontent}}
-    view.response-tip__shadow(
-      class="{{isCorrect ? '' : '.response-tip__shadow--error'}}"
-    )
-    view.response-tip__triangle(
-      class="{{isCorrect ? '' : '.response-tip__triangle--error'}}"
-    )
+  view.response-tip(wx:if="{{isShowTip}}")
+    view.response-tip__content(class="{{isCorrect ? '' : '.response-tip__content--error'}}") {{tipcontent}}
+    view.response-tip__shadow(class="{{isCorrect ? '' : '.response-tip__shadow--error'}}")
+    view.response-tip__triangle(class="{{isCorrect ? '' : '.response-tip__triangle--error'}}")
 </template>
 
 <script>
   import wepy from 'wepy'
+
   export default class TipComponent extends wepy.component {
     data = {
       isShowTip: false,

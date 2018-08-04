@@ -8,44 +8,28 @@
         cursor-spacing=20
         @change="hospitalChange"
         @focus="inputFocus"
-        value="{{hospital}}"
-      )
-      view.proof-tip(
-        wx:if="{{hospitals.length}}"
-      )
-        scroll-view.proof-tip__list(
-          scroll-y
-        )
+        value="{{hospital}}")
+      view.proof-tip(wx:if="{{hospitals.length}}")
+        scroll-view.proof-tip__list(scroll-y)
           view.proof-tip__item(
             wx:for="{{hospitals}}"
             wx:key="{{index}}"
-            @tap="selectTip(0, {{item.name}})"
-          ) {{item.name}}
-        view.proof-tip__close-btn(
-          @tap="closeProofTip"
-        ) 关闭
+            @tap="selectTip(0, {{item.name}})") {{item.name}}
+        view.proof-tip__close-btn(@tap="closeProofTip") 关闭
     viwe.proof__department
       input.proof-input(
         placeholder="所在科室/专业"
         cursor-spacing=20
         @change="departmentChange"
         @focus="inputFocus"
-        value="{{department}}"
-      )
-      view.proof-tip(
-        wx:if="{{departments.length}}"
-      )
-        scroll-view.proof-tip__list(
-          scroll-y
-        )
+        value="{{department}}")
+      view.proof-tip(wx:if="{{departments.length}}")
+        scroll-view.proof-tip__list(scroll-y)
           view.proof-tip__item(
             wx:for="{{departments}}"
             wx:key="{{index}}"
-            @tap="selectTip(1, {{item.name}})"
-          ) {{item.name}}
-        view.proof-tip__close-btn(
-          @tap="closeProofTip"
-        ) 关闭
+            @tap="selectTip(1, {{item.name}})") {{item.name}}
+        view.proof-tip__close-btn(@tap="closeProofTip") 关闭
     view.proof__jobtitle
       view.jobtitle-label 职称选择
       view.jobtitle-list
@@ -53,23 +37,20 @@
           wx:for="{{jobtitles}}"
           wx:key="{{index}}"
           class="{{item === selectJobtitle ? 'jobtitle-item--active' : ''}}"
-          @tap="selectJobtitle({{item}})"
-        ) {{item}}
+          @tap="selectJobtitle({{item}})") {{item}}
     view.proof__warn * 为确保顺利通过审核，请务必认真填写信息
-    view.proof__confirm-btn(
-      @tap="submitProof") 提交
+    view.proof__confirm-btn(@tap="submitProof") 提交
 </template>
 
 <script>
   import wepy from 'wepy'
 
   import {
-    postInformation,
     getHospital,
-    getHospitalDepartment,
-    getInformation
+    getInformation,
+    postInformation,
+    getHospitalDepartment
   } from '@/api'
-
   import { connect } from 'wepy-redux'
 
   @connect({
@@ -77,7 +58,6 @@
       return state.userData.pid
     }
   })
-
   export default class InformationPage extends wepy.page {
     config = {
       navigationBarTitleText: '认证信息'

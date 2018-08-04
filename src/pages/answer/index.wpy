@@ -1,8 +1,6 @@
 <template lang='pug'>
   view.question
-    view.question__timer(
-      class="{{number > 10 ? 'question__timer--normal' : 'question__timer--denger'}}"
-    )
+    view.question__timer(class="{{number > 10 ? 'question__timer--normal' : 'question__timer--denger'}}")
       text {{number}}s
     view.question__options
       view.question-options-title
@@ -13,32 +11,25 @@
         wx:for="{{questions[index].choice}}"
         wx:key="{{index}}"
         class="{{item.checked ? '.question-options-item--active' : ''}} {{item.disabled ? 'question-options-item--disabled' : ''}}"
-        @tap="getAnswer({{item}}, {{index}})"
-      )
+        @tap="getAnswer({{item}}, {{index}})")
         text {{item.showOption}}. {{item.content}}
-    view.question__confirm-btn(
-      @tap="handleAnswer"
-    ) 提交答案
-    PropsBox(
-      :props.sync="props"
-    )
+    view.question__confirm-btn(@tap="handleAnswer") 提交答案
+    PropsBox(:props.sync="props")
     Tip
     XbResult(
       wx:if="{{isShowXbResult}}"
-      :groupUserAnswer.sync="groupUserAnswer"
-    )
+      :groupUserAnswer.sync="groupUserAnswer")
     DrWhyResult(
       wx:if="{{isShowDrWhyResult}}"
-      :optionList.sync="optionList"
-    )
+      :optionList.sync="optionList")
 </template>
 
 <script>
   import wepy from 'wepy'
-  import Tip from './tip'
-  import PropsBox from './propsBox'
-  import XbResult from './xbResult'
-  import DrWhyResult from './drWhyResult'
+  import Tip from './Tip'
+  import PropsBox from './PropsBox'
+  import XbResult from './XbResult'
+  import DrWhyResult from './DrWhyResult'
 
   import {
     getQuestions,

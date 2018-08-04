@@ -15,24 +15,16 @@
           @input="getAmount"
           type="digit"
           cursor-spacing=20
-          value="{{amount}}"
-        )
+          value="{{amount}}")
     view.withdraw__overage
       text 当前余额{{total_bonus}}元，
-      text.all(
-        @tap="getAllBouns"
-      ) 全部提现
-    view.withdraw__btn(
-      @tap="getCash"
-    ) 全部提现
+      text.all(@tap="getAllBouns") 全部提现
+    view.withdraw__btn(@tap="getCash") 全部提现
 </template>
 
 <script>
   import wepy from 'wepy'
-  import {
-    postCash,
-    postcheckUser
-  } from '@/api'
+  import { postCash, postcheckUser } from '@/api'
 
   export default class BounsPage extends wepy.page {
     config = {
@@ -71,8 +63,8 @@
                     amount: this.amount
                   }
                 }
-
                 let { data: { error_code } } = await postCash(params)
+
                 switch (error_code) {
                   case 0:
                     let { confirm } = await wepy.showModal({
@@ -119,11 +111,7 @@
 
     async checkUser () {
       let {data: { error_code }} = await postcheckUser({ method: 'POST' })
-      if (error_code === 0) {
-        return true
-      } else {
-        return false
-      }
+      return error_code ? true : false
     }
 
     // Promise化setTimeout

@@ -1,11 +1,9 @@
 <template lang="pug">
   view.rule
-    scroll-view.rule__list(
-      scroll-y)
+    scroll-view.rule__list(scroll-y)
       view.rule-list__item(
         wx:for="{{rules}}"
-        wx:key="index"
-      ) {{index+1}}. {{item}}
+        wx:key="index") {{index+1}}. {{item}}
 </template>
 
 <script>
@@ -25,10 +23,6 @@
       this.initData()
     }
 
-    /**
-     * initData
-     * 初始化页面数据
-     */
     async initData () {
       let { data } = await getRules()
       this.rules = data

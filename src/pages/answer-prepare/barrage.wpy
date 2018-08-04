@@ -1,25 +1,18 @@
 <template lang="pug">
   view.barrage
-    image.barrage__cover-img(
-      src="{{video.cover}}"
-    )
+    image.barrage__cover-img(src="{{video.cover}}")
     view#barrage__wall.barrage__wall(
       class="{{isShowBarrage ? '' : 'barrage__wall--hide'}}"
-      @tap="toggleBarrageBtn"
-    )
-      block(
+      @tap="toggleBarrageBtn")
+      view.barrage__wall-item(
         wx:for="{{comments}}"
         wx:key="{{index}}"
-      )
-        view.barrage__wall-item(
-          id="barrage{{index}}"
-          animation="{{animationDatas[index]}}"
-        ) {{item.text}}
+        id="barrage{{index}}"
+        animation="{{animationDatas[index]}}") {{item.text}}
     view.barrage__btn-control(
       wx:if="{{isShowBarrageBtn}}"
       class="{{isShowBarrage ? 'barrage__btn-control--active' : ''}}"
-      @tap="toggleBarrage"
-    ) 弹
+      @tap="toggleBarrage") 弹
 </template>
 
 <script>

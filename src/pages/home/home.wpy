@@ -1,38 +1,25 @@
 <template lang="pug">
-  view.bg(
-    wx:if="{{isSign}}"
-  )
+  view.bg(wx:if="{{isSign}}")
   Sign(
     wx:if="{{!isSign}}"
-    :share_uid.sync="share_uid"
-  )
-  HomeCard(
-    wx:else
-  )
-  view.poster(
+    :share_uid.sync="share_uid")
+  Card(wx:else)
+  Poster(
     wx:if="{{isPoster}}"
-    @tap="closePoster"
-  )
-    image.poster__img(
-      src="{{poster.url}}"
-    )
+    :poster.sync="poster"
+    @closePoster.user="closePoster")
 </template>
 
 <script>
   import wepy from 'wepy'
-  import Sign from './sign'
-  import HomeCard from './home-card'
+  import Sign from './Sign'
+  import Card from './Card'
+  import Poster from './Poster'
   import SharePage from '@/extends/share'
 
-  import {
-    getToken,
-    getPosterState
-  } from '@/api'
+  import { getToken, getPosterState } from '@/api'
   import { connect } from 'wepy-redux'
-  import {
-    fetchUserData,
-    fetchVideo
-  } from '@/store/actions/index'
+  import { fetchUserData, fetchVideo } from '@/store/actions/index'
 
   @connect({
     uid (state) {
@@ -59,7 +46,8 @@
 
     components = {
       Sign,
-      HomeCard
+      Card,
+      Poster
     }
 
     events = {
@@ -148,7 +136,6 @@ page {
 }
 
 .bg {
-  content: '';
   position: absolute;
   top: to(145);
   right: 0;
@@ -157,25 +144,5 @@ page {
   z-index: 9;
 
   background: #f5f5f5;
-}
-
-.poster {
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 99;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  width: 100%;
-  height: 100%;
-
-  background: rgba(74,74,74, 0.7);
-
-  &__img {
-    width: to(325);
-    height: to(500);
-  }
 }
 </style>
