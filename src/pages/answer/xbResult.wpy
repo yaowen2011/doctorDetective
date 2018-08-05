@@ -74,8 +74,7 @@
 .xb_card_title {
   margin: to(10);
 
-  font-family: PingFangSC-Regular;
-  font-size: to(12);
+  font: to(12) PingFangSC-Regular;
   color: #9b9b9b;
   text-align: center;
 }
@@ -98,15 +97,13 @@
   display: flex;
   flex-direction: column;
 
-  font-family: PingFangSC-Regular;
-  font-size: to(18);
+  font: to(18) PingFangSC-Regular;
   color: #4a4a4a;
 
   .xb_user_answer {
     margin-top: to(10);
 
-    font-family: PingFangSC-Medium;
-    font-size: to(14);
+    font: to(14) PingFangSC-Medium;
     color: #1480ff;
   }
 }

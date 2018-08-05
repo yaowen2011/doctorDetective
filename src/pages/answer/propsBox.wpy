@@ -332,8 +332,7 @@
     height: to(15);
     border-radius: 50%;
 
-    font-family: PingFangSC-Regular;
-    font-size: to(10);
+    font: to(10) PingFangSC-Regular;
     color: #fff;
 
     background: red;

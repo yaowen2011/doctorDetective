@@ -155,8 +155,7 @@ $videoHeight: to(210);
 
         background: #fff;
 
-        font-family: PingFangSC-Regular;
-        font-size: to(14);
+        font: to(14) PingFangSC-Regular;
         color: #9b9b9b;
       }
     }
@@ -172,8 +171,7 @@ $videoHeight: to(210);
         width: inherit;
         margin-bottom: to(10);
 
-        font-family: PingFangSC-Regular;
-        font-size: to(14);
+        font: to(14) PingFangSC-Regular;
 
         .comment_user {
           display: flex;
@@ -213,8 +211,7 @@ $videoHeight: to(210);
         }
 
         .comment_time {
-          font-family: PingFangSC-Light;
-          font-size: to(12);
+          font: to(12) PingFangSC-Light;
           color: #b2b2b2;
         }
       }

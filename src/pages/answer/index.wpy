@@ -658,8 +658,7 @@ page {
     height: to(35);
     border-radius: to(3) to(3) 0 0;
 
-    font-family: DINAlternate-Bold;
-    font-size: to(24);
+    font: to(24) DINAlternate-Bold;
     color: #fff;
 
     background: #50e2c1;
@@ -708,8 +707,7 @@ page {
     height: to(35);
     border-radius: to(3);
 
-    font-family: PingFangSC-Regular;
-    font-size: to(14);
+    font: to(14) PingFangSC-Regular;
     color: #fff;
 
     background: linear-gradient(90deg,
@@ -730,8 +728,7 @@ page {
   padding: to(15);
   border-bottom: 1px solid #d7d7d7;
 
-  font-family: PingFangSC-Medium;
-  font-size: to(18);
+  font: to(18) PingFangSC-Medium;
   color: #4a4a4a;
 }
 /* E 题干*/
@@ -745,8 +742,7 @@ page {
   margin: to(8) auto;
   border-radius: to(3);
 
-  font-family: PingFangSC-Regular;
-	font-size: to(14);
+  font: to(14) PingFangSC-Regular;
 	color: #4a4a4a;
 
   background: #f5f5f5;

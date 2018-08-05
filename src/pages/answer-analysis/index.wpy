@@ -152,8 +152,7 @@ page {
     height: to(65);
     border-radius: to(3) to(3) 0 0;
 
-    font-family: PingFangSC-Medium;
-    font-size: to(18);
+    font: to(18) PingFangSC-Medium;
     color: #fff;
 
     background: linear-gradient(135deg,
@@ -176,8 +175,7 @@ page {
   &__title {
     padding: to(15) to(10);
 
-    font-family: PingFangSC-Medium;
-    font-size: to(14);
+    font: to(14) PingFangSC-Medium;
     color: #4a4a4a;
     text-indent: to(10);
   }
@@ -203,8 +201,7 @@ page {
   padding: to(8) to(10);
   margin-bottom: to(8);
 
-  font-family: PingFangSC-Regular;
-  font-size: to(14);
+  font: to(14) PingFangSC-Regular;
   color: #4a4a4a;
   text-indent: to(15);
 
@@ -224,13 +221,11 @@ page {
 }
 
 .analysis-mark {
-  font-family: PingFangSC-Medium;
-  font-size: to(14);
+  font: to(14) PingFangSC-Medium;
 }
 
 .analysis-content {
-  font-family: PingFangSC-Regular;
-  font-size: to(12);
+  font: to(13) PingFangSC-Regular;
   line-height: 0;
   letter-spacing: 0;
 }

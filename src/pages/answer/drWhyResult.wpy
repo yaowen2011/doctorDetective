@@ -74,8 +74,7 @@
 .dr_card_title {
   margin: to(10);
 
-  font-family: PingFangSC-Regular;
-  font-size: to(12);
+  font: to(12) PingFangSC-Regular;
   color: #9b9b9b;
   text-align: center;
 }
@@ -96,8 +95,7 @@
   height: to(25);
   margin-right: to(10);
 
-  font-family: PingFangSC-Medium;
-  font-size: to(14);
+  font: to(14) PingFangSC-Medium;
   color: #1480ff;
 }
 
@@ -116,8 +114,7 @@
   height: 100%;
   border-radius: to(3);
 
-  font-family: PingFangSC-Medium;
-  font-size: to(10);
+  font: to(10) PingFangSC-Medium;
   color: #fff;
   text-align: center;
 

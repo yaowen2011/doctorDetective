@@ -23,6 +23,8 @@ export default class PosterComponent extends wepy.component {
 </script>
 
 <style lang="scss">
+@import '../../scss/main.scss';
+
 .poster {
   position: fixed;
   top: 0;

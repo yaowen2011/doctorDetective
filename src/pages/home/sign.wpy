@@ -104,7 +104,7 @@
         }
 
         await getUserInfo({ data: { iv, encryptedData } })
-        let { data: { LX: continuousCount, bmsg: bigAwardMsg, msg: awardMsg, error, sign_log } } = await getSign({method: 'POST'})
+        let { data: { LX: continuousCount, bmsg: bigAwardMsg, msg: awardMsg, error, sign_log } } = await getSign({ method: 'POST' })
         if (error !== 0) return
         this.isSignAward = true
 

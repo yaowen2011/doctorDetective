@@ -148,8 +148,7 @@ page {
   &__tip {
     margin-bottom: to(10);
 
-    font-family: PingFangSC-Regular;
-    font-size: to(10);
+    font: to(10) PingFangSC-Regular;
     color: #9b9b9b;
   }
 
@@ -162,8 +161,7 @@ page {
     height: to(25);
     border-radius: to(3);
 
-    font-family: PingFangSC-Regular;
-    font-size: to(14);
+    font: to(14) PingFangSC-Regular;
     color: #fff;
 
     background: linear-gradient(135deg,
@@ -184,8 +182,7 @@ page {
     padding: to(22) to(15);
     border-bottom: 1px solid #d7d7d7;
 
-    font-family: PingFangSC-Regular;
-	  font-size: to(14);
+    font: to(14) PingFangSC-Regular;
     color: #4a4a4a;
 
     .time {
@@ -195,15 +192,5 @@ page {
       color: #9b9b9b;
     }
   }
-
-  // &__item--more {
-  //   justify-content: center;
-
-  //   border-bottom: 0;
-
-  //   font-family: PingFangSC-Regular;
-  //   font-size: to(10);
-  //   color: #9b9b9b;
-  // }
 }
 </style>

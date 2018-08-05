@@ -58,8 +58,7 @@
     padding: to(5);
     border-radius: 50%;
 
-    font-family: PingFangSC-Semibold;
-    font-size: to(10);
+    font: to(10) PingFangSC-Semibold;
     color: #fff;
     text-align: center;
 

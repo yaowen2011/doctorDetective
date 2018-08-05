@@ -108,8 +108,7 @@ page {
   height: to(160);
   margin: 0 auto to(15) auto;
 
-  font-family: PingFangSC-medium;
-  font-size: to(18);
+  font: to(18) PingFangSC-Medium;
   color: #464f51;
 
   &::after {
@@ -162,8 +161,7 @@ page {
     padding-top: to(27);
     border-radius: to(12);
 
-    font-family: PingFangSC-Regular;
-    font-size: to(12);
+    font: to(12) PingFangSC-Regular;
     color: #464f51;
 
     background: #fff;
@@ -179,8 +177,7 @@ page {
     margin-bottom: to(10);
 
     .unit {
-      font-family: PingFangSC-Semibold;
-      font-size: to(24);
+      font: to(24) PingFangSC-Semibold;
       color: #1480ff;
     }
   }
@@ -207,8 +204,7 @@ page {
     border-radius: to(6);
     margin-bottom: to(8);
 
-    font-family: PingFangSC-Medium;
-    font-size: to(24);
+    font: to(24) PingFangSC-Medium;
     color: #fff;
 
     &::after {
@@ -292,8 +288,7 @@ page {
     width: to(58);
     margin-left: to(10);
 
-    font-family: PingFangSC-Medium;
-    font-size: to(24);
+    font: to(24) PingFangSC-Medium;
     color: #fff;
   }
 }
@@ -312,8 +307,7 @@ page {
   }
 
   .text {
-    font-family: PingFangSC-Semibold;
-    font-size: to(12);
+    font: to(12) PingFangSC-Semibold;
   }
 }
 </style>
